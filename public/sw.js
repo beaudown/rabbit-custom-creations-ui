@@ -9,6 +9,7 @@ const STATIC_ASSETS = [
   scopedPath("creation-skill/manifest.json"),
   scopedPath("creation-skill/creation-launcher.json"),
   scopedPath("creation-skill/first-run-readiness.md"),
+  scopedPath("creation-skill/enablement-guide.md"),
   scopedPath("creation-skill/broker-service-guide.md"),
   scopedPath("creation-skill/custom-skill-uploader.md"),
   scopedPath("creation-skill/instructions.md"),

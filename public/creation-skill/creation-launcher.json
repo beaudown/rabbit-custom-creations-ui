@@ -11,6 +11,7 @@
   "startupOrder": [
     "load_creation_manifest",
     "run_first_run_readiness_check",
+    "read_enablement_guide",
     "open_or_embed_hosted_pwa",
     "load_cached_guides",
     "detect_broker_bridge",
@@ -20,6 +21,7 @@
   ],
   "modules": [
     "superuser_actions",
+    "enablement_guide",
     "bridge_routing",
     "broker_service_control",
     "custom_skill_uploader",
@@ -79,5 +81,7 @@
     "preferHostedPwaForHeavyUi": true,
     "cacheGuidesForOfflineUse": true,
     "firstRunReadinessGuide": "first-run-readiness.md"
+    ,
+    "enablementGuide": "enablement-guide.md"
   }
 }

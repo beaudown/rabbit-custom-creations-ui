@@ -398,6 +398,51 @@ const readinessSteps = [
   "Skill upload",
 ];
 
+const enablementWizardSteps = [
+  {
+    title: "Open Creation",
+    action: "Run First Run / Readiness Check.",
+    expect: "Launcher files, guides, templates, and cache support are visible.",
+    blocker: "Missing launcher, guide, template, service worker, or Cache API support.",
+  },
+  {
+    title: "Detect Route",
+    action: "Tap Detect broker bridge and read the route target.",
+    expect: "Route is Mac fallback or Rabbit on-device broker with blockers shown.",
+    blocker: "Unknown route target or execution claim without audit evidence.",
+  },
+  {
+    title: "Check Services",
+    action: "Run Service Control status, then refresh_routes.",
+    expect: "Bridge and broker status are returned with dry-run audit evidence.",
+    blocker: "Service claims start, stop, restart, or privilege without broker approval.",
+  },
+  {
+    title: "Prepare SU",
+    action: "Select Temporary SU Bootstrap and fill required variables.",
+    expect: "Dry-run request shows privilegedExecutionPerformed=false.",
+    blocker: "Missing request variables or no dry-run result.",
+  },
+  {
+    title: "Approve Gate",
+    action: "Confirm current device state, broker identity, rollback note, and explicit approval.",
+    expect: "Broker records approval for one allowlisted current-boot action.",
+    blocker: "Persistent change, OTA risk, slot change, flash, erase, or bypassed approval.",
+  },
+  {
+    title: "Use And Audit",
+    action: "Run one allowlisted action, then inspect the audit result.",
+    expect: "Audit records request, route, decision, result, changed items, and rollback clues.",
+    blocker: "Device restarted, missing audit ID, or unknown result.",
+  },
+  {
+    title: "Disable Or Recover",
+    action: "Reboot to clear temporary state and search audit/rollback help.",
+    expect: "Temporary access is cleared on restart and logs explain next checks.",
+    blocker: "No matching audit evidence; label unknown instead of guessing.",
+  },
+];
+
 const superuserActionPlan = [
   {
     step: "Import",
@@ -865,6 +910,8 @@ export default function Home() {
   const [skillUploadPreview, setSkillUploadPreview] = useState("Upload .txt, .csv, .md, .json, .yaml, .pdf, or .zip skill files.");
   const [readinessStatus, setReadinessStatus] = useState("First-run check not started");
   const [readinessPreview, setReadinessPreview] = useState("Run readiness before relying on offline cache or broker routing.");
+  const [wizardStep, setWizardStep] = useState(0);
+  const [wizardChecks, setWizardChecks] = useState<Record<string, boolean>>({});
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -947,9 +994,29 @@ export default function Home() {
   const leasePairingQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=${encodeURIComponent(
     leasePairingUrl,
   )}`;
+  const currentWizardStep = enablementWizardSteps[wizardStep];
+  const wizardRequest = {
+    schemaVersion: 1,
+    requestId: "wizard-temporary-su-dry-run",
+    action: "request_temporary_privilege_session",
+    dryRun: true,
+    routeTargetKnown: Boolean(wizardChecks.routeTargetKnown),
+    readinessComplete: Boolean(wizardChecks.readinessComplete),
+    serviceStatusChecked: Boolean(wizardChecks.serviceStatusChecked),
+    requiredVariablesFilled: Boolean(wizardChecks.requiredVariablesFilled),
+    approvalReady: Boolean(wizardChecks.approvalReady),
+    auditReady: Boolean(wizardChecks.auditReady),
+    blockersReviewed: Boolean(wizardChecks.blockersReviewed),
+    expectedScope: "current_boot_cycle_ram_only_until_restart",
+    persistenceExpected: false,
+  };
 
   function updatePromptValue(name: string, value: string) {
     setPromptValues((current) => ({ ...current, [name]: value }));
+  }
+
+  function setWizardCheck(name: string, checked: boolean) {
+    setWizardChecks((current) => ({ ...current, [name]: checked }));
   }
 
   async function queueToMacBroker() {
@@ -1514,6 +1581,120 @@ export default function Home() {
           </button>
           <div className="queueStatus">{readinessStatus}</div>
           <pre className="requestPreview">{readinessPreview}</pre>
+        </section>
+
+        <section className="pwaPanel" aria-label="Temporary SU enablement wizard">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Enablement Wizard</p>
+              <h2>Temporary SU</h2>
+            </div>
+            <span>
+              {wizardStep + 1}/{enablementWizardSteps.length}
+            </span>
+          </div>
+          <p>
+            Walk through single-boot temporary permission setup without skipping
+            dry run, route selection, service status, approval, or audit checks.
+          </p>
+          <div className="stepRail">
+            <div className="stepPill">
+              <span>{wizardStep + 1}</span>
+              <strong>{currentWizardStep.title}</strong>
+            </div>
+          </div>
+          <div className="playbookItem">
+            <dl>
+              <div>
+                <dt>Action</dt>
+                <dd>{currentWizardStep.action}</dd>
+              </div>
+              <div>
+                <dt>Expect</dt>
+                <dd>{currentWizardStep.expect}</dd>
+              </div>
+              <div>
+                <dt>Stop If</dt>
+                <dd>{currentWizardStep.blocker}</dd>
+              </div>
+            </dl>
+          </div>
+          <div className="toggleList" aria-label="Wizard checks">
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.readinessComplete)}
+                onChange={(event) => setWizardCheck("readinessComplete", event.target.checked)}
+              />
+              Readiness complete
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.routeTargetKnown)}
+                onChange={(event) => setWizardCheck("routeTargetKnown", event.target.checked)}
+              />
+              Route target known
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.serviceStatusChecked)}
+                onChange={(event) => setWizardCheck("serviceStatusChecked", event.target.checked)}
+              />
+              Service status checked
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.requiredVariablesFilled)}
+                onChange={(event) => setWizardCheck("requiredVariablesFilled", event.target.checked)}
+              />
+              Request variables filled
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.approvalReady)}
+                onChange={(event) => setWizardCheck("approvalReady", event.target.checked)}
+              />
+              Approval gate ready
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.auditReady)}
+                onChange={(event) => setWizardCheck("auditReady", event.target.checked)}
+              />
+              Audit lookup ready
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(wizardChecks.blockersReviewed)}
+                onChange={(event) => setWizardCheck("blockersReviewed", event.target.checked)}
+              />
+              Blockers reviewed
+            </label>
+          </div>
+          <pre className="requestPreview">{JSON.stringify(wizardRequest, null, 2)}</pre>
+          <div className="composerActions">
+            <button
+              onClick={() => setWizardStep((step) => Math.max(0, step - 1))}
+            >
+              Back
+            </button>
+            <button
+              className="solid"
+              onClick={() =>
+                setWizardStep((step) =>
+                  Math.min(enablementWizardSteps.length - 1, step + 1),
+                )
+              }
+            >
+              Next
+            </button>
+          </div>
         </section>
 
         <section className="actionPlanPanel" aria-label="Superuser step-by-step actions">

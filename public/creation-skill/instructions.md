@@ -16,6 +16,12 @@ On first launch, read `first-run-readiness.md` and run the readiness check
 before relying on offline mode or broker routing. If readiness is partial, keep
 the tool in guide-only or dry-run mode and show the missing assets/endpoints.
 
+For temporary single-boot superuser enablement, read `enablement-guide.md` and
+present it as an interactive wizard. Show one step at a time with action,
+expected result, stop condition, checkboxes, and a generated dry-run request
+summary. The wizard may prepare a request; it must not claim temporary SU is
+active until a broker has approved and audited it.
+
 This tool includes the Rabbit on-device broker and the bridge to that broker.
 It should also read the Rabbit gateway connector, OpenClaw gateway, and Hermes
 gateway roles from `broker/gateway-topology.json` when explaining routing or

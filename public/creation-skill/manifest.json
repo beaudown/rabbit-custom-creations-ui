@@ -6,6 +6,7 @@
   "entrypoint": "instructions.md",
   "creationLauncher": "creation-launcher.json",
   "firstRunReadiness": "first-run-readiness.md",
+  "enablementGuide": "enablement-guide.md",
   "brokerServiceGuide": "broker-service-guide.md",
   "customSkillUploader": "custom-skill-uploader.md",
   "usbStorageGuide": "usb-storage-guide.md",

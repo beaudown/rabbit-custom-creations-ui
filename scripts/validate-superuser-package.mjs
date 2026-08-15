@@ -65,6 +65,7 @@ if (creationManifest) {
     ["entrypoint", creationManifest.entrypoint],
     ["creationLauncher", creationManifest.creationLauncher],
     ["firstRunReadiness", creationManifest.firstRunReadiness],
+    ["enablementGuide", creationManifest.enablementGuide],
     ["brokerServiceGuide", creationManifest.brokerServiceGuide],
     ["customSkillUploader", creationManifest.customSkillUploader],
     ["usbStorageGuide", creationManifest.usbStorageGuide],
