@@ -63,6 +63,11 @@ broker is preferred whenever it is running and validated. The Mac broker yields
 to the Rabbit broker and acts as fallback/bootstrap authority only when the
 Rabbit broker is absent, not installed, or not yet privileged.
 
+Leases default to 24 hours. This is long enough for a full development day while
+still giving the system a clear ownership boundary. The Rabbit-native broker may
+renew or retain its lease after Mac bootstrap so the Rabbit remains useful when
+fully remote.
+
 ## Sync Contract
 
 Both brokers also use `public/broker/sync-manifest.json` for queue paths and

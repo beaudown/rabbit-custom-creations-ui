@@ -17,6 +17,8 @@
     "sessionTtlSeconds": 600,
     "temporaryPrivilegeLifetime": "until_reboot",
     "initialAuthorizationTiming": "after_device_restart",
+    "brokerLeaseTtlSeconds": 86400,
+    "rabbitBrokerMayOperateWithoutMacAfterBootstrap": true,
     "creationSideEscalatedPrivilegeRequests": true,
     "brokerSideExecutionRequired": true,
     "macbookRequired": false,

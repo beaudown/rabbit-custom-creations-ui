@@ -48,6 +48,7 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(health.ok, true);
     assert.equal(health.privilegedExecutionEnabled, false);
     assert.equal(health.containsRootPayload, false);
+    assert.equal(health.leaseTtlSeconds, 86400);
 
     const leaseResponse = await fetch(`${baseUrl}/lease`, {
       method: "POST",
@@ -56,6 +57,10 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(leaseResponse.status, 200);
     const leaseBody = await leaseResponse.json();
     assert.equal(leaseBody.coordination.activeLease.holder, "mac-local-test");
+    const leaseMs =
+      Date.parse(leaseBody.coordination.activeLease.expiresAt) -
+      Date.parse(leaseBody.coordination.activeLease.acquiredAt);
+    assert.ok(leaseMs >= 86_300_000);
 
     const requestResponse = await fetch(`${baseUrl}/requests`, {
       method: "POST",

@@ -8,7 +8,7 @@ runtime.
 ## Role
 
 - Register Mac broker presence in `public/broker/broker-coordination.json`.
-- Hold a short lease before writing execution results.
+- Hold a 24-hour lease before writing execution results.
 - Queue or deny requests using the same policy fields as the Rabbit broker.
 - Write audit records to `public/broker/audit-log.jsonl`.
 - Coordinate bootstrap requests for a future Rabbit-native broker.
@@ -39,12 +39,18 @@ Rabbit restart. The Mac fallback broker may coordinate the initial restart-time
 authorization, then the Rabbit-native broker becomes the local caller for
 allowed privileged operations while that restart-scoped state exists.
 
+After this bootstrap, the Rabbit-native broker should not require the Mac broker
+to stay reachable. If the Rabbit broker can renew or hold its own 24-hour lease,
+it remains the active local authority until restart, explicit denial, or lease
+replacement by a validated policy.
+
 ## Lease Behavior
 
-Only the active lease holder may write execution results. If the Rabbit-native
-broker is live and holding the lease, the Mac broker must yield. If no Rabbit
-broker is present, the Mac broker may hold the lease temporarily for request
-intake, approval state, audit logging, and bootstrap coordination.
+Only the active lease holder may write execution results. The default lease is
+24 hours. If the Rabbit-native broker is live and holding the lease, the Mac
+broker must yield. If no Rabbit broker is present, the Mac broker may hold the
+lease for request intake, approval state, audit logging, and bootstrap
+coordination.
 
 ## Start Locally
 

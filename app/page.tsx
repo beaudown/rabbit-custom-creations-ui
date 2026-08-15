@@ -151,6 +151,7 @@ const brokerSettings = [
   { label: "Warn at", value: "1,200" },
   { label: "Archive chunks", value: "500" },
   { label: "SU lifetime", value: "Until reboot" },
+  { label: "Lease", value: "24 hours" },
 ];
 
 const brokerStatus = [

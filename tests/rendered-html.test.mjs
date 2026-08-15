@@ -29,6 +29,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Broker Log/);
   assert.match(source, /1,500 active records/);
   assert.match(source, /Until reboot/);
+  assert.match(source, /24 hours/);
   assert.match(source, /Warn at 1,200/);
   assert.match(source, /Archive 500/);
   assert.match(source, /No secrets/);
@@ -123,6 +124,8 @@ test("sync manifest defines shared GitHub queue contract", async () => {
   assert.equal(manifest.paths.outbox, "broker/queue/outbox");
   assert.equal(manifest.rules.oneRequestPerFile, true);
   assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
+  assert.equal(manifest.rules.defaultLeaseTtlSeconds, 86400);
+  assert.equal(manifest.rules.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.ok(manifest.requestStates.includes("queued"));
   assert.ok(manifest.requestStates.includes("dead_letter"));
 });
@@ -163,6 +166,9 @@ test("rabbit-native broker spec is explicit about install status", async () => {
   assert.equal(spec.safetyDefaults.defaultSessionLifetime, "until_reboot");
   assert.equal(spec.safetyDefaults.initialAuthorizationTiming, "after_device_restart");
   assert.equal(spec.safetyDefaults.rebootClearsTemporaryPrivilege, true);
+  assert.equal(spec.leasePolicy.defaultLeaseTtlSeconds, 86400);
+  assert.equal(spec.leasePolicy.macLocalBrokerRequiredAfterBootstrap, false);
+  assert.equal(spec.leasePolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.ok(spec.privilegedRequestClasses.includes("prepare_adb_tcpip_request"));
 });
 
@@ -188,9 +194,15 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(config.bootstrapRole.containsRootPayload, false);
   assert.equal(config.executionPolicy.privilegedExecutionEnabled, false);
   assert.equal(config.executionPolicy.temporaryPrivilegeLifetime, "until_reboot");
+  assert.equal(config.defaultLeaseTtlSeconds, 86400);
+  assert.equal(config.executionPolicy.defaultLeaseTtlSeconds, 86400);
+  assert.equal(config.bootstrapRole.rabbitNativeBrokerMayOperateWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.enabled, true);
+  assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 86400);
+  assert.equal(coordination.singleWriterPolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.equal(coordination.rules.macBrokerMayBootstrapRabbitBroker, true);
   assert.equal(coordination.rules.macBrokerMayBootstrapRestartScopedPrivilegeSession, true);
+  assert.equal(coordination.rules.rabbitBrokerMayOperateWithoutMacAfterBootstrap, true);
   assert.equal(coordination.rules.macBrokerMayNotOverrideActiveRabbitBroker, true);
 });
 

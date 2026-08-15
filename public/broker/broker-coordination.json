@@ -4,9 +4,12 @@
   "status": "seed",
   "singleWriterPolicy": {
     "enabled": true,
-    "leaseTtlSeconds": 120,
+    "leaseTtlSeconds": 86400,
+    "leaseLabel": "24_hour_day_lease",
+    "renewalPolicy": "renew_on_broker_heartbeat_or_request",
     "executionResultWriter": "active_lease_holder",
-    "denyExecutionWithoutLease": true
+    "denyExecutionWithoutLease": true,
+    "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true
   },
   "preferredExecutorOrder": [
     "rabbit-native",
@@ -38,6 +41,7 @@
     "githubIsSharedStateNotExecutor": true,
     "macBrokerMayBootstrapRabbitBroker": true,
     "macBrokerMayBootstrapRestartScopedPrivilegeSession": true,
+    "rabbitBrokerMayOperateWithoutMacAfterBootstrap": true,
     "macBrokerMayNotOverrideActiveRabbitBroker": true,
     "privilegedExecutionRequiresSeparateLiveAuthorization": true,
     "initialLiveAuthorizationTiming": "after_device_restart",

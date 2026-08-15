@@ -8,7 +8,7 @@ import { randomUUID } from "node:crypto";
 const root = process.cwd();
 const port = Number.parseInt(process.env.MAC_BROKER_PORT || "8792", 10);
 const brokerId = process.env.MAC_BROKER_ID || `mac-local-${hostname()}`;
-const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "120", 10);
+const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "86400", 10);
 
 const paths = {
   auditLog: join(root, "public/broker/audit-log.jsonl"),
@@ -187,6 +187,7 @@ async function handleRequest(request, response) {
       role: "mac-local-fallback",
       privilegedExecutionEnabled: false,
       containsRootPayload: false,
+      leaseTtlSeconds,
       coordinationStatus: coordination?.status || "missing",
     });
     return;

@@ -55,5 +55,13 @@
     "rebootClearsTemporaryPrivilege": true,
     "persistentChangeDefault": false,
     "auditEveryRequest": true
+  },
+  "leasePolicy": {
+    "defaultLeaseTtlSeconds": 86400,
+    "leaseLabel": "24_hour_day_lease",
+    "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
+    "macLocalBrokerBootstrapRequiredInitially": true,
+    "macLocalBrokerRequiredAfterBootstrap": false,
+    "temporaryPrivilegeStillExpiresOnRestart": true
   }
 }

@@ -20,6 +20,9 @@ request state portable without requiring GitHub Pages to execute anything.
 - GitHub can store and sync requests, prompts, templates, logs, and exports.
 - GitHub cannot execute privileged actions.
 - Execution-result writes require the active broker lease.
+- Broker leases default to 24 hours.
+- After Mac bootstrap, the Rabbit-native broker may continue without Mac
+  reachability if it holds or renews the active lease.
 - Audit records remain append-only and must not contain secrets.
 
 ## Export

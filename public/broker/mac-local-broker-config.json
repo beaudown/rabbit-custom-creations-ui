@@ -11,6 +11,7 @@
   "sharedAuditLog": "broker/audit-log.jsonl",
   "sharedTemplates": "broker/request-templates/",
   "sharedQueueInbox": "broker/queue/inbox/",
+  "defaultLeaseTtlSeconds": 86400,
   "localApi": {
     "preferredBaseUrl": "http://127.0.0.1:8792",
     "endpoints": [
@@ -26,6 +27,8 @@
     "mayCoordinateRabbitNativeInstall": true,
     "mayQueuePrivilegeBootstrapRequest": true,
     "mayBootstrapRestartScopedPrivilegeSession": true,
+    "mayBootstrapRabbitNativeBrokerEscalation": true,
+    "rabbitNativeBrokerMayOperateWithoutMacAfterBootstrap": true,
     "mayWritePresenceForRemoteBroker": true,
     "mayWriteAuditRecords": true,
     "containsRootPayload": false,
@@ -34,6 +37,7 @@
   "executionPolicy": {
     "singleWriterLeaseRequired": true,
     "yieldToRabbitNativeBroker": true,
+    "defaultLeaseTtlSeconds": 86400,
     "privilegedExecutionEnabled": false,
     "requiresSeparateLiveDeviceAuthorization": true,
     "initialLiveAuthorizationTiming": "after_device_restart",

@@ -18,6 +18,8 @@ developer workflows.
   values come from, and what those values mean.
 - Show the GitHub sync contract, including queue inbox/outbox paths, request
   states, and the export bundle path.
+- Explain that broker leases default to 24 hours and that Rabbit-native broker
+  operation should not depend on Mac reachability after bootstrap.
 
 ## What this Creation must not claim
 

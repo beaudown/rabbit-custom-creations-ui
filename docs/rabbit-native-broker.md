@@ -103,3 +103,14 @@ The missing piece is a validated, OTA-safe way to install and run this broker on
 rabbitOS 2.3 with the required privileges. Until that exists, the Creation can
 prepare requests and GitHub can store data, but no on-device elevated action can
 truthfully be marked live.
+
+## Lease Duration
+
+Broker leases default to 24 hours. The lease controls which broker may write
+execution results; it is separate from temporary privilege lifetime. Temporary
+privilege remains restart-scoped and clears on Rabbit restart.
+
+The Mac fallback broker is expected to bootstrap the Rabbit-native broker
+initially. After that, the Rabbit-native broker should be able to request or
+renew temporary access locally and continue operating while fully remote,
+without requiring the Mac broker to be reachable.

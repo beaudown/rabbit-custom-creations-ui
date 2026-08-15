@@ -107,11 +107,16 @@ Default local API:
 http://127.0.0.1:8792
 ```
 
-It can record presence, acquire a short lease, queue/deny/approve requests, and
+It can record presence, acquire a 24-hour lease, queue/deny/approve requests, and
 append audit records. Privileged execution remains disabled until a separate
 live Rabbit authorization path is validated. Temporary privilege sessions are
 modeled as restart-scoped: initial authorization after a device restart, then
 expiry on the next restart.
+
+After Mac fallback bootstrap, the Rabbit-native broker is expected to keep
+working without Mac reachability for the current validated session. The broker
+lease and the temporary privilege lifetime are separate: the lease defaults to
+24 hours, while temporary elevated state still clears on Rabbit restart.
 
 The UI request composer can post a completed dry-run request to the Mac broker
 at `http://127.0.0.1:8792/requests` when that broker is running.
