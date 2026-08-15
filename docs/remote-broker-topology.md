@@ -68,6 +68,12 @@ still giving the system a clear ownership boundary. The Rabbit-native broker may
 renew or retain its lease after Mac bootstrap so the Rabbit remains useful when
 fully remote.
 
+Lease state is only the shared-write coordination layer. It must not be treated
+as the switch for the Rabbit-native broker's RAM/current-boot temporary
+superuser facility. Once bootstrapped and validated, Rabbit-local superuser
+calls should remain available for the current boot cycle regardless of Mac
+reachability.
+
 ## Sync Contract
 
 Both brokers also use `public/broker/sync-manifest.json` for queue paths and

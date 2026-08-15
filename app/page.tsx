@@ -886,7 +886,8 @@ export default function Home() {
           <p>
             Rabbit and Mac brokers read the same queue folders. GitHub stores
             requests and exports, but execution still belongs to the active
-            broker lease holder.
+            broker lease holder. Rabbit-local SU remains current-boot scoped and
+            is not gated by Mac reachability after bootstrap.
           </p>
           <div className="syncGrid">
             {syncPaths.map((item) => (
@@ -919,7 +920,7 @@ export default function Home() {
             <span>Rabbit primary</span>
             <strong>native local executor target</strong>
             <span>Mac fallback</span>
-            <strong>restart-scoped SU bootstrap</strong>
+            <strong>bootstrap only; Rabbit SU stays local</strong>
           </div>
           <div className="rootGrid">
             {rootRequestButtons.map((label) => (

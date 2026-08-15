@@ -25,7 +25,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /always-with-device/);
   assert.match(source, /Mac broker/);
   assert.match(source, /fallback bootstrap authority/);
-  assert.match(source, /restart-scoped SU bootstrap/);
+  assert.match(source, /bootstrap only; Rabbit SU stays local/);
   assert.match(source, /Broker Log/);
   assert.match(source, /1,500 active records/);
   assert.match(source, /Until reboot/);
@@ -54,6 +54,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Download sync export/);
   assert.match(source, /broker\/queue\/inbox/);
   assert.match(source, /dead_letter/);
+  assert.match(source, /not gated by Mac reachability after bootstrap/);
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 
@@ -126,6 +127,8 @@ test("sync manifest defines shared GitHub queue contract", async () => {
   assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
   assert.equal(manifest.rules.defaultLeaseTtlSeconds, 86400);
   assert.equal(manifest.rules.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
+  assert.equal(manifest.rules.leaseControlsExecutionResultWritesOnly, true);
+  assert.equal(manifest.rules.leaseDoesNotGateRabbitNativeSuperuserSession, true);
   assert.ok(manifest.requestStates.includes("queued"));
   assert.ok(manifest.requestStates.includes("dead_letter"));
 });
@@ -169,6 +172,11 @@ test("rabbit-native broker spec is explicit about install status", async () => {
   assert.equal(spec.leasePolicy.defaultLeaseTtlSeconds, 86400);
   assert.equal(spec.leasePolicy.macLocalBrokerRequiredAfterBootstrap, false);
   assert.equal(spec.leasePolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
+  assert.equal(spec.leasePolicy.leaseControlsExecutionResultWritesOnly, true);
+  assert.equal(spec.superuserSessionPolicy.scope, "current_boot_cycle_ram_only");
+  assert.equal(spec.superuserSessionPolicy.independentOfBrokerLeaseExpiry, true);
+  assert.equal(spec.superuserSessionPolicy.independentOfMacReachabilityAfterBootstrap, true);
+  assert.equal(spec.superuserSessionPolicy.rabbitNativeBrokerMayRequestTemporarySuperuserWithoutMacAfterBootstrap, true);
   assert.ok(spec.privilegedRequestClasses.includes("prepare_adb_tcpip_request"));
 });
 
@@ -200,9 +208,13 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(coordination.singleWriterPolicy.enabled, true);
   assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 86400);
   assert.equal(coordination.singleWriterPolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
+  assert.equal(coordination.singleWriterPolicy.leaseControlsExecutionResultWritesOnly, true);
+  assert.equal(coordination.singleWriterPolicy.leaseDoesNotGateRabbitNativeSuperuserSession, true);
   assert.equal(coordination.rules.macBrokerMayBootstrapRabbitBroker, true);
   assert.equal(coordination.rules.macBrokerMayBootstrapRestartScopedPrivilegeSession, true);
   assert.equal(coordination.rules.rabbitBrokerMayOperateWithoutMacAfterBootstrap, true);
+  assert.equal(coordination.rules.temporaryPrivilegeIndependentOfLeaseExpiry, true);
+  assert.equal(coordination.rules.temporaryPrivilegeIndependentOfMacReachabilityAfterBootstrap, true);
   assert.equal(coordination.rules.macBrokerMayNotOverrideActiveRabbitBroker, true);
 });
 

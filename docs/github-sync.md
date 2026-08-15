@@ -23,6 +23,8 @@ request state portable without requiring GitHub Pages to execute anything.
 - Broker leases default to 24 hours.
 - After Mac bootstrap, the Rabbit-native broker may continue without Mac
   reachability if it holds or renews the active lease.
+- Lease expiry only affects shared execution-result ownership. It must not
+  revoke a validated Rabbit-local current-boot temporary superuser session.
 - Audit records remain append-only and must not contain secrets.
 
 ## Export

@@ -24,6 +24,8 @@
     "singleWriterLeaseRequiredForExecutionResults": true,
     "defaultLeaseTtlSeconds": 86400,
     "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
+    "leaseControlsExecutionResultWritesOnly": true,
+    "leaseDoesNotGateRabbitNativeSuperuserSession": true,
     "githubMayQueueRequests": true,
     "githubMayNotExecuteRequests": true,
     "noSecrets": true,

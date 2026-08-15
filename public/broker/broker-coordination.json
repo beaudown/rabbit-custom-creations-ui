@@ -9,7 +9,9 @@
     "renewalPolicy": "renew_on_broker_heartbeat_or_request",
     "executionResultWriter": "active_lease_holder",
     "denyExecutionWithoutLease": true,
-    "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true
+    "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
+    "leaseControlsExecutionResultWritesOnly": true,
+    "leaseDoesNotGateRabbitNativeSuperuserSession": true
   },
   "preferredExecutorOrder": [
     "rabbit-native",
@@ -46,6 +48,8 @@
     "privilegedExecutionRequiresSeparateLiveAuthorization": true,
     "initialLiveAuthorizationTiming": "after_device_restart",
     "temporaryPrivilegeLifetime": "until_reboot",
+    "temporaryPrivilegeIndependentOfLeaseExpiry": true,
+    "temporaryPrivilegeIndependentOfMacReachabilityAfterBootstrap": true,
     "persistentRootDefault": "blocked",
     "otaBreakingModificationDefault": "blocked"
   }

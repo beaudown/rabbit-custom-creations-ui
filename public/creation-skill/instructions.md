@@ -20,6 +20,9 @@ developer workflows.
   states, and the export bundle path.
 - Explain that broker leases default to 24 hours and that Rabbit-native broker
   operation should not depend on Mac reachability after bootstrap.
+- Explain that lease expiry only affects shared result-writing ownership; it
+  must not revoke a validated Rabbit-local current-boot temporary superuser
+  session.
 
 ## What this Creation must not claim
 

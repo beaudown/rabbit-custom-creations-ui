@@ -40,9 +40,10 @@ authorization, then the Rabbit-native broker becomes the local caller for
 allowed privileged operations while that restart-scoped state exists.
 
 After this bootstrap, the Rabbit-native broker should not require the Mac broker
-to stay reachable. If the Rabbit broker can renew or hold its own 24-hour lease,
-it remains the active local authority until restart, explicit denial, or lease
-replacement by a validated policy.
+to stay reachable. The Rabbit broker's current-boot temporary superuser
+capability is separate from the shared broker lease. A lease expiry can affect
+who writes shared queue/execution-result records, but it must not turn off the
+Rabbit-local RAM/current-boot superuser session.
 
 ## Lease Behavior
 
@@ -50,7 +51,8 @@ Only the active lease holder may write execution results. The default lease is
 24 hours. If the Rabbit-native broker is live and holding the lease, the Mac
 broker must yield. If no Rabbit broker is present, the Mac broker may hold the
 lease for request intake, approval state, audit logging, and bootstrap
-coordination.
+coordination. This lease does not gate Rabbit-native temporary superuser access
+after bootstrap.
 
 ## Start Locally
 

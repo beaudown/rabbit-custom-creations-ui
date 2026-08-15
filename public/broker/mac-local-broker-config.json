@@ -29,6 +29,7 @@
     "mayBootstrapRestartScopedPrivilegeSession": true,
     "mayBootstrapRabbitNativeBrokerEscalation": true,
     "rabbitNativeBrokerMayOperateWithoutMacAfterBootstrap": true,
+    "rabbitNativeBrokerMayRequestTemporarySuperuserWithoutMacAfterBootstrap": true,
     "mayWritePresenceForRemoteBroker": true,
     "mayWriteAuditRecords": true,
     "containsRootPayload": false,
@@ -36,12 +37,15 @@
   },
   "executionPolicy": {
     "singleWriterLeaseRequired": true,
+    "leaseControlsExecutionResultWritesOnly": true,
     "yieldToRabbitNativeBroker": true,
     "defaultLeaseTtlSeconds": 86400,
     "privilegedExecutionEnabled": false,
     "requiresSeparateLiveDeviceAuthorization": true,
     "initialLiveAuthorizationTiming": "after_device_restart",
     "temporaryPrivilegeLifetime": "until_reboot",
+    "temporaryPrivilegeIndependentOfLeaseExpiry": true,
+    "temporaryPrivilegeIndependentOfMacReachabilityAfterBootstrap": true,
     "remoteFlashingDefault": "blocked",
     "otaBreakingModificationDefault": "blocked"
   }

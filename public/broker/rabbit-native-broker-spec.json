@@ -62,6 +62,17 @@
     "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
     "macLocalBrokerBootstrapRequiredInitially": true,
     "macLocalBrokerRequiredAfterBootstrap": false,
+    "leaseControlsExecutionResultWritesOnly": true,
     "temporaryPrivilegeStillExpiresOnRestart": true
+  },
+  "superuserSessionPolicy": {
+    "scope": "current_boot_cycle_ram_only",
+    "initialBootstrapAuthority": "mac_local_fallback_broker",
+    "rabbitNativeBrokerCallableAfterBootstrap": true,
+    "rabbitNativeBrokerMayRequestTemporarySuperuserWithoutMacAfterBootstrap": true,
+    "independentOfMacReachabilityAfterBootstrap": true,
+    "independentOfBrokerLeaseExpiry": true,
+    "expiresOn": "rabbit_restart",
+    "persistentSystemModificationDefault": "blocked"
   }
 }

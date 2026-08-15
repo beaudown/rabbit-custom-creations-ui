@@ -97,6 +97,11 @@ fallback broker coordinates bootstrap, the Rabbit-native broker may use the
 validated temporary state until the next restart. Reboot is the expiry and
 rollback boundary.
 
+This current-boot temporary superuser state is independent of Mac reachability
+after bootstrap and independent of broker lease expiry. The Rabbit-native broker
+should eventually expose the approved common root/superuser tool set locally for
+the current boot cycle, even when fully remote.
+
 ## Open Implementation Gap
 
 The missing piece is a validated, OTA-safe way to install and run this broker on
@@ -107,10 +112,11 @@ truthfully be marked live.
 ## Lease Duration
 
 Broker leases default to 24 hours. The lease controls which broker may write
-execution results; it is separate from temporary privilege lifetime. Temporary
-privilege remains restart-scoped and clears on Rabbit restart.
+execution results; it does not control whether the Rabbit-native broker can call
+the current-boot temporary superuser facility. Temporary privilege remains
+restart-scoped and clears on Rabbit restart.
 
 The Mac fallback broker is expected to bootstrap the Rabbit-native broker
-initially. After that, the Rabbit-native broker should be able to request or
-renew temporary access locally and continue operating while fully remote,
-without requiring the Mac broker to be reachable.
+initially. After that, the Rabbit-native broker should be able to call/request
+temporary access locally and continue operating while fully remote, without
+requiring the Mac broker to be reachable.
