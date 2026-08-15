@@ -12,6 +12,11 @@ It should also read the Rabbit gateway connector, OpenClaw gateway, and Hermes
 gateway roles from `broker/gateway-topology.json` when explaining routing or
 handoff state.
 
+When the user wants to provoke a specific response or expected outcome, read
+`walkthrough-guide.md` and `broker/walkthrough-guide.json` first. Show the
+do-first step, expected broker response, next action, and stop condition before
+queueing a request.
+
 ## What this Creation may do
 
 - Open prompt and file libraries from GitHub.
@@ -29,6 +34,8 @@ handoff state.
   states, and the export bundle path.
 - Show a step-by-step actionable flow with the exact button/action to use and
   the expected outcome before a privileged request is queued.
+- Show the response playbook for import, broker pairing, safe request setup,
+  elevated dry run, current-boot SU approval, and audit/rollback lookup.
 - Show the gateway mesh: Rabbit bridge, Rabbit on-device broker, Rabbit gateway
   connector, OpenClaw gateway, Hermes gateway, Mac fallback broker, and GitHub
   storage.

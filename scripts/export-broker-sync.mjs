@@ -48,6 +48,7 @@ async function indexFiles(label, path) {
 const syncManifest = await readJson(join(brokerRoot, "sync-manifest.json"));
 const coordination = await readJson(join(brokerRoot, "broker-coordination.json"));
 const gatewayTopology = await readJson(join(brokerRoot, "gateway-topology.json"));
+const walkthroughGuide = await readJson(join(brokerRoot, "walkthrough-guide.json"));
 const leasePairing = await readJson(join(brokerRoot, "lease-pairing.json"));
 const promptLibrary = await readJson(join(brokerRoot, "prompt-library.json"));
 const auditManifest = await readJson(join(brokerRoot, "audit-manifest.json"));
@@ -80,6 +81,12 @@ const exportBundle = {
     included: gatewayTopology.superuserManagementIncludes,
     routes: gatewayTopology.routes,
     rules: gatewayTopology.rules,
+  },
+  walkthroughGuideSummary: {
+    name: walkthroughGuide.name,
+    entryCount: walkthroughGuide.entries.length,
+    defaultOrder: walkthroughGuide.defaultOrder,
+    rules: walkthroughGuide.rules,
   },
   leasePairingSummary: {
     status: leasePairing.status,

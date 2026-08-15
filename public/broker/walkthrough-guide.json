@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "name": "superuser-management-walkthrough-guide",
+  "purpose": "Outcome-first walkthrough for the unified Superuser Management Creation.",
+  "defaultOrder": [
+    "import_tool",
+    "pair_brokers",
+    "start_safe_request",
+    "dry_run_elevated_action",
+    "approve_current_boot_su",
+    "debug_or_rollback"
+  ],
+  "entries": [
+    {
+      "id": "import_tool",
+      "outcome": "Import the Superuser Management tool.",
+      "doFirst": "Scan the Creation skill QR or open creation-skill/manifest.json.",
+      "expectedResponse": "Creation opens with Superuser Management, gateway mesh, prompt guide, queue paths, and audit links loaded.",
+      "nextAction": "Verify broker/gateway-topology.json and broker/sync-manifest.json are reachable.",
+      "stopCondition": "Stop if the manifest, gateway topology, or sync manifest cannot load.",
+      "requestTemplate": null
+    },
+    {
+      "id": "pair_brokers",
+      "outcome": "Pair broker ownership and hosted metadata.",
+      "doFirst": "Use Reconnect from QR or let the Rabbit connector read broker/lease-pairing.json.",
+      "expectedResponse": "Lease metadata shows 72-hour ownership, Rabbit connector retrieval, and SU unaffected by lease actions.",
+      "nextAction": "Refresh or renew only if shared result-writing ownership needs to move.",
+      "stopCondition": "Stop if lease-pairing.json is missing, stale, or not connector-readable.",
+      "requestTemplate": null
+    },
+    {
+      "id": "start_safe_request",
+      "outcome": "Create a safe broker request.",
+      "doFirst": "Pick a workflow in the prompt guide.",
+      "expectedResponse": "The Creation maps the desired outcome to a request template and shows required variables.",
+      "nextAction": "Fill request_id, device_state, broker_id, lease_holder, and approval_decision.",
+      "stopCondition": "Stop if required variables are missing or the broker route is not eligible.",
+      "requestTemplate": "broker/request-templates/normal-reboot-request.json"
+    },
+    {
+      "id": "dry_run_elevated_action",
+      "outcome": "Provoke a broker response without changing the device.",
+      "doFirst": "Run the request as dry run.",
+      "expectedResponse": "Broker returns queued, blocked, yielded, or missing-live-check and writes/points to an audit record.",
+      "nextAction": "Continue only when route, live checks, and approval state are correct.",
+      "stopCondition": "Stop if any component claims execution without an audit record.",
+      "requestTemplate": "broker/request-templates/temporary-privilege-dry-run.json"
+    },
+    {
+      "id": "approve_current_boot_su",
+      "outcome": "Use a validated current-boot temporary SU session.",
+      "doFirst": "Approve live only after the required device restart and live checks.",
+      "expectedResponse": "Rabbit-native broker may handle allowlisted current-boot actions until the next restart.",
+      "nextAction": "Execute only the selected allowlisted workflow and record the audit ID.",
+      "stopCondition": "Stop if the device restarted, broker is not validated, or the action would persist by default.",
+      "requestTemplate": "broker/request-templates/temporary-privilege-dry-run.json"
+    },
+    {
+      "id": "debug_or_rollback",
+      "outcome": "Explain what happened or prepare rollback.",
+      "doFirst": "Search active and archived audit logs.",
+      "expectedResponse": "Logs identify request, broker, decision, artifact hashes, result, changed items, and rollback clues.",
+      "nextAction": "Search by request ID, artifact hash, broker ID, action, device state, or time.",
+      "stopCondition": "Stop if no matching audit evidence exists and label the result as unknown.",
+      "requestTemplate": null
+    }
+  ],
+  "rules": {
+    "dryRunBeforeLiveAction": true,
+    "expectedResponseMustBeShownBeforeQueueing": true,
+    "stopConditionMustBeShown": true,
+    "githubMayNotExecuteRequests": true,
+    "creationMayNotClaimRootExecution": true,
+    "gatewayClaimsRequireEvidence": true,
+    "deviceAffectingActionsRequireLiveAuthorization": true
+  }
+}

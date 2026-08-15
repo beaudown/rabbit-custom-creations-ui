@@ -373,6 +373,7 @@ h3 {
 .publishPanel,
 .workflowPanel,
 .actionPlanPanel,
+.playbookPanel,
 .promptPanel,
 .statusPanel,
 .gatewayPanel,
@@ -427,6 +428,12 @@ h3 {
   margin-top: 16px;
 }
 
+.playbookPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
 .actionPlanList {
   display: grid;
   gap: 9px;
@@ -473,6 +480,52 @@ h3 {
   background: rgba(97, 244, 255, 0.12);
   color: var(--foreground);
   font-weight: 900;
+}
+
+.playbookList {
+  display: grid;
+  gap: 10px;
+}
+
+.playbookItem {
+  display: grid;
+  gap: 9px;
+  border: 1px solid rgba(97, 244, 255, 0.2);
+  border-radius: 10px;
+  background: rgba(97, 244, 255, 0.055);
+  padding: 12px;
+}
+
+.playbookItem h3 {
+  color: var(--foreground);
+  font-size: 0.95rem;
+}
+
+.playbookItem dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.playbookItem dl > div {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid rgba(97, 244, 255, 0.5);
+  padding-left: 9px;
+}
+
+.playbookItem dt {
+  color: #8de7ff;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.playbookItem dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .stepRail {

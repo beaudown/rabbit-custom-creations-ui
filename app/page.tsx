@@ -286,6 +286,51 @@ const gatewayTopology = [
   },
 ];
 
+const responsePlaybook = [
+  {
+    outcome: "Import the tool",
+    firstStep: "Scan Creation skill QR",
+    expectedResponse: "Creation opens with Superuser Management, gateway mesh, prompts, and queue paths loaded.",
+    nextAction: "Verify manifest, then pair lease metadata.",
+    stopIf: "Manifest or gateway topology cannot load.",
+  },
+  {
+    outcome: "Pair brokers",
+    firstStep: "Reconnect from QR",
+    expectedResponse: "Rabbit connector reads broker/lease-pairing.json and reports ownership metadata.",
+    nextAction: "Refresh or renew lease if Mac fallback is the current owner.",
+    stopIf: "Pairing file is missing, stale, or not connector-readable.",
+  },
+  {
+    outcome: "Start a safe request",
+    firstStep: "Pick workflow",
+    expectedResponse: "Prompt guide maps the outcome to a request template and highlights required values.",
+    nextAction: "Fill request_id, device_state, broker_id, lease_holder, and approval_decision.",
+    stopIf: "Required variables are missing.",
+  },
+  {
+    outcome: "Check an elevated action",
+    firstStep: "Run dry run",
+    expectedResponse: "Broker returns queued, blocked, yielded, or missing-live-check without changing the device.",
+    nextAction: "Only continue if the broker shows eligible route, live checks, and explicit approval.",
+    stopIf: "Broker claims execution without an audit record.",
+  },
+  {
+    outcome: "Use current-boot SU",
+    firstStep: "Approve live",
+    expectedResponse: "After validated bootstrap, Rabbit-native broker may handle allowed current-boot actions until restart.",
+    nextAction: "Execute only allowlisted action classes and record audit ID.",
+    stopIf: "Device restarted, broker is not validated, or action would persist by default.",
+  },
+  {
+    outcome: "Debug or roll back",
+    firstStep: "Read audit",
+    expectedResponse: "Active and archived logs show request, decision, result, changed items, and rollback clues.",
+    nextAction: "Search by request ID, artifact hash, broker ID, action, or time.",
+    stopIf: "No matching audit evidence exists.",
+  },
+];
+
 const promptGuides: PromptGuide[] = [
   {
     id: "guided-request-start",
@@ -927,6 +972,45 @@ export default function Home() {
                   <p>{item.outcome}</p>
                 </div>
                 <button>{item.action}</button>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="playbookPanel" aria-label="Expected response walkthrough">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Response Playbook</p>
+              <h2>Do this first</h2>
+            </div>
+            <span>Outcome led</span>
+          </div>
+          <p className="panelNote">
+            Pick the expected outcome, then follow the first step to Provoke a
+            broker response, next action, and stop condition.
+          </p>
+          <div className="playbookList">
+            {responsePlaybook.map((item) => (
+              <article className="playbookItem" key={item.outcome}>
+                <h3>{item.outcome}</h3>
+                <dl>
+                  <div>
+                    <dt>First</dt>
+                    <dd>{item.firstStep}</dd>
+                  </div>
+                  <div>
+                    <dt>Expect</dt>
+                    <dd>{item.expectedResponse}</dd>
+                  </div>
+                  <div>
+                    <dt>Next</dt>
+                    <dd>{item.nextAction}</dd>
+                  </div>
+                  <div>
+                    <dt>Stop</dt>
+                    <dd>{item.stopIf}</dd>
+                  </div>
+                </dl>
               </article>
             ))}
           </div>

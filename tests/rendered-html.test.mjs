@@ -24,6 +24,10 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Superuser Management/);
   assert.match(source, /One Creation should manage superuser actions/);
   assert.match(source, /Actionable flow/);
+  assert.match(source, /Response Playbook/);
+  assert.match(source, /Do this first/);
+  assert.match(source, /Provoke a\s+broker response/);
+  assert.match(source, /Stop/);
   assert.match(source, /Scan skill QR/);
   assert.match(source, /Pick workflow/);
   assert.match(source, /Approve live/);
@@ -119,11 +123,13 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rules.creationMayRequestEscalatedPrivileges, true);
   assert.equal(manifest.rules.brokerExecutesEscalatedPrivileges, true);
   assert.equal(manifest.usbStorageGuide, "usb-storage-guide.md");
+  assert.equal(manifest.walkthroughGuide, "walkthrough-guide.md");
   assert.equal(manifest.remoteBrokerConfig, "../broker/remote-broker-config.json");
   assert.equal(manifest.rabbitNativeBrokerSpec, "../broker/rabbit-native-broker-spec.json");
   assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
   assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
   assert.equal(manifest.gatewayTopology, "../broker/gateway-topology.json");
+  assert.equal(manifest.walkthroughGuideData, "../broker/walkthrough-guide.json");
   assert.equal(manifest.leasePairing, "../broker/lease-pairing.json");
   assert.equal(manifest.promptLibrary, "../broker/prompt-library.json");
   assert.equal(manifest.syncManifest, "../broker/sync-manifest.json");
@@ -136,9 +142,19 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(instructions, /USB mass-storage or supported storage exposure/);
   assert.match(instructions, /prompt library/);
   assert.match(instructions, /broker\/gateway-topology\.json/);
+  assert.match(instructions, /broker\/walkthrough-guide\.json/);
   assert.match(instructions, /Rabbit bridge/);
   assert.match(instructions, /OpenClaw gateway/);
   assert.match(instructions, /Hermes gateway/);
+
+  const walkthrough = await readFile(
+    new URL("../public/creation-skill/walkthrough-guide.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(walkthrough, /Superuser Management Walkthrough/);
+  assert.match(walkthrough, /Do first/);
+  assert.match(walkthrough, /Expect/);
+  assert.match(walkthrough, /Stop if/);
 });
 
 test("sync manifest defines shared GitHub queue contract", async () => {
@@ -153,6 +169,7 @@ test("sync manifest defines shared GitHub queue contract", async () => {
   assert.equal(manifest.paths.inbox, "broker/queue/inbox");
   assert.equal(manifest.paths.outbox, "broker/queue/outbox");
   assert.equal(manifest.paths.gatewayTopology, "broker/gateway-topology.json");
+  assert.equal(manifest.paths.walkthroughGuide, "broker/walkthrough-guide.json");
   assert.equal(manifest.rules.oneRequestPerFile, true);
   assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
   assert.equal(manifest.paths.leasePairing, "broker/lease-pairing.json");
@@ -301,6 +318,25 @@ test("gateway topology defines unified superuser routing", async () => {
   assert.equal(topology.rules.rabbitBridgeConnectsCreationToOnDeviceBroker, true);
   assert.equal(topology.rules.gatewayClaimsRequireEvidence, true);
   assert.equal(topology.rules.noDeviceCommandFromGatewayTopology, true);
+});
+
+test("walkthrough guide defines expected response order", async () => {
+  const guide = JSON.parse(
+    await readFile(
+      new URL("../public/broker/walkthrough-guide.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(guide.schemaVersion, 1);
+  assert.equal(guide.rules.dryRunBeforeLiveAction, true);
+  assert.equal(guide.rules.expectedResponseMustBeShownBeforeQueueing, true);
+  assert.equal(guide.rules.stopConditionMustBeShown, true);
+  assert.ok(guide.defaultOrder.includes("import_tool"));
+  assert.ok(guide.defaultOrder.includes("dry_run_elevated_action"));
+  assert.ok(guide.entries.every((entry) => entry.doFirst));
+  assert.ok(guide.entries.every((entry) => entry.expectedResponse));
+  assert.ok(guide.entries.every((entry) => entry.stopCondition));
 });
 
 test("lease pairing manifest supports QR and connector retrieval", async () => {
