@@ -39,8 +39,15 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Suggested prompts/);
   assert.match(source, /View all prompt details/);
   assert.match(source, /Temporary SU Bootstrap/);
+  assert.match(source, /ADB Mode Preflight/);
+  assert.match(source, /Audit Lookup and Rollback Clues/);
+  assert.match(source, /Request Composer/);
+  assert.match(source, /Queue to Mac broker/);
+  assert.match(source, /Missing required values/);
+  assert.match(source, /requestPreview/);
   assert.match(source, /lease_holder/);
   assert.match(source, /device_state/);
+  assert.match(source, /Mac broker unavailable at 127\.0\.0\.1:8792/);
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 

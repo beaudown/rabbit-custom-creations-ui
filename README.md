@@ -28,6 +28,8 @@ confirming removal/uninstall actions.
   GitHub-state awareness, and audit logging.
 - Context-aware prompt library with variables, value sources, and meanings for
   guided broker walkthroughs.
+- Interactive request composer that turns a selected prompt and filled
+  variables into a dry-run broker request JSON preview.
 
 ## Broker audit log
 
@@ -102,6 +104,9 @@ append audit records. Privileged execution remains disabled until a separate
 live Rabbit authorization path is validated. Temporary privilege sessions are
 modeled as restart-scoped: initial authorization after a device restart, then
 expiry on the next restart.
+
+The UI request composer can post a completed dry-run request to the Mac broker
+at `http://127.0.0.1:8792/requests` when that broker is running.
 
 ## Build
 
