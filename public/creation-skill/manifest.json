@@ -4,6 +4,7 @@
   "displayName": "Rabbit Broker Workflow",
   "description": "Creation-side request workflow for GitHub-backed prompts, files, broker logs, and broker-approved escalated privilege sessions.",
   "entrypoint": "instructions.md",
+  "usbStorageGuide": "usb-storage-guide.md",
   "settings": "settings.json",
   "requestTemplates": [
     "../broker/request-templates/temporary-privilege-dry-run.json",

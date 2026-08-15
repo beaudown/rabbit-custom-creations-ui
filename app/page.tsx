@@ -378,6 +378,10 @@ export default function Home() {
               <button key={label}>{label}</button>
             ))}
           </div>
+          <div className="helpStrip">
+            USB Storage includes guided mount help, mode discovery, external
+            host checks, and fallback directions.
+          </div>
         </section>
 
         <section className="auditPanel" aria-label="Broker audit log">

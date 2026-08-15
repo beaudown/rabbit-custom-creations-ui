@@ -26,6 +26,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Archive 500/);
   assert.match(source, /No secrets/);
   assert.match(source, /USB Storage/);
+  assert.match(source, /guided mount help/);
   assert.match(source, /Creation buttons call broker requests/);
   assert.match(source, /creation-skill\/manifest\.json/);
 });
@@ -67,6 +68,7 @@ test("creation skill exposes broker request templates", async () => {
 
   assert.equal(manifest.rules.creationMayRequestEscalatedPrivileges, true);
   assert.equal(manifest.rules.brokerExecutesEscalatedPrivileges, true);
+  assert.equal(manifest.usbStorageGuide, "usb-storage-guide.md");
   assert.ok(
     manifest.requestTemplates.some((template) =>
       template.includes("usb-mass-storage-request.json"),

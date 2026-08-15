@@ -483,6 +483,17 @@ h3 {
   border-color: rgba(164, 255, 99, 0.22);
 }
 
+.helpStrip {
+  border: 1px solid rgba(255, 209, 102, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 209, 102, 0.08);
+  color: #ffe6a6;
+  padding: 11px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .auditPanel {
   display: grid;
   gap: 12px;
