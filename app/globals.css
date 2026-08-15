@@ -372,6 +372,7 @@ h3 {
 .emptyState,
 .publishPanel,
 .workflowPanel,
+.promptPanel,
 .statusPanel,
 .rootPanel,
 .auditPanel {
@@ -448,6 +449,105 @@ h3 {
   background: var(--accent-2);
   color: #071105;
   font-weight: 950;
+}
+
+.promptPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.promptPanel > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.promptHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.promptHeader > span {
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(97, 244, 255, 0.26);
+  border-radius: 8px;
+  color: var(--accent);
+  padding: 0 10px;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.promptList {
+  display: grid;
+  gap: 10px;
+}
+
+.promptCard {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(12, 16, 23, 0.92);
+  padding: 12px;
+}
+
+.promptTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.promptTitle h3 {
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.promptTitle span {
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: rgba(255, 209, 102, 0.13);
+  color: #ffe6a6;
+  padding: 0 8px;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.promptCard p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.38;
+}
+
+.variableList {
+  display: grid;
+  gap: 7px;
+}
+
+.variableRow {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid rgba(97, 244, 255, 0.5);
+  padding-left: 9px;
+}
+
+.variableRow strong {
+  color: var(--foreground);
+  font-size: 0.78rem;
+}
+
+.variableRow span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.32;
 }
 
 .statusPanel {

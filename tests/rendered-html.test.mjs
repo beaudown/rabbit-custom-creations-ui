@@ -35,6 +35,12 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /USB Storage/);
   assert.match(source, /guided mount help/);
   assert.match(source, /Creation buttons call broker requests/);
+  assert.match(source, /Prompt Guide/);
+  assert.match(source, /Suggested prompts/);
+  assert.match(source, /View all prompt details/);
+  assert.match(source, /Temporary SU Bootstrap/);
+  assert.match(source, /lease_holder/);
+  assert.match(source, /device_state/);
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 
@@ -80,6 +86,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rabbitNativeBrokerSpec, "../broker/rabbit-native-broker-spec.json");
   assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
   assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
+  assert.equal(manifest.promptLibrary, "../broker/prompt-library.json");
   assert.ok(
     manifest.requestTemplates.some((template) =>
       template.includes("usb-mass-storage-request.json"),
@@ -87,6 +94,7 @@ test("creation skill exposes broker request templates", async () => {
   );
   assert.match(instructions, /Creation-side escalated privilege request/);
   assert.match(instructions, /USB mass-storage or supported storage exposure/);
+  assert.match(instructions, /prompt library/);
 });
 
 test("remote broker config marks executor as not deployed", async () => {
@@ -171,4 +179,34 @@ test("temporary privilege template is restart-scoped", async () => {
   assert.equal(template.sessionScope.rabbitNativeBrokerMayUseAfterBootstrap, true);
   assert.equal(template.sessionScope.macLocalBrokerBootstrapRequiredInitially, true);
   assert.equal(template.persistenceExpected, false);
+});
+
+test("prompt library explains variables and prompt behavior", async () => {
+  const library = JSON.parse(
+    await readFile(
+      new URL("../public/broker/prompt-library.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(library.schemaVersion, 1);
+  assert.ok(library.variables.length >= 5);
+  assert.ok(library.prompts.length >= 5);
+  assert.ok(
+    library.variables.every(
+      (variable) => variable.name && variable.source && variable.meaning,
+    ),
+  );
+  assert.ok(
+    library.prompts.every(
+      (prompt) =>
+        prompt.title &&
+        prompt.summary &&
+        prompt.does.length &&
+        prompt.variables.length &&
+        prompt.prompt.includes("{{"),
+    ),
+  );
+  assert.ok(library.prompts.some((prompt) => prompt.id === "temporary-su-bootstrap"));
+  assert.ok(library.prompts.some((prompt) => prompt.id === "usb-storage-discovery"));
 });

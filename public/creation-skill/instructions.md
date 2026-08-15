@@ -14,6 +14,8 @@ developer workflows.
   storage export, APK canary, and device-state checks.
 - Show approve/deny steps before any privileged action.
 - Show audit log status and archive search hints.
+- Show the broker prompt library with each prompt's purpose, variables, where
+  values come from, and what those values mean.
 
 ## What this Creation must not claim
 
@@ -32,12 +34,13 @@ developer workflows.
 
 1. Ask the user which workflow they want.
 2. Show the risk level and required checks.
-3. Default to dry run.
-4. Create the matching broker request template.
-5. Send or expose the request for the Mac/OpenClaw broker.
-6. Wait for broker approval/deny/result.
-7. Show the audit record ID.
-8. If something breaks, search active and archived audit logs by action, tag,
+3. Suggest one or more prompt-library entries and explain required variables.
+4. Default to dry run.
+5. Create the matching broker request template.
+6. Send or expose the request for the Rabbit-native or Mac fallback broker.
+7. Wait for broker approval/deny/result.
+8. Show the audit record ID.
+9. If something breaks, search active and archived audit logs by action, tag,
    time, device state, artifact hash, or rollback note.
 
 ## Escalated privilege language

@@ -26,6 +26,8 @@ confirming removal/uninstall actions.
   not depend on the MacBook being online.
 - Mac local fallback broker scaffold for lab bootstrap coordination, shared
   GitHub-state awareness, and audit logging.
+- Context-aware prompt library with variables, value sources, and meanings for
+  guided broker walkthroughs.
 
 ## Broker audit log
 
@@ -45,6 +47,7 @@ Seed files:
 - `public/broker/remote-broker-config.json`
 - `public/broker/broker-coordination.json`
 - `public/broker/mac-local-broker-config.json`
+- `public/broker/prompt-library.json`
 - `docs/rabbit-native-broker.md`
 - `docs/remote-broker-topology.md`
 - `docs/mac-local-broker.md`

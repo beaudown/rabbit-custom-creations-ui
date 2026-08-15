@@ -148,6 +148,39 @@ const rootRequestButtons = [
   "APK Canary",
 ];
 
+const promptGuides = [
+  {
+    title: "Start Guided Broker Request",
+    risk: "Low",
+    summary: "Chooses the right workflow, broker, and template before a request starts.",
+    variables: [
+      ["request_id", "Generated when the request starts"],
+      ["device_state", "Normal, recovery, fastboot, USB-connected"],
+      ["template_path", "Selected broker request JSON"],
+    ],
+  },
+  {
+    title: "Temporary SU Bootstrap",
+    risk: "High",
+    summary: "Prepares restart-scoped privilege through Mac fallback, then Rabbit broker use.",
+    variables: [
+      ["lease_holder", "Active broker allowed to write results"],
+      ["approval_decision", "User approve, deny, or dry run"],
+      ["rollback_note", "How reboot or inspection recovers state"],
+    ],
+  },
+  {
+    title: "USB Storage Discovery",
+    risk: "High",
+    summary: "Finds supported exposure mode before assuming mass storage is available.",
+    variables: [
+      ["broker_id", "Rabbit primary or Mac fallback"],
+      ["device_state", "Current boot and USB mode"],
+      ["rollback_note", "Mount failure or disconnect guidance"],
+    ],
+  },
+];
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -369,6 +402,41 @@ export default function Home() {
             ))}
           </div>
           <button className="wideButton">Start guided request</button>
+        </section>
+
+        <section className="promptPanel" aria-label="Broker prompt guide">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Prompt Guide</p>
+              <h2>Suggested prompts</h2>
+            </div>
+            <span>5 total</span>
+          </div>
+          <p>
+            Each prompt explains what it does, which variables it needs, where
+            those values come from, and what they mean before the broker queues a
+            request.
+          </p>
+          <div className="promptList">
+            {promptGuides.map((prompt) => (
+              <article className="promptCard" key={prompt.title}>
+                <div className="promptTitle">
+                  <h3>{prompt.title}</h3>
+                  <span>{prompt.risk}</span>
+                </div>
+                <p>{prompt.summary}</p>
+                <div className="variableList">
+                  {prompt.variables.map(([name, source]) => (
+                    <div className="variableRow" key={name}>
+                      <strong>{name}</strong>
+                      <span>{source}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+          <button className="wideButton">View all prompt details</button>
         </section>
 
         <section className="statusPanel" aria-label="Remote broker status">

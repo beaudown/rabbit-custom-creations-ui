@@ -14,6 +14,8 @@ runtime.
 - Coordinate bootstrap requests for a future Rabbit-native broker.
 - Act as the lab fallback authority when the Rabbit broker is not installed,
   not privileged, or not reachable.
+- Use the shared prompt library to explain variables and next steps before
+  accepting a request.
 
 ## Non-Role
 

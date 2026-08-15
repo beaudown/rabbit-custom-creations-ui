@@ -48,6 +48,23 @@ or install path.
 - Preserve OTA eligibility by default.
 - Treat persistent changes, flashing, erasing, and slot changes as blocked by
   default.
+- Load the prompt library and explain each suggested prompt, required variable,
+  value source, and value meaning before queueing a request.
+
+## Contextual Prompt Walkthrough
+
+The Creation should read `public/broker/prompt-library.json` before asking the
+user to approve a broker workflow. Each prompt entry describes what the prompt
+does, what variables it needs, where those values come from, and why those
+values matter.
+
+The prompt guide is not just a list of commands. It should help the user answer:
+
+- Which broker should handle this request?
+- What state is the Rabbit currently in?
+- Which request template is being used?
+- Which broker holds the lease?
+- What approval decision and rollback note will be logged?
 
 ## Privileged Request Classes
 
