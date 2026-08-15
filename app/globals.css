@@ -74,6 +74,7 @@ button {
 .searchRow,
 .contentHeader,
 .publishPanel,
+.auditSummary,
 .creationTitle,
 .modalActions {
   display: flex;
@@ -369,7 +370,8 @@ h3 {
 }
 
 .emptyState,
-.publishPanel {
+.publishPanel,
+.auditPanel {
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--panel-2);
@@ -393,6 +395,88 @@ h3 {
   border-radius: 12px;
   background: #fff;
   padding: 6px;
+}
+
+.auditPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.auditPanel > p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.auditSummary > span {
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(164, 255, 99, 0.3);
+  border-radius: 8px;
+  color: var(--accent-2);
+  padding: 0 10px;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.auditStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.auditStats span {
+  display: grid;
+  min-height: 38px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--foreground);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.7rem;
+  font-weight: 850;
+  text-align: center;
+}
+
+.auditList {
+  display: grid;
+  gap: 8px;
+}
+
+.auditRecord {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #0c1017;
+  padding: 11px;
+}
+
+.auditRecord h3 {
+  font-size: 0.9rem;
+}
+
+.auditRecord p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.auditMeta {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  text-align: right;
+}
+
+.auditMeta span {
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 900;
 }
 
 .modalScrim {
@@ -447,6 +531,17 @@ h3 {
 
   .publishPanel {
     display: grid;
+  }
+
+  .auditStats,
+  .auditRecord {
+    grid-template-columns: 1fr;
+  }
+
+  .auditMeta {
+    display: flex;
+    justify-content: space-between;
+    text-align: left;
   }
 
   .publishPanel img {

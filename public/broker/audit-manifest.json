@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "activeLog": "broker/audit-log.jsonl",
+  "archiveDir": "broker/archive",
+  "retention": {
+    "activeRecordTarget": 4000,
+    "warningThreshold": 3000,
+    "archiveChunkSize": 1000
+  },
+  "rules": {
+    "appendOnly": true,
+    "noSecrets": true,
+    "requiresExplicitApprovalForPrivilegedActions": true,
+    "recordsBlockedActions": true,
+    "recordsDryRuns": true,
+    "recordsRollbackAttempts": true
+  },
+  "active": {
+    "recordCount": 3,
+    "firstRecordId": "audit-20260815-000001",
+    "lastRecordId": "audit-20260815-000003",
+    "sha256": "example-local-seed-update-after-publish"
+  },
+  "archives": []
+}

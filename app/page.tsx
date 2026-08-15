@@ -91,6 +91,30 @@ const creations: Creation[] = [
 
 type SortMode = "category" | "newest" | "oldest" | "name";
 
+const auditRecords = [
+  {
+    id: "audit-20260815-000003",
+    action: "Storage export dry run",
+    status: "Dry run",
+    time: "00:02Z",
+    detail: "No device change. Live connection still required.",
+  },
+  {
+    id: "audit-20260815-000002",
+    action: "Temporary privilege request",
+    status: "Blocked",
+    time: "00:01Z",
+    detail: "Missing live device check and validated non-persistent method.",
+  },
+  {
+    id: "audit-20260815-000001",
+    action: "Prompt library opened",
+    status: "Recorded",
+    time: "00:00Z",
+    detail: "GitHub Pages request surface only.",
+  },
+];
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -274,6 +298,40 @@ export default function Home() {
             />
           </div>
           <img src={qrUrl} alt="QR code for the hosted creations manager" />
+        </section>
+
+        <section className="auditPanel" aria-label="Broker audit log">
+          <div className="auditSummary">
+            <div>
+              <p className="eyebrow">Broker Log</p>
+              <h2>4,000 active records</h2>
+            </div>
+            <span>3 seed</span>
+          </div>
+          <p>
+            Append-only GitHub JSONL log for requests, approvals, blocked
+            actions, dry runs, execution results, rollback attempts, and
+            post-checks.
+          </p>
+          <div className="auditStats">
+            <span>Warn at 3,000</span>
+            <span>Archive 1,000</span>
+            <span>No secrets</span>
+          </div>
+          <div className="auditList">
+            {auditRecords.map((record) => (
+              <article className="auditRecord" key={record.id}>
+                <div>
+                  <h3>{record.action}</h3>
+                  <p>{record.detail}</p>
+                </div>
+                <div className="auditMeta">
+                  <span>{record.status}</span>
+                  <span>{record.time}</span>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
       </section>
 
