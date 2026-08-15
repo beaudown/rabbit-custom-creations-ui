@@ -12,6 +12,10 @@ This must be a single Custom Creation entrypoint. Load
 sandboxed creations for broker control, bridge routing, audit review, rollback,
 debug help, or settings.
 
+On first launch, read `first-run-readiness.md` and run the readiness check
+before relying on offline mode or broker routing. If readiness is partial, keep
+the tool in guide-only or dry-run mode and show the missing assets/endpoints.
+
 This tool includes the Rabbit on-device broker and the bridge to that broker.
 It should also read the Rabbit gateway connector, OpenClaw gateway, and Hermes
 gateway roles from `broker/gateway-topology.json` when explaining routing or

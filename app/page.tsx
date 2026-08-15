@@ -377,6 +377,27 @@ const skillUploaderStages = [
   "Audit",
 ];
 
+const readinessAssets = [
+  "creation-skill/manifest.json",
+  "creation-skill/creation-launcher.json",
+  "creation-skill/broker-service-guide.md",
+  "creation-skill/custom-skill-uploader.md",
+  "broker/rabbit-native-broker-spec.json",
+  "broker/gateway-topology.json",
+  "broker/prompt-library.json",
+  "broker/request-templates/custom-skill-upload-request.json",
+  "broker/request-templates/broker-service-control-request.json",
+];
+
+const readinessSteps = [
+  "PWA loaded",
+  "Launcher ready",
+  "Offline cache",
+  "Bridge route",
+  "Service control",
+  "Skill upload",
+];
+
 const superuserActionPlan = [
   {
     step: "Import",
@@ -842,6 +863,8 @@ export default function Home() {
   const [serviceControlPreview, setServiceControlPreview] = useState("Service state not checked");
   const [skillUploadStatus, setSkillUploadStatus] = useState("No skill file loaded");
   const [skillUploadPreview, setSkillUploadPreview] = useState("Upload .txt, .csv, .md, .json, .yaml, .pdf, or .zip skill files.");
+  const [readinessStatus, setReadinessStatus] = useState("First-run check not started");
+  const [readinessPreview, setReadinessPreview] = useState("Run readiness before relying on offline cache or broker routing.");
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -1028,6 +1051,89 @@ export default function Home() {
       setServiceControlStatus(`No broker service endpoint reachable at ${baseUrl}`);
       setServiceControlPreview("Service-control remains offline-only until a broker endpoint is reachable.");
     }
+  }
+
+  async function runCreationReadinessCheck() {
+    const baseBrokerUrl = brokerEndpoint.replace(/\/$/, "");
+    setReadinessStatus("Checking Creation readiness...");
+
+    const assetResults = await Promise.all(
+      readinessAssets.map(async (asset) => {
+        try {
+          const response = await fetch(asset, { cache: "no-store" });
+          return {
+            asset,
+            ok: response.ok,
+            status: response.status,
+          };
+        } catch {
+          return {
+            asset,
+            ok: false,
+            status: "unreachable",
+          };
+        }
+      }),
+    );
+
+    const serviceWorkerReady = "serviceWorker" in navigator;
+    const cacheApiReady = "caches" in window;
+    const controlledByServiceWorker = Boolean(navigator.serviceWorker?.controller);
+
+    const endpointResults = await Promise.all(
+      [
+        ["health", "/health"],
+        ["bridgeRoute", "/bridge/route"],
+        ["serviceControl", "/broker/service"],
+        ["adbStatus", "/adb/status"],
+      ].map(async ([label, path]) => {
+        try {
+          const response = await fetch(`${baseBrokerUrl}${path}`);
+          return {
+            label,
+            ok: response.ok,
+            status: response.status,
+          };
+        } catch {
+          return {
+            label,
+            ok: false,
+            status: "unreachable",
+          };
+        }
+      }),
+    );
+
+    const requiredAssetsReady = assetResults.every((result) => result.ok);
+    const endpointsReady = endpointResults.every((result) => result.ok);
+    const offlineReady = serviceWorkerReady && cacheApiReady;
+    const summary = {
+      schemaVersion: 1,
+      status: requiredAssetsReady && offlineReady ? "ready_for_single_creation_use" : "partial",
+      requiredAssetsReady,
+      offlineReady,
+      serviceWorkerReady,
+      cacheApiReady,
+      controlledByServiceWorker,
+      brokerEndpoint: baseBrokerUrl,
+      endpointsReady,
+      assetResults,
+      endpointResults,
+      nextSteps: [
+        controlledByServiceWorker
+          ? "Offline cache is controlled by a service worker."
+          : "Reload once after first online load so the service worker can control the page.",
+        endpointsReady
+          ? "Broker MVP endpoints are reachable."
+          : "Use offline guides until a Mac or Rabbit broker endpoint is reachable.",
+        "Keep service-control and skill-hook actions as broker-approved dry runs until live authorization exists.",
+      ],
+    };
+
+    setReadinessStatus(
+      `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, broker ${endpointsReady ? "reachable" : "offline"}`,
+    );
+    setReadinessPreview(JSON.stringify(summary, null, 2));
   }
 
   async function parseSkillUpload(file: File | null) {
@@ -1383,6 +1489,31 @@ export default function Home() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="pwaPanel" aria-label="Single Creation first-run readiness">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">First Run</p>
+              <h2>Readiness check</h2>
+            </div>
+            <span>One tap</span>
+          </div>
+          <p>
+            Verify the single Custom Creation launcher, offline cache, broker
+            route, service-control endpoint, and skill uploader endpoint before
+            using the tool away from a reliable connection.
+          </p>
+          <div className="stateRail">
+            {readinessSteps.map((step) => (
+              <span key={step}>{step}</span>
+            ))}
+          </div>
+          <button className="wideButton" onClick={runCreationReadinessCheck}>
+            Run first-run check
+          </button>
+          <div className="queueStatus">{readinessStatus}</div>
+          <pre className="requestPreview">{readinessPreview}</pre>
         </section>
 
         <section className="actionPlanPanel" aria-label="Superuser step-by-step actions">

@@ -27,6 +27,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /On-device management/);
   assert.match(source, /Broker API client/);
   assert.match(source, /No browser root/);
+  assert.match(source, /First Run/);
+  assert.match(source, /Readiness check/);
+  assert.match(source, /runCreationReadinessCheck/);
+  assert.match(source, /readinessAssets/);
+  assert.match(source, /first-run check/);
   assert.match(source, /Actionable flow/);
   assert.match(source, /Response Playbook/);
   assert.match(source, /Do this first/);
@@ -139,6 +144,7 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   assert.match(serviceWorker, /broker\/request-templates\/adb-enable-request\.json/);
   assert.match(serviceWorker, /broker\/request-templates\/custom-skill-upload-request\.json/);
   assert.match(serviceWorker, /creation-skill\/execution-checklist\.md/);
+  assert.match(serviceWorker, /creation-skill\/first-run-readiness\.md/);
   assert.match(serviceWorker, /creation-skill\/custom-skill-uploader\.md/);
   assert.match(main, /serviceWorker/);
 });
@@ -189,6 +195,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rules.creationMayUploadCustomSkills, true);
   assert.equal(manifest.rules.customSkillHooksRequireBrokerApproval, true);
   assert.equal(manifest.creationLauncher, "creation-launcher.json");
+  assert.equal(manifest.firstRunReadiness, "first-run-readiness.md");
   assert.equal(manifest.brokerServiceGuide, "broker-service-guide.md");
   assert.equal(manifest.customSkillUploader, "custom-skill-uploader.md");
   assert.equal(manifest.usbStorageGuide, "usb-storage-guide.md");
@@ -230,8 +237,17 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(instructions, /Rabbit LLM/);
   assert.match(instructions, /DLAM/);
   assert.match(instructions, /single Custom Creation entrypoint/);
+  assert.match(instructions, /first-run-readiness\.md/);
   assert.match(instructions, /custom-skill-uploader\.md/);
   assert.match(instructions, /Hook activation requires broker/);
+
+  const readiness = await readFile(
+    new URL("../public/creation-skill/first-run-readiness.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(readiness, /First-Run Readiness/);
+  assert.match(readiness, /Offline-ready means/);
+  assert.match(readiness, /Stop Conditions/);
 
   const walkthrough = await readFile(
     new URL("../public/creation-skill/walkthrough-guide.md", import.meta.url),
@@ -607,5 +623,6 @@ test("custom skill upload template is broker gated", async () => {
   assert.ok(template.skillUpload.acceptedExtensions.includes(".md"));
   assert.ok(template.skillUpload.acceptedExtensions.includes(".zip"));
   assert.equal(launcher.resourcePolicy.singleCreationOnly, true);
+  assert.equal(launcher.resourcePolicy.firstRunReadinessGuide, "first-run-readiness.md");
   assert.equal(launcher.customSkillUploader.automaticHookActivation, false);
 });

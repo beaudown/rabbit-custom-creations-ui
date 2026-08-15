@@ -35,6 +35,7 @@
     "singleCreationEntrypoint": true,
     "hostedPwaDefaultUrl": "https://beaudown.github.io/rabbit-custom-creations-ui/",
     "creationLauncher": "creation-launcher.json",
+    "firstRunReadiness": "first-run-readiness.md",
     "brokerServiceGuide": "broker-service-guide.md",
     "detectBridgeOnLaunch": true,
     "detectMacFallbackOnLaunch": true,

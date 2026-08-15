@@ -5,6 +5,7 @@
   "description": "Creation-side request workflow for GitHub-backed prompts, files, broker logs, and broker-approved escalated privilege sessions.",
   "entrypoint": "instructions.md",
   "creationLauncher": "creation-launcher.json",
+  "firstRunReadiness": "first-run-readiness.md",
   "brokerServiceGuide": "broker-service-guide.md",
   "customSkillUploader": "custom-skill-uploader.md",
   "usbStorageGuide": "usb-storage-guide.md",
