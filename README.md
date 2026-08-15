@@ -184,6 +184,15 @@ Default output:
 dist/broker-sync-export.json
 ```
 
+Validate the hosted Superuser Management package before publishing or QR use:
+
+```bash
+npm run broker:validate
+```
+
+The validator checks manifest references, hosted broker JSON, walkthrough
+entries, dependency gates, audit policy, and request-template availability.
+
 ## Build
 
 ```bash
