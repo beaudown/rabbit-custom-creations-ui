@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-usb-mass-storage",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "mac_openclaw_broker"
+  },
+  "action": "prepare_usb_mass_storage_request",
+  "risk": "high",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "rollbackPlan": "Dry run only. Approved execution must first discover which USB storage exposure modes rabbitOS, recovery, or MediaTek/Preloader paths actually support, prefer read-only exposure when possible, record the original USB mode, expose only allowed storage, and verify normal mode after disconnect/reboot.",
+  "artifacts": [
+    {
+      "kind": "target_mode",
+      "value": "usb_mass_storage_or_supported_file_transfer"
+    },
+    {
+      "kind": "discovery_scope",
+      "values": [
+        "android_file_transfer_or_mtp",
+        "recovery_mount_options",
+        "mediatek_or_preloader_visible_storage",
+        "read_only_export_path",
+        "usb_mass_storage_if_supported"
+      ]
+    }
+  ]
+}

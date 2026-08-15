@@ -10,14 +10,15 @@ post-check.
 - Active log: `broker/audit-log.jsonl`
 - Manifest: `broker/audit-manifest.json`
 - Archive folder: `broker/archive/`
-- Active retention target: 4,000 records.
-- Warning threshold: 3,000 records.
-- Archive chunk size: 1,000 records.
+- Active retention target: 1,500 records.
+- Warning threshold: 1,200 records.
+- Archive chunk size: 500 records.
 
-The active log is append-only JSON Lines. When the active log exceeds 4,000
-records, the broker should move the oldest 1,000 records into a dated archive
+The active log is append-only JSON Lines. When the active log exceeds 1,500
+records, the broker should move the oldest 500 records into a dated archive
 file and update the manifest with the archive filename, line count, SHA-256,
-first record ID, last record ID, and time range.
+first record ID, last record ID, time range, tags, and summary. Archives should
+remain queryable for debugging, rollback questions, and change-history review.
 
 ## Record Requirements
 
@@ -75,3 +76,4 @@ The log is meant to answer:
 - Did the broker verify the expected device/build first?
 - Was rollback attempted and did it complete?
 - Did the device return to the expected clean state?
+- Which archive contains the older record if it is no longer active?

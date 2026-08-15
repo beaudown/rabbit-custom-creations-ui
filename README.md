@@ -15,9 +15,13 @@ confirming removal/uninstall actions.
 - Search, add/import affordance, settings affordance, category reassignment,
   and explicit remove confirmation.
 - GitHub Pages QR panel for opening the hosted UI on Rabbit by scan.
-- Broker audit panel with append-only GitHub JSONL log design, 4,000 active
-  record target, 3,000 record warning threshold, archive chunks, and no-secrets
+- Broker audit panel with append-only GitHub JSONL log design, 1,500 active
+  record target, 1,200 record warning threshold, archive chunks, and no-secrets
   rule.
+- Importable Creation skill pack for Creation-side escalated privilege requests
+  routed through the broker.
+- QR/link panel for importing `creation-skill/manifest.json` into a Rabbit
+  custom Creation.
 
 ## Broker audit log
 
@@ -30,14 +34,25 @@ Seed files:
 - `public/broker/audit-manifest.json`
 - `public/broker/audit-log.jsonl`
 - `docs/broker-audit-log.md`
+- `public/creation-skill/manifest.json`
+- `public/creation-skill/instructions.md`
+- `public/creation-skill/settings.json`
+
+Expected Creation skill manifest URL after GitHub Pages deployment:
+
+```text
+https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json
+```
 
 Retention policy:
 
-- Keep up to 4,000 active JSONL records.
-- Warn at 3,000 active records.
-- Archive the oldest 1,000 records when the active log exceeds 4,000.
+- Keep up to 1,500 active JSONL records.
+- Warn at 1,200 active records.
+- Archive the oldest 500 records when the active log exceeds 1,500.
 - Store archive metadata with line count, SHA-256, first/last record IDs, and
   time range.
+- Keep archives queryable with tags and summaries for debugging and rollback
+  questions.
 
 Each record should identify what was requested, what was approved or denied,
 what artifact hashes were used, what changed, whether the change persists after
@@ -87,3 +102,8 @@ This project is only a hosted UI prototype. It does not issue Rabbit ADB,
 fastboot, recovery, root, flash, install, boot-state, WebUSB, or WebSerial
 commands. Any future uninstall/install behavior must be wired to a separately
 authorized, explicitly gated device-management path.
+
+Creation-side escalated privilege requests are supported as request records.
+The Creation may call broker workflows for temporary privilege, ADB-enable
+preparation, reboot, recovery, fastboot, USB storage exposure, and APK canary.
+Execution remains broker-side after approval and live checks.

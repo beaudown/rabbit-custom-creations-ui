@@ -115,6 +115,32 @@ const auditRecords = [
   },
 ];
 
+const workflowSteps = [
+  "Open Creation",
+  "Load GitHub",
+  "Dry Run",
+  "Approve",
+  "Execute",
+  "Log Result",
+];
+
+const brokerSettings = [
+  { label: "Active records", value: "1,500" },
+  { label: "Warn at", value: "1,200" },
+  { label: "Archive chunks", value: "500" },
+  { label: "Session TTL", value: "10 min" },
+];
+
+const rootRequestButtons = [
+  "Temp SU",
+  "ADB Enable",
+  "Reboot",
+  "Fastboot",
+  "Recovery",
+  "USB Storage",
+  "APK Canary",
+];
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -129,6 +155,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [removing, setRemoving] = useState<Creation | null>(null);
   const [editTarget, setEditTarget] = useState<Creation | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -169,6 +196,10 @@ export default function Home() {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=${encodeURIComponent(
     publishUrl,
   )}`;
+  const skillUrl = `${publishUrl.replace(/\/$/, "")}/creation-skill/manifest.json`;
+  const skillQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=${encodeURIComponent(
+    skillUrl,
+  )}`;
 
   return (
     <main className="shell">
@@ -178,7 +209,11 @@ export default function Home() {
             <p className="eyebrow">Rabbit R1</p>
             <h1>Creations</h1>
           </div>
-          <button className="iconButton" aria-label="Open settings">
+          <button
+            className="iconButton"
+            aria-label="Open settings"
+            onClick={() => setSettingsOpen(true)}
+          >
             SET
           </button>
         </header>
@@ -300,11 +335,56 @@ export default function Home() {
           <img src={qrUrl} alt="QR code for the hosted creations manager" />
         </section>
 
+        <section className="publishPanel" aria-label="Creation skill import QR">
+          <div>
+            <p className="eyebrow">Import Skill</p>
+            <h2>Creation workflow</h2>
+            <input
+              value={skillUrl}
+              readOnly
+              aria-label="Creation skill manifest URL"
+            />
+          </div>
+          <img src={skillQrUrl} alt="QR code for the Creation skill manifest" />
+        </section>
+
+        <section className="workflowPanel" aria-label="Broker workflow guide">
+          <div>
+            <p className="eyebrow">Skill Guide</p>
+            <h2>Broker walkthrough</h2>
+          </div>
+          <div className="stepRail">
+            {workflowSteps.map((step, index) => (
+              <div className="stepPill" key={step}>
+                <span>{index + 1}</span>
+                <strong>{step}</strong>
+              </div>
+            ))}
+          </div>
+          <button className="wideButton">Start guided request</button>
+        </section>
+
+        <section className="rootPanel" aria-label="Broker root request shortcuts">
+          <div>
+            <p className="eyebrow">Broker Calls</p>
+            <h2>Root workflows</h2>
+          </div>
+          <p>
+            Creation buttons call broker requests. Execution waits for approval,
+            live checks, and a temporary session gate.
+          </p>
+          <div className="rootGrid">
+            {rootRequestButtons.map((label) => (
+              <button key={label}>{label}</button>
+            ))}
+          </div>
+        </section>
+
         <section className="auditPanel" aria-label="Broker audit log">
           <div className="auditSummary">
             <div>
               <p className="eyebrow">Broker Log</p>
-              <h2>4,000 active records</h2>
+              <h2>1,500 active records</h2>
             </div>
             <span>3 seed</span>
           </div>
@@ -314,8 +394,8 @@ export default function Home() {
             post-checks.
           </p>
           <div className="auditStats">
-            <span>Warn at 3,000</span>
-            <span>Archive 1,000</span>
+            <span>Warn at 1,200</span>
+            <span>Archive 500</span>
             <span>No secrets</span>
           </div>
           <div className="auditList">
@@ -368,6 +448,47 @@ export default function Home() {
             </div>
             <div className="modalActions">
               <button onClick={() => setEditTarget(null)}>Done</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {settingsOpen ? (
+        <div className="modalScrim" role="dialog" aria-modal="true">
+          <div className="modal settingsModal">
+            <p className="eyebrow">Creation Settings</p>
+            <h2>Broker configuration</h2>
+            <div className="settingsGrid">
+              {brokerSettings.map((setting) => (
+                <div className="settingTile" key={setting.label}>
+                  <span>{setting.label}</span>
+                  <strong>{setting.value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="toggleList" aria-label="Safety toggles">
+              <label>
+                <input type="checkbox" checked readOnly />
+                Require approval
+              </label>
+              <label>
+                <input type="checkbox" checked readOnly />
+                Dry run first
+              </label>
+              <label>
+                <input type="checkbox" checked readOnly />
+                Hash artifacts
+              </label>
+              <label>
+                <input type="checkbox" checked readOnly />
+                Query archives
+              </label>
+            </div>
+            <div className="modalActions">
+              <button onClick={() => setSettingsOpen(false)}>Close</button>
+              <button className="solid" onClick={() => setSettingsOpen(false)}>
+                Save
+              </button>
             </div>
           </div>
         </div>

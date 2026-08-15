@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-adb-enable",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "mac_openclaw_broker"
+  },
+  "action": "prepare_adb_enable_request",
+  "risk": "high",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "rollbackPlan": "Dry run only. Approved execution must record original USB/ADB state and verify expected state after reboot.",
+  "artifacts": []
+}

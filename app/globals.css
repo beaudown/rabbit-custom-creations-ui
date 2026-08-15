@@ -371,10 +371,15 @@ h3 {
 
 .emptyState,
 .publishPanel,
+.workflowPanel,
+.rootPanel,
 .auditPanel {
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: var(--panel-2);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    var(--panel-2);
+  backdrop-filter: blur(18px);
   padding: 16px;
 }
 
@@ -395,6 +400,87 @@ h3 {
   border-radius: 12px;
   background: #fff;
   padding: 6px;
+}
+
+.workflowPanel {
+  display: grid;
+  gap: 13px;
+  margin-top: 16px;
+}
+
+.stepRail {
+  display: grid;
+  gap: 8px;
+}
+
+.stepPill {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 10px;
+}
+
+.stepPill span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #061115;
+  font-weight: 950;
+}
+
+.stepPill strong {
+  font-size: 0.92rem;
+}
+
+.wideButton {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 10px;
+  background: var(--accent-2);
+  color: #071105;
+  font-weight: 950;
+}
+
+.rootPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rootPanel p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.rootGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.rootGrid button {
+  min-height: 54px;
+  border: 1px solid rgba(97, 244, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(97, 244, 255, 0.1);
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.rootGrid button:nth-child(1),
+.rootGrid button:nth-child(2) {
+  background: rgba(164, 255, 99, 0.12);
+  border-color: rgba(164, 255, 99, 0.22);
 }
 
 .auditPanel {
@@ -497,8 +583,68 @@ h3 {
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
 }
 
+.settingsModal {
+  display: grid;
+  gap: 14px;
+}
+
 .modal p {
   line-height: 1.45;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.settingTile {
+  display: grid;
+  gap: 6px;
+  min-height: 74px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+}
+
+.settingTile span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.settingTile strong {
+  color: var(--foreground);
+  font-size: 1.2rem;
+}
+
+.toggleList {
+  display: grid;
+  gap: 8px;
+}
+
+.toggleList label {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0 12px;
+  font-weight: 850;
+}
+
+.toggleList input {
+  width: 22px;
+  height: 22px;
+  accent-color: var(--accent-2);
+}
+
+.modalActions .solid {
+  background: var(--accent-2);
+  color: #071105;
 }
 
 .categoryChoices {
@@ -534,7 +680,9 @@ h3 {
   }
 
   .auditStats,
-  .auditRecord {
+  .auditRecord,
+  .rootGrid,
+  .settingsGrid {
     grid-template-columns: 1fr;
   }
 

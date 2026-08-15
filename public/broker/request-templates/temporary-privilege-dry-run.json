@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-temporary-privilege-dry-run",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "mac_openclaw_broker"
+  },
+  "action": "request_temporary_privilege_session",
+  "risk": "high",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "rollbackPlan": "Dry run only. For an approved future run, verify clean reboot path, session expiry, and post-check state before any device-affecting action.",
+  "artifacts": [
+    {
+      "kind": "local_payload_reference",
+      "name": "validated-nonpersistent-access-method",
+      "sha256": "replace-after-local-validation",
+      "compatibility": "exact-build-required"
+    }
+  ]
+}

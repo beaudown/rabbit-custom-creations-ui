@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rabbit Broker Workflow"
+  short_description: "Guide Rabbit broker request workflows"
+  default_prompt: "Use -broker-workflow to guide a safe Creation-side broker request workflow."

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-fastboot-reboot",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "mac_openclaw_broker"
+  },
+  "action": "prepare_reboot_request",
+  "risk": "medium",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "rollbackPlan": "Dry run only. Approved execution must record the current boot state and require confirmation that fastboot is expected.",
+  "artifacts": [
+    {
+      "kind": "target_mode",
+      "value": "fastboot"
+    }
+  ]
+}

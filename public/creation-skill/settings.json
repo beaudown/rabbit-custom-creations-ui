@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "ui": {
+    "theme": "dark-glass",
+    "minimumButtonHeightPx": 48,
+    "preferredButtonHeightPx": 52,
+    "baseFontSizePx": 17,
+    "largeFontSizePx": 22,
+    "highContrast": true,
+    "spacing": "comfortable",
+    "roundedCornersPx": 10
+  },
+  "broker": {
+    "defaultDryRun": true,
+    "approvalRequired": true,
+    "denySupported": true,
+    "sessionTtlSeconds": 600,
+    "creationSideEscalatedPrivilegeRequests": true,
+    "brokerSideExecutionRequired": true
+  },
+  "audit": {
+    "activeRecordTarget": 1500,
+    "warningThreshold": 1200,
+    "archiveChunkSize": 500,
+    "archiveQueryable": true,
+    "archiveTags": [
+      "adb",
+      "storage",
+      "reboot",
+      "apk",
+      "prompt",
+      "blocked",
+      "rollback",
+      "dry-run",
+      "privilege"
+    ]
+  }
+}

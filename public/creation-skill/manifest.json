@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "name": "rabbit-broker-workflow",
+  "displayName": "Rabbit Broker Workflow",
+  "description": "Creation-side request workflow for GitHub-backed prompts, files, broker logs, and broker-approved escalated privilege sessions.",
+  "entrypoint": "instructions.md",
+  "settings": "settings.json",
+  "requestTemplates": [
+    "../broker/request-templates/temporary-privilege-dry-run.json",
+    "../broker/request-templates/adb-enable-request.json",
+    "../broker/request-templates/normal-reboot-request.json",
+    "../broker/request-templates/fastboot-reboot-request.json",
+    "../broker/request-templates/recovery-reboot-request.json",
+    "../broker/request-templates/storage-export-request.json",
+    "../broker/request-templates/usb-mass-storage-request.json"
+  ],
+  "auditManifest": "../broker/audit-manifest.json",
+  "rules": {
+    "creationMayRequestEscalatedPrivileges": true,
+    "brokerExecutesEscalatedPrivileges": true,
+    "requiresApproveOrDeny": true,
+    "requiresLiveDeviceCheck": true,
+    "defaultDryRun": true,
+    "defaultPersistenceExpected": false,
+    "noSecretsInGitHub": true
+  }
+}
