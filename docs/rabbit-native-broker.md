@@ -50,6 +50,8 @@ or install path.
   default.
 - Load the prompt library and explain each suggested prompt, required variable,
   value source, and value meaning before queueing a request.
+- Read `public/broker/sync-manifest.json` so Rabbit and Mac brokers agree on
+  queue folders, request states, and export shape.
 
 ## Contextual Prompt Walkthrough
 
@@ -65,6 +67,13 @@ The prompt guide is not just a list of commands. It should help the user answer:
 - Which request template is being used?
 - Which broker holds the lease?
 - What approval decision and rollback note will be logged?
+
+## GitHub Sync
+
+The Rabbit-native broker should read the same sync manifest as the Mac fallback
+broker. GitHub may provide request files, prompt packs, templates, exports, and
+audit history. GitHub must not be treated as a privileged executor. Execution
+result files are written only by the active broker lease holder.
 
 ## Privileged Request Classes
 

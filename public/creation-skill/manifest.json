@@ -11,6 +11,7 @@
   "macLocalFallbackBrokerConfig": "../broker/mac-local-broker-config.json",
   "brokerCoordination": "../broker/broker-coordination.json",
   "promptLibrary": "../broker/prompt-library.json",
+  "syncManifest": "../broker/sync-manifest.json",
   "requestTemplates": [
     "../broker/request-templates/temporary-privilege-dry-run.json",
     "../broker/request-templates/adb-enable-request.json",

@@ -63,6 +63,13 @@ broker is preferred whenever it is running and validated. The Mac broker yields
 to the Rabbit broker and acts as fallback/bootstrap authority only when the
 Rabbit broker is absent, not installed, or not yet privileged.
 
+## Sync Contract
+
+Both brokers also use `public/broker/sync-manifest.json` for queue paths and
+request states. The shared inbox path is `public/broker/queue/inbox`; each
+request is stored as one JSON file named by request ID. Remote GitHub storage can
+move requests between systems, but cannot execute or confirm privileged actions.
+
 ## Remote Safety Defaults
 
 - Remote ADB-enable request: allowed as request, execution requires live device

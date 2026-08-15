@@ -16,6 +16,8 @@ runtime.
   not privileged, or not reachable.
 - Use the shared prompt library to explain variables and next steps before
   accepting a request.
+- Write accepted requests to `public/broker/queue/inbox/{requestId}.json`.
+- Serve `GET /sync/manifest` and `GET /sync/export` for queue-aware clients.
 
 ## Non-Role
 
@@ -64,3 +66,10 @@ curl http://127.0.0.1:8792/health
 
 The service writes local repository files only. Pushing those files to GitHub is
 a separate user-approved step.
+
+## GitHub Sync
+
+The Mac fallback broker follows `public/broker/sync-manifest.json`. It may write
+queued request files and audit records locally, then a separate user-approved
+GitHub push can publish those files. The Mac broker must not treat GitHub as an
+executor; GitHub is only shared storage for broker-readable state.

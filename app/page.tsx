@@ -160,6 +160,24 @@ const brokerStatus = [
   { label: "Mac broker", value: "Fallback" },
 ];
 
+const syncPaths = [
+  { label: "Inbox", value: "broker/queue/inbox" },
+  { label: "Outbox", value: "broker/queue/outbox" },
+  { label: "Processed", value: "broker/queue/processed" },
+  { label: "Dead letter", value: "broker/queue/dead-letter" },
+];
+
+const requestStates = [
+  "draft",
+  "queued",
+  "approved",
+  "denied",
+  "executed",
+  "blocked",
+  "processed",
+  "dead_letter",
+];
+
 const rootRequestButtons = [
   "Temp SU",
   "ADB Enable",
@@ -551,11 +569,34 @@ export default function Home() {
       });
       const body = await response.json();
       setQueueStatus(
-        response.ok ? `Queued: ${body.audit?.id ?? body.status}` : `Broker rejected: ${body.status ?? response.status}`,
+        response.ok
+          ? `Queued: ${body.queued?.queuePath ?? body.audit?.id ?? body.status}`
+          : `Broker rejected: ${body.status ?? response.status}`,
       );
     } catch {
       setQueueStatus("Mac broker unavailable at 127.0.0.1:8792");
     }
+  }
+
+  function downloadSyncExport() {
+    const syncExport = {
+      schemaVersion: 1,
+      createdAt: new Date().toISOString(),
+      source: "rabbit-custom-creations-ui",
+      syncManifest: "broker/sync-manifest.json",
+      queueInbox: "broker/queue/inbox",
+      request: composedRequest,
+      requestStates,
+    };
+    const blob = new Blob([`${JSON.stringify(syncExport, null, 2)}\n`], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${composedRequest.requestId || "broker-request"}-sync-export.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -831,6 +872,37 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="syncPanel" aria-label="GitHub sync contract">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">GitHub Sync</p>
+              <h2>Shared queue</h2>
+            </div>
+            <span>File based</span>
+          </div>
+          <p>
+            Rabbit and Mac brokers read the same queue folders. GitHub stores
+            requests and exports, but execution still belongs to the active
+            broker lease holder.
+          </p>
+          <div className="syncGrid">
+            {syncPaths.map((item) => (
+              <div className="syncTile" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ))}
+          </div>
+          <div className="stateRail">
+            {requestStates.map((state) => (
+              <span key={state}>{state}</span>
+            ))}
+          </div>
+          <button className="wideButton" onClick={downloadSyncExport}>
+            Download sync export
+          </button>
         </section>
 
         <section className="rootPanel" aria-label="Broker root request shortcuts">

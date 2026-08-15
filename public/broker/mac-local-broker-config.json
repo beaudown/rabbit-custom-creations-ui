@@ -7,8 +7,10 @@
   "finalRuntime": false,
   "macbookRequired": true,
   "coordinationManifest": "broker/broker-coordination.json",
+  "syncManifest": "broker/sync-manifest.json",
   "sharedAuditLog": "broker/audit-log.jsonl",
   "sharedTemplates": "broker/request-templates/",
+  "sharedQueueInbox": "broker/queue/inbox/",
   "localApi": {
     "preferredBaseUrl": "http://127.0.0.1:8792",
     "endpoints": [

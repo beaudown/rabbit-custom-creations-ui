@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "broker:mac": "node scripts/mac-local-broker.mjs",
+    "broker:export": "node scripts/export-broker-sync.mjs",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "npm run build && node --test tests/*.test.mjs",

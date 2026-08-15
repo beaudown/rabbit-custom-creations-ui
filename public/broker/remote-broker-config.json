@@ -6,6 +6,7 @@
   "rabbitNativeBrokerSpec": "broker/rabbit-native-broker-spec.json",
   "macLocalFallbackBrokerConfig": "broker/mac-local-broker-config.json",
   "coordinationManifest": "broker/broker-coordination.json",
+  "syncManifest": "broker/sync-manifest.json",
   "remoteIntake": {
     "enabled": false,
     "url": "",

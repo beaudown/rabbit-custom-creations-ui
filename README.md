@@ -30,6 +30,8 @@ confirming removal/uninstall actions.
   guided broker walkthroughs.
 - Interactive request composer that turns a selected prompt and filled
   variables into a dry-run broker request JSON preview.
+- GitHub sync contract for shared broker queue folders, request states, and
+  portable sync exports.
 
 ## Broker audit log
 
@@ -50,6 +52,12 @@ Seed files:
 - `public/broker/broker-coordination.json`
 - `public/broker/mac-local-broker-config.json`
 - `public/broker/prompt-library.json`
+- `public/broker/sync-manifest.json`
+- `public/broker/queue/inbox`
+- `public/broker/queue/outbox`
+- `public/broker/queue/processed`
+- `public/broker/queue/dead-letter`
+- `docs/github-sync.md`
 - `docs/rabbit-native-broker.md`
 - `docs/remote-broker-topology.md`
 - `docs/mac-local-broker.md`
@@ -107,6 +115,24 @@ expiry on the next restart.
 
 The UI request composer can post a completed dry-run request to the Mac broker
 at `http://127.0.0.1:8792/requests` when that broker is running.
+
+Queued requests are written to:
+
+```text
+public/broker/queue/inbox/{requestId}.json
+```
+
+Generate a portable sync bundle:
+
+```bash
+npm run broker:export
+```
+
+Default output:
+
+```text
+dist/broker-sync-export.json
+```
 
 ## Build
 

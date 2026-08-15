@@ -48,6 +48,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /lease_holder/);
   assert.match(source, /device_state/);
   assert.match(source, /Mac broker unavailable at 127\.0\.0\.1:8792/);
+  assert.match(source, /GitHub Sync/);
+  assert.match(source, /Shared queue/);
+  assert.match(source, /Download sync export/);
+  assert.match(source, /broker\/queue\/inbox/);
+  assert.match(source, /dead_letter/);
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 
@@ -94,6 +99,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
   assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
   assert.equal(manifest.promptLibrary, "../broker/prompt-library.json");
+  assert.equal(manifest.syncManifest, "../broker/sync-manifest.json");
   assert.ok(
     manifest.requestTemplates.some((template) =>
       template.includes("usb-mass-storage-request.json"),
@@ -102,6 +108,23 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(instructions, /Creation-side escalated privilege request/);
   assert.match(instructions, /USB mass-storage or supported storage exposure/);
   assert.match(instructions, /prompt library/);
+});
+
+test("sync manifest defines shared GitHub queue contract", async () => {
+  const manifest = JSON.parse(
+    await readFile(
+      new URL("../public/broker/sync-manifest.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(manifest.schemaVersion, 1);
+  assert.equal(manifest.paths.inbox, "broker/queue/inbox");
+  assert.equal(manifest.paths.outbox, "broker/queue/outbox");
+  assert.equal(manifest.rules.oneRequestPerFile, true);
+  assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
+  assert.ok(manifest.requestStates.includes("queued"));
+  assert.ok(manifest.requestStates.includes("dead_letter"));
 });
 
 test("remote broker config marks executor as not deployed", async () => {

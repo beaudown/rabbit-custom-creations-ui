@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { hostname } from "node:os";
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -14,6 +14,13 @@ const paths = {
   auditLog: join(root, "public/broker/audit-log.jsonl"),
   coordination: join(root, "public/broker/broker-coordination.json"),
   config: join(root, "public/broker/mac-local-broker-config.json"),
+  promptLibrary: join(root, "public/broker/prompt-library.json"),
+  syncManifest: join(root, "public/broker/sync-manifest.json"),
+  templates: join(root, "public/broker/request-templates"),
+  queueInbox: join(root, "public/broker/queue/inbox"),
+  queueOutbox: join(root, "public/broker/queue/outbox"),
+  queueProcessed: join(root, "public/broker/queue/processed"),
+  queueDeadLetter: join(root, "public/broker/queue/dead-letter"),
 };
 
 function sendJson(response, statusCode, body) {
@@ -23,6 +30,14 @@ function sendJson(response, statusCode, body) {
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
+}
+
+async function listJsonNames(path) {
+  const entries = await readdir(path, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".json"))
+    .map((entry) => entry.name)
+    .sort();
 }
 
 async function readBody(request) {
@@ -58,6 +73,68 @@ async function appendAudit(action, status, detail, request = null) {
 
 function leaseExpired(lease) {
   return !lease?.expiresAt || Date.parse(lease.expiresAt) <= Date.now();
+}
+
+function requestIdFor(request) {
+  const id = String(request.requestId || request.id || `request-${randomUUID()}`);
+  if (!/^[A-Za-z0-9._-]{3,96}$/.test(id)) {
+    throw new Error("requestId must match ^[A-Za-z0-9._-]{3,96}$");
+  }
+  return id;
+}
+
+async function writeQueueRequest(request, audit) {
+  const requestId = requestIdFor(request);
+  await mkdir(paths.queueInbox, { recursive: true });
+  const queuedRequest = {
+    ...request,
+    requestId,
+    syncState: "queued",
+    queuedAt: new Date().toISOString(),
+    queuedBy: brokerId,
+    auditId: audit.id,
+  };
+  const queuePath = join(paths.queueInbox, `${requestId}.json`);
+  await writeFile(queuePath, `${JSON.stringify(queuedRequest, null, 2)}\n`, {
+    flag: "wx",
+  });
+  return { requestId, queuePath: `broker/queue/inbox/${requestId}.json` };
+}
+
+async function buildSyncExport() {
+  const [syncManifest, coordination, promptLibrary, templates, inbox, outbox, processed, deadLetter] =
+    await Promise.all([
+      readJson(paths.syncManifest),
+      readJson(paths.coordination),
+      readJson(paths.promptLibrary),
+      listJsonNames(paths.templates),
+      listJsonNames(paths.queueInbox),
+      listJsonNames(paths.queueOutbox),
+      listJsonNames(paths.queueProcessed),
+      listJsonNames(paths.queueDeadLetter),
+    ]);
+
+  return {
+    schemaVersion: 1,
+    createdAt: new Date().toISOString(),
+    brokerId,
+    syncManifest,
+    coordination: {
+      activeLease: coordination.activeLease,
+      knownBrokers: coordination.knownBrokers,
+    },
+    promptSummary: {
+      promptCount: promptLibrary.prompts.length,
+      variableCount: promptLibrary.variables.length,
+    },
+    queue: {
+      inbox,
+      outbox,
+      processed,
+      deadLetter,
+    },
+    templates,
+  };
 }
 
 async function updateCoordination(mutator) {
@@ -116,11 +193,22 @@ async function handleRequest(request, response) {
   }
 
   if (request.method === "GET" && url.pathname === "/state") {
-    const [config, coordination] = await Promise.all([
+    const [config, coordination, syncManifest] = await Promise.all([
       readJson(paths.config),
       readJson(paths.coordination),
+      readJson(paths.syncManifest),
     ]);
-    sendJson(response, 200, { brokerId, config, coordination });
+    sendJson(response, 200, { brokerId, config, coordination, syncManifest });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/sync/manifest") {
+    sendJson(response, 200, await readJson(paths.syncManifest));
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/sync/export") {
+    sendJson(response, 200, await buildSyncExport());
     return;
   }
 
@@ -142,10 +230,12 @@ async function handleRequest(request, response) {
         ? "Mac fallback broker accepted request for approval/logging only; privileged execution remains disabled."
         : `Mac fallback broker yielded to active lease holder ${leaseHolder}.`;
     const audit = await appendAudit(body.action || body.type || "Broker request", status, detail, body);
+    const queued = status === "queued" ? await writeQueueRequest(body, audit) : null;
     sendJson(response, status === "queued" ? 202 : 409, {
       brokerId,
       status,
       audit,
+      queued,
       privilegedExecutionPerformed: false,
       nextStep: "Use explicit live authorization before any device-side privileged execution.",
     });

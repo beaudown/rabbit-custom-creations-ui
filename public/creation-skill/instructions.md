@@ -16,6 +16,8 @@ developer workflows.
 - Show audit log status and archive search hints.
 - Show the broker prompt library with each prompt's purpose, variables, where
   values come from, and what those values mean.
+- Show the GitHub sync contract, including queue inbox/outbox paths, request
+  states, and the export bundle path.
 
 ## What this Creation must not claim
 
@@ -38,9 +40,11 @@ developer workflows.
 4. Default to dry run.
 5. Create the matching broker request template.
 6. Send or expose the request for the Rabbit-native or Mac fallback broker.
-7. Wait for broker approval/deny/result.
-8. Show the audit record ID.
-9. If something breaks, search active and archived audit logs by action, tag,
+7. If GitHub sync is enabled, write or point to the queue inbox file for that
+   request ID.
+8. Wait for broker approval/deny/result.
+9. Show the audit record ID and queue path.
+10. If something breaks, search active and archived audit logs by action, tag,
    time, device state, artifact hash, or rollback note.
 
 ## Escalated privilege language

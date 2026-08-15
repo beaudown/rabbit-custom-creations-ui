@@ -68,10 +68,31 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const requestBody = await requestResponse.json();
     assert.equal(requestBody.status, "queued");
     assert.equal(requestBody.privilegedExecutionPerformed, false);
+    assert.equal(requestBody.queued.queuePath, "broker/queue/inbox/test-request-001.json");
 
     const auditLog = await readFile(join(sandbox, "public/broker/audit-log.jsonl"), "utf8");
     assert.match(auditLog, /test-request-001/);
     assert.match(auditLog, /Mac fallback broker accepted request/);
+
+    const queuedRequest = JSON.parse(
+      await readFile(
+        join(sandbox, "public/broker/queue/inbox/test-request-001.json"),
+        "utf8",
+      ),
+    );
+    assert.equal(queuedRequest.syncState, "queued");
+    assert.equal(queuedRequest.queuedBy, "mac-local-test");
+
+    const syncManifestResponse = await fetch(`${baseUrl}/sync/manifest`);
+    assert.equal(syncManifestResponse.status, 200);
+    const syncManifest = await syncManifestResponse.json();
+    assert.equal(syncManifest.paths.inbox, "broker/queue/inbox");
+
+    const syncExportResponse = await fetch(`${baseUrl}/sync/export`);
+    assert.equal(syncExportResponse.status, 200);
+    const syncExport = await syncExportResponse.json();
+    assert.ok(syncExport.queue.inbox.includes("test-request-001.json"));
+    assert.ok(syncExport.templates.includes("adb-enable-request.json"));
   } finally {
     child.kill("SIGTERM");
   }

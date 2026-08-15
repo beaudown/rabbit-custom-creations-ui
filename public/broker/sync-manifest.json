@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "name": "rabbit-broker-github-sync",
+  "status": "specified",
+  "purpose": "Shared GitHub-visible queue and export contract for Rabbit-native and Mac local brokers.",
+  "githubRoot": "public/broker",
+  "paths": {
+    "inbox": "broker/queue/inbox",
+    "outbox": "broker/queue/outbox",
+    "processed": "broker/queue/processed",
+    "deadLetter": "broker/queue/dead-letter",
+    "exports": "broker/exports",
+    "promptLibrary": "broker/prompt-library.json",
+    "coordination": "broker/broker-coordination.json",
+    "auditLog": "broker/audit-log.jsonl",
+    "auditManifest": "broker/audit-manifest.json",
+    "requestTemplates": "broker/request-templates"
+  },
+  "rules": {
+    "appendOnlyAudit": true,
+    "oneRequestPerFile": true,
+    "requestFilePattern": "{requestId}.json",
+    "requestIdPattern": "^[A-Za-z0-9._-]{3,96}$",
+    "singleWriterLeaseRequiredForExecutionResults": true,
+    "githubMayQueueRequests": true,
+    "githubMayNotExecuteRequests": true,
+    "noSecrets": true,
+    "dryRunDefault": true
+  },
+  "requestStates": [
+    "draft",
+    "queued",
+    "approved",
+    "denied",
+    "executed",
+    "blocked",
+    "processed",
+    "dead_letter"
+  ],
+  "exportIncludes": [
+    "sync-manifest.json",
+    "broker-coordination.json",
+    "prompt-library.json",
+    "audit-manifest.json",
+    "request-templates",
+    "queue-index"
+  ]
+}
