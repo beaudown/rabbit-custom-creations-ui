@@ -13,6 +13,26 @@
     "leaseControlsExecutionResultWritesOnly": true,
     "leaseDoesNotGateRabbitNativeSuperuserSession": true
   },
+  "startupPolicy": {
+    "closePreviousBrokerBeforeNewStart": true,
+    "clearPreviousBrokerConfigurationsBeforeAcceptingRequests": true,
+    "clearScope": [
+      "transient_route_cache",
+      "presence_claims",
+      "pending_service_control",
+      "stale_broker_endpoint_selection",
+      "stale_capability_detection"
+    ],
+    "preserveScope": [
+      "audit_history",
+      "queue_files",
+      "rollback_records",
+      "published_templates",
+      "rabbit_current_boot_superuser_state"
+    ],
+    "requiresAuditRecord": true,
+    "privilegedExecutionRequired": false
+  },
   "leasePairing": {
     "path": "broker/lease-pairing.json",
     "qrTarget": "broker/lease-pairing.json",

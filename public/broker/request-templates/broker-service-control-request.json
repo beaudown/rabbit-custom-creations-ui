@@ -24,12 +24,17 @@
       "start_on_device_broker",
       "restart_on_device_broker",
       "stop_on_device_broker",
+      "clear_previous_broker_configurations",
       "refresh_routes"
     ],
     "defaultAction": "status",
     "creationMayRequest": true,
     "creationMayDirectlyControlService": false,
-    "brokerMustReturnAuditId": true
+    "brokerMustReturnAuditId": true,
+    "newBrokerStartMustClosePreviousBroker": true,
+    "newBrokerStartMustClearPreviousConfigurations": true,
+    "cleanupMustPreserveAuditHistory": true,
+    "cleanupMustPreserveRabbitCurrentBootSuperuserState": true
   },
   "rollbackPlan": "Dry run only. Approved service control must record original bridge/broker state, requested action, route target, expected output, blockers, and verification result. Stop or restart actions must not be claimed unless the broker returns a confirmed audit record.",
   "artifacts": [

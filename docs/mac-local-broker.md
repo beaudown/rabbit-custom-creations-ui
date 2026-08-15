@@ -20,6 +20,8 @@ runtime.
 - Serve `GET /sync/manifest` and `GET /sync/export` for queue-aware clients.
 - Serve lease manager actions: `POST /lease/refresh`, `POST /lease/renew`, and
   `POST /lease/release`.
+- On every new broker startup, close or yield the previous broker route and
+  clear stale transient broker configuration before accepting requests.
 
 ## Non-Role
 
@@ -63,6 +65,19 @@ connector automatically; the QR is a fallback pairing route.
 Lease manager actions affect shared ownership/result-write coordination only.
 They must not revoke or alter Rabbit-local current-boot temporary superuser
 state after bootstrap.
+
+## Startup Cleanup
+
+Starting a new broker must not inherit stale route, endpoint, presence, pending
+service-control, or capability-detection state from a previous broker. The
+startup sequence must close or yield the previous broker route, clear those
+transient fields, write cleanup evidence into audit, then reacquire or renew
+lease ownership as appropriate.
+
+The cleanup must preserve audit history, queue files, rollback records,
+published templates, and Rabbit-local current-boot superuser state. Lease or
+broker cleanup is not a Rabbit reboot and must not be represented as clearing
+or granting superuser access.
 
 ## Start Locally
 

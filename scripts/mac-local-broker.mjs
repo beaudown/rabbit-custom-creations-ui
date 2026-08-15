@@ -10,6 +10,13 @@ const port = Number.parseInt(process.env.MAC_BROKER_PORT || "8792", 10);
 const brokerId = process.env.MAC_BROKER_ID || `mac-local-${hostname()}`;
 const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "259200", 10);
 const brokerStartedAt = new Date().toISOString();
+let startupCleanup = {
+  performed: false,
+  performedAt: null,
+  scope: "pending_startup",
+  previousBrokerConfigurationsCleared: false,
+  affectsRabbitState: false,
+};
 
 const paths = {
   auditLog: join(root, "public/broker/audit-log.jsonl"),
@@ -249,6 +256,7 @@ async function buildServiceStatus() {
         endpoint: "http://127.0.0.1:8791",
       },
     },
+    startupCleanup,
     route,
     privilegedExecutionPerformed: false,
   };
@@ -292,10 +300,57 @@ async function writeLeasePairing(coordination) {
       brokerStartedAt,
       generatedAt: new Date().toISOString(),
       activeLease: coordination.activeLease,
+      startupCleanup,
     },
   };
   await writeFile(paths.leasePairing, `${JSON.stringify(pairing, null, 2)}\n`);
   return pairing;
+}
+
+async function clearPreviousBrokerConfigurations(reason = "broker startup") {
+  startupCleanup = {
+    performed: true,
+    performedAt: new Date().toISOString(),
+    reason,
+    scope:
+      "clears_previous_route_cache_presence_claims_pending_service_control_and_stale_capability_detection",
+    previousBrokerConfigurationsCleared: true,
+    preservesAuditHistory: true,
+    preservesQueueFiles: true,
+    affectsRabbitState: false,
+    privilegedExecutionPerformed: false,
+  };
+
+  return updateCoordination((coordination) => {
+    coordination.status = "seed";
+    coordination.startupCleanup = {
+      ...startupCleanup,
+      brokerId,
+    };
+    coordination.transientRouteCache = null;
+    coordination.pendingServiceControl = null;
+    coordination.lastStartupBrokerId = brokerId;
+
+    const macBroker = coordination.knownBrokers.find((broker) => broker.id === "mac-local-fallback");
+    if (macBroker) {
+      macBroker.status = "starting";
+      macBroker.lastSeen = new Date().toISOString();
+      macBroker.instanceId = brokerId;
+      macBroker.previousConfigurationClearedAt = startupCleanup.performedAt;
+      macBroker.canExecutePrivilegedRequests = false;
+    }
+
+    return coordination;
+  }).then(async (coordination) => {
+    await appendAudit(
+      "Broker startup cleanup",
+      "cleared_previous_runtime_configuration",
+      "Cleared previous transient route/service configuration before accepting new broker requests. Audit history, queue files, and Rabbit device state were preserved.",
+      { reason },
+    );
+    await writeLeasePairing(coordination);
+    return coordination;
+  });
 }
 
 async function acquireLease(reason = "mac broker heartbeat") {
@@ -387,6 +442,7 @@ async function handleRequest(request, response) {
       leaseTtlSeconds,
       coordinationStatus: coordination?.status || "missing",
       leasePairing: "broker/lease-pairing.json",
+      startupCleanup,
     });
     return;
   }
@@ -594,9 +650,11 @@ async function handleRequest(request, response) {
         "Mac fallback service-control endpoint is non-privileged.",
         "Rabbit on-device broker is specified but not installed.",
         "Creation may request service control but may not directly control privileged services.",
+        "Starting a new broker must clear previous transient broker configuration before accepting requests.",
       ],
       hints: [
         "Use status or refresh_routes before start/stop/restart.",
+        "Use cleanup evidence from /health or /broker/service to confirm stale configuration was cleared.",
         "Use on-device broker service controls only after a validated install path exists.",
       ],
       audit,
@@ -707,6 +765,7 @@ const server = createServer((request, response) => {
 });
 
 server.listen(port, "127.0.0.1", async () => {
+  await clearPreviousBrokerConfigurations("broker startup").catch(() => {});
   await acquireLease("broker startup").catch(() => {});
   console.log(`Mac fallback broker listening on http://127.0.0.1:${port}`);
   console.log("Privileged execution is disabled; this service coordinates requests and audit records only.");

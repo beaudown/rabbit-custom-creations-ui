@@ -10,12 +10,20 @@ stopped, restarted, or escalated any service.
 ## Startup
 
 1. Load `creation-launcher.json`.
-2. Open or embed the hosted PWA.
-3. Load cached guides and templates.
-4. Detect the broker bridge.
-5. Check Mac fallback reachability.
-6. Check Rabbit on-device broker status.
-7. Show route target, expected output, blockers, and hints.
+2. Before accepting new requests, close or yield any previous broker instance
+   that owns the same route.
+3. Clear previous transient broker configuration: route cache, stale endpoint
+   selection, presence claims, pending service-control state, and stale
+   capability detection.
+4. Preserve audit history, queue files, rollback records, published templates,
+   and any Rabbit-local current-boot superuser state.
+5. Write an audit record proving the cleanup happened.
+6. Open or embed the hosted PWA.
+7. Load cached guides and templates.
+8. Detect the broker bridge.
+9. Check Mac fallback reachability.
+10. Check Rabbit on-device broker status.
+11. Show route target, expected output, blockers, and hints.
 
 ## Service Actions
 
@@ -26,6 +34,9 @@ stopped, restarted, or escalated any service.
 - `start_on_device_broker`: request Rabbit broker startup.
 - `restart_on_device_broker`: request Rabbit broker restart.
 - `stop_on_device_broker`: request Rabbit broker stop.
+- `clear_previous_broker_configurations`: clear stale transient route,
+  endpoint, presence, pending service-control, and capability-detection state
+  before starting a new broker.
 - `refresh_routes`: recompute bridge route and ADB status.
 
 ## Required Output
@@ -37,6 +48,7 @@ Every service-control response must show:
 - blockers
 - hints
 - audit ID or queue path
+- startup cleanup evidence
 - `privilegedExecutionPerformed`
 
 If the broker cannot prove the action happened, label it as dry-run, queued,

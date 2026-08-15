@@ -50,6 +50,9 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(health.containsRootPayload, false);
     assert.equal(health.leaseTtlSeconds, 259200);
     assert.equal(health.leasePairing, "broker/lease-pairing.json");
+    assert.equal(health.startupCleanup.performed, true);
+    assert.equal(health.startupCleanup.previousBrokerConfigurationsCleared, true);
+    assert.equal(health.startupCleanup.affectsRabbitState, false);
 
     const adbStatusResponse = await fetch(`${baseUrl}/adb/status`);
     assert.equal(adbStatusResponse.status, 200);
@@ -63,6 +66,7 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const serviceStatus = await serviceStatusResponse.json();
     assert.equal(serviceStatus.serviceControl.bridge.status, "running");
     assert.equal(serviceStatus.serviceControl.rabbitOnDeviceBroker.status, "specified_not_installed");
+    assert.equal(serviceStatus.startupCleanup.previousBrokerConfigurationsCleared, true);
     assert.equal(serviceStatus.privilegedExecutionPerformed, false);
 
     const leaseResponse = await fetch(`${baseUrl}/lease`, {
@@ -138,6 +142,11 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const serviceControl = await serviceControlResponse.json();
     assert.equal(serviceControl.status, "dry_run_only");
     assert.equal(serviceControl.serviceAction, "restart_bridge");
+    assert.ok(
+      serviceControl.blockers.includes(
+        "Starting a new broker must clear previous transient broker configuration before accepting requests.",
+      ),
+    );
     assert.equal(serviceControl.privilegedExecutionPerformed, false);
 
     const skillUploadResponse = await fetch(`${baseUrl}/skills/upload`, {

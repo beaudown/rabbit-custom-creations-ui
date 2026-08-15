@@ -352,6 +352,7 @@ const serviceControls = [
   "start_on_device_broker",
   "restart_on_device_broker",
   "stop_on_device_broker",
+  "clear_previous_broker_configurations",
   "refresh_routes",
 ];
 
@@ -1986,8 +1987,9 @@ export default function Home() {
           </div>
           <p>
             The Creation can request bridge and broker start, stop, restart, and
-            status actions. The active broker must decide, log, and verify the
-            result.
+            status actions. New broker starts also clear previous transient
+            broker configuration before accepting requests. The active broker
+            must decide, log, and verify the result.
           </p>
           <div className="rootGrid">
             {serviceControls.map((action) => (

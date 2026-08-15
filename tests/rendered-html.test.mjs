@@ -72,6 +72,8 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Service Control/);
   assert.match(source, /requestServiceControl/);
   assert.match(source, /\/broker\/service/);
+  assert.match(source, /clear_previous_broker_configurations/);
+  assert.match(source, /clear previous transient\s+broker configuration/);
   assert.match(source, /Skill Uploader/);
   assert.match(source, /Custom imports/);
   assert.match(source, /parseSkillUpload/);
@@ -431,6 +433,10 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(config.executionPolicy.leaseRenewSupported, true);
   assert.equal(config.executionPolicy.leaseReleaseSupported, true);
   assert.equal(config.executionPolicy.leaseActionsAffectSuperuserSession, false);
+  assert.equal(config.startupPolicy.closePreviousBrokerBeforeNewStart, true);
+  assert.equal(config.startupPolicy.clearPreviousBrokerConfigurationsBeforeAcceptingRequests, true);
+  assert.equal(config.startupPolicy.requiresAuditRecord, true);
+  assert.equal(config.startupPolicy.privilegedExecutionRequired, false);
   assert.equal(config.bootstrapRole.rabbitNativeBrokerMayOperateWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.enabled, true);
   assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 259200);
@@ -446,6 +452,10 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(coordination.singleWriterPolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.leaseControlsExecutionResultWritesOnly, true);
   assert.equal(coordination.singleWriterPolicy.leaseDoesNotGateRabbitNativeSuperuserSession, true);
+  assert.equal(coordination.startupPolicy.closePreviousBrokerBeforeNewStart, true);
+  assert.equal(coordination.startupPolicy.clearPreviousBrokerConfigurationsBeforeAcceptingRequests, true);
+  assert.equal(coordination.startupPolicy.preserveScope.includes("audit_history"), true);
+  assert.equal(coordination.startupPolicy.preserveScope.includes("rabbit_current_boot_superuser_state"), true);
   assert.equal(coordination.rules.macBrokerMayBootstrapRabbitBroker, true);
   assert.equal(coordination.rules.macBrokerMayBootstrapRestartScopedPrivilegeSession, true);
   assert.equal(coordination.rules.rabbitBrokerMayOperateWithoutMacAfterBootstrap, true);
