@@ -44,5 +44,6 @@ developer workflows.
 
 Use the phrase "Creation-side escalated privilege request" for root/superuser
 flows. The Creation is the caller. The broker is the executor. Temporary
-privilege should expire by TTL or reboot and should avoid persistent changes by
-default.
+privilege is restart-scoped: initial live authorization should happen after a
+device restart, and the temporary state should clear on the next restart. It
+should avoid persistent changes by default.

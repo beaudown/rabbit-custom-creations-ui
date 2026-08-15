@@ -15,8 +15,15 @@
     "approvalRequired": true,
     "denySupported": true,
     "sessionTtlSeconds": 600,
+    "temporaryPrivilegeLifetime": "until_reboot",
+    "initialAuthorizationTiming": "after_device_restart",
     "creationSideEscalatedPrivilegeRequests": true,
-    "brokerSideExecutionRequired": true
+    "brokerSideExecutionRequired": true,
+    "macbookRequired": false,
+    "remoteBrokerConfig": "../broker/remote-broker-config.json",
+    "macLocalFallbackBrokerConfig": "../broker/mac-local-broker-config.json",
+    "brokerCoordination": "../broker/broker-coordination.json",
+    "remoteExecutorStatus": "not_deployed"
   },
   "audit": {
     "activeRecordTarget": 1500,

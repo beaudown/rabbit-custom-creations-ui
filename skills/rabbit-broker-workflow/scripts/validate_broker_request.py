@@ -12,6 +12,7 @@ SAFE_ACTIONS = {
     "prepare_storage_export_request",
     "prepare_reboot_request",
     "prepare_adb_enable_request",
+    "prepare_adb_tcpip_request",
     "prepare_usb_mass_storage_request",
     "request_temporary_privilege_session",
     "show_device_state_checklist",
@@ -100,18 +101,30 @@ def main() -> None:
         "request_temporary_privilege_session",
         "prepare_reboot_request",
         "prepare_adb_enable_request",
+        "prepare_adb_tcpip_request",
         "prepare_storage_export_request",
         "prepare_usb_mass_storage_request",
     }:
         if not data["requiresLiveDeviceCheck"]:
             fail("privileged/reboot requests require live device checks")
-        if data["ttlSeconds"] > 600:
+        session_scope = data.get("sessionScope", {})
+        restart_scoped = (
+            action == "request_temporary_privilege_session"
+            and session_scope.get("lifetime") == "until_reboot"
+            and session_scope.get("expiresOn") == "device_restart"
+        )
+        if data["ttlSeconds"] > 600 and not restart_scoped:
             fail("privileged/reboot request TTL must be 600 seconds or less")
 
     if action == "request_temporary_privilege_session":
         source = data.get("source", {})
         if source.get("executor") in {"rabbit_creation", "github_pages"}:
             fail("temporary privilege may be requested by Creation/GitHub, but execution must be broker-side")
+        session_scope = data.get("sessionScope", {})
+        if session_scope.get("lifetime") != "until_reboot":
+            fail("temporary privilege sessions must be restart-scoped")
+        if session_scope.get("initialAuthorizationTiming") != "after_device_restart":
+            fail("temporary privilege initial authorization must happen after device restart")
 
     if data["persistenceExpected"] and risk != "high":
         fail("persistent changes must be high risk")

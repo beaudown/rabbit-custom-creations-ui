@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "status": "not_deployed",
+  "githubPagesIsStaticOnly": true,
+  "recommendedRuntime": "rabbit_native_service",
+  "rabbitNativeBrokerSpec": "broker/rabbit-native-broker-spec.json",
+  "macLocalFallbackBrokerConfig": "broker/mac-local-broker-config.json",
+  "coordinationManifest": "broker/broker-coordination.json",
+  "remoteIntake": {
+    "enabled": false,
+    "url": "",
+    "requiresToken": true,
+    "allowedMethods": [
+      "GET /health",
+      "GET /hints",
+      "POST /requests"
+    ]
+  },
+  "execution": {
+    "privilegedExecutionEnabled": false,
+    "requiresRabbitNativeOrDeviceAdjacentExecutor": true,
+    "macbookRequired": false,
+    "macLocalFallbackAvailable": true,
+    "macLocalFallbackRole": "bootstrap_and_lab_coordinator",
+    "remoteFlashingDefault": "blocked",
+    "otaBreakingModificationDefault": "blocked"
+  },
+  "featureFlags": {
+    "helpfulHints": true,
+    "idleHints": true,
+    "remoteRequests": true,
+    "remoteExecution": false,
+    "adbUsbRequest": true,
+    "adbTcpRequest": true,
+    "rebootRequest": true,
+    "recoveryRequest": true,
+    "fastbootRequest": true,
+    "usbStorageDiscoveryRequest": true
+  }
+}

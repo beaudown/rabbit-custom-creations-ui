@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "purpose": "shared broker presence, lease, and coordination state",
+  "status": "seed",
+  "singleWriterPolicy": {
+    "enabled": true,
+    "leaseTtlSeconds": 120,
+    "executionResultWriter": "active_lease_holder",
+    "denyExecutionWithoutLease": true
+  },
+  "preferredExecutorOrder": [
+    "rabbit-native",
+    "mac-local-fallback",
+    "remote-intake-only"
+  ],
+  "knownBrokers": [
+    {
+      "id": "rabbit-native",
+      "role": "primary_on_device_executor",
+      "host": "rabbit_r1",
+      "status": "specified_not_installed",
+      "canExecutePrivilegedRequests": false,
+      "macbookRequired": false,
+      "lastSeen": null
+    },
+    {
+      "id": "mac-local-fallback",
+      "role": "fallback_lab_bootstrap_coordinator",
+      "host": "mac",
+      "status": "specified_not_running",
+      "canExecutePrivilegedRequests": false,
+      "macbookRequired": true,
+      "lastSeen": null
+    }
+  ],
+  "activeLease": null,
+  "rules": {
+    "githubIsSharedStateNotExecutor": true,
+    "macBrokerMayBootstrapRabbitBroker": true,
+    "macBrokerMayBootstrapRestartScopedPrivilegeSession": true,
+    "macBrokerMayNotOverrideActiveRabbitBroker": true,
+    "privilegedExecutionRequiresSeparateLiveAuthorization": true,
+    "initialLiveAuthorizationTiming": "after_device_restart",
+    "temporaryPrivilegeLifetime": "until_reboot",
+    "persistentRootDefault": "blocked",
+    "otaBreakingModificationDefault": "blocked"
+  }
+}

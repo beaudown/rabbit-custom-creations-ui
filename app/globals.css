@@ -372,6 +372,7 @@ h3 {
 .emptyState,
 .publishPanel,
 .workflowPanel,
+.statusPanel,
 .rootPanel,
 .auditPanel {
   border: 1px solid var(--line);
@@ -449,6 +450,45 @@ h3 {
   font-weight: 950;
 }
 
+.statusPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.statusPanel p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.statusGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.statusTile {
+  display: grid;
+  gap: 5px;
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 11px;
+}
+
+.statusTile span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.statusTile strong {
+  color: var(--foreground);
+  font-size: 0.96rem;
+}
+
 .rootPanel {
   display: grid;
   gap: 12px;
@@ -465,6 +505,27 @@ h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 9px;
+}
+
+.brokerSplit {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.46);
+}
+
+.brokerSplit span {
+  color: #8de7ff;
+  font-size: 0.76rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.brokerSplit strong {
+  color: var(--foreground);
+  font-size: 0.94rem;
 }
 
 .rootGrid button {
@@ -693,6 +754,7 @@ h3 {
   .auditStats,
   .auditRecord,
   .rootGrid,
+  .statusGrid,
   .settingsGrid {
     grid-template-columns: 1fr;
   }

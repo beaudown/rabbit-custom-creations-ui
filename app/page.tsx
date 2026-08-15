@@ -128,7 +128,14 @@ const brokerSettings = [
   { label: "Active records", value: "1,500" },
   { label: "Warn at", value: "1,200" },
   { label: "Archive chunks", value: "500" },
-  { label: "Session TTL", value: "10 min" },
+  { label: "SU lifetime", value: "Until reboot" },
+];
+
+const brokerStatus = [
+  { label: "GitHub UI", value: "Ready" },
+  { label: "Request files", value: "Ready" },
+  { label: "Rabbit broker", value: "Primary" },
+  { label: "Mac broker", value: "Fallback" },
 ];
 
 const rootRequestButtons = [
@@ -364,6 +371,26 @@ export default function Home() {
           <button className="wideButton">Start guided request</button>
         </section>
 
+        <section className="statusPanel" aria-label="Remote broker status">
+          <div>
+            <p className="eyebrow">Rabbit Broker</p>
+            <h2>On-device target</h2>
+          </div>
+          <p>
+            GitHub hosts shared state. The Rabbit broker is the always-with-device
+            primary; the Mac broker is a fallback bootstrap authority when the
+            MacBook is online.
+          </p>
+          <div className="statusGrid">
+            {brokerStatus.map((item) => (
+              <div className="statusTile" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="rootPanel" aria-label="Broker root request shortcuts">
           <div>
             <p className="eyebrow">Broker Calls</p>
@@ -373,6 +400,12 @@ export default function Home() {
             Creation buttons call broker requests. Execution waits for approval,
             live checks, and a temporary session gate.
           </p>
+          <div className="brokerSplit">
+            <span>Rabbit primary</span>
+            <strong>native local executor target</strong>
+            <span>Mac fallback</span>
+            <strong>restart-scoped SU bootstrap</strong>
+          </div>
           <div className="rootGrid">
             {rootRequestButtons.map((label) => (
               <button key={label}>{label}</button>

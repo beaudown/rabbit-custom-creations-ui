@@ -20,8 +20,15 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /GitHub Pages/);
   assert.match(source, /Import Skill/);
   assert.match(source, /create-qr-code/);
+  assert.match(source, /Rabbit Broker/);
+  assert.match(source, /On-device target/);
+  assert.match(source, /always-with-device/);
+  assert.match(source, /Mac broker/);
+  assert.match(source, /fallback bootstrap authority/);
+  assert.match(source, /restart-scoped SU bootstrap/);
   assert.match(source, /Broker Log/);
   assert.match(source, /1,500 active records/);
+  assert.match(source, /Until reboot/);
   assert.match(source, /Warn at 1,200/);
   assert.match(source, /Archive 500/);
   assert.match(source, /No secrets/);
@@ -69,6 +76,10 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rules.creationMayRequestEscalatedPrivileges, true);
   assert.equal(manifest.rules.brokerExecutesEscalatedPrivileges, true);
   assert.equal(manifest.usbStorageGuide, "usb-storage-guide.md");
+  assert.equal(manifest.remoteBrokerConfig, "../broker/remote-broker-config.json");
+  assert.equal(manifest.rabbitNativeBrokerSpec, "../broker/rabbit-native-broker-spec.json");
+  assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
+  assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
   assert.ok(
     manifest.requestTemplates.some((template) =>
       template.includes("usb-mass-storage-request.json"),
@@ -76,4 +87,88 @@ test("creation skill exposes broker request templates", async () => {
   );
   assert.match(instructions, /Creation-side escalated privilege request/);
   assert.match(instructions, /USB mass-storage or supported storage exposure/);
+});
+
+test("remote broker config marks executor as not deployed", async () => {
+  const config = JSON.parse(
+    await readFile(
+      new URL("../public/broker/remote-broker-config.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(config.status, "not_deployed");
+  assert.equal(config.githubPagesIsStaticOnly, true);
+  assert.equal(config.execution.macbookRequired, false);
+  assert.equal(config.execution.macLocalFallbackAvailable, true);
+  assert.equal(config.execution.privilegedExecutionEnabled, false);
+  assert.equal(config.recommendedRuntime, "rabbit_native_service");
+  assert.equal(config.macLocalFallbackBrokerConfig, "broker/mac-local-broker-config.json");
+  assert.equal(config.coordinationManifest, "broker/broker-coordination.json");
+  assert.equal(config.featureFlags.remoteRequests, true);
+  assert.equal(config.featureFlags.remoteExecution, false);
+});
+
+test("rabbit-native broker spec is explicit about install status", async () => {
+  const spec = JSON.parse(
+    await readFile(
+      new URL("../public/broker/rabbit-native-broker-spec.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(spec.status, "specified_not_installed");
+  assert.equal(spec.intendedHost, "rabbit_r1");
+  assert.equal(spec.macbookRequired, false);
+  assert.equal(spec.installStatus.installedOnRabbit, false);
+  assert.equal(spec.installStatus.privilegedExecutionAvailable, false);
+  assert.equal(spec.safetyDefaults.defaultSessionLifetime, "until_reboot");
+  assert.equal(spec.safetyDefaults.initialAuthorizationTiming, "after_device_restart");
+  assert.equal(spec.safetyDefaults.rebootClearsTemporaryPrivilege, true);
+  assert.ok(spec.privilegedRequestClasses.includes("prepare_adb_tcpip_request"));
+});
+
+test("mac local broker config is fallback-only and coordinated", async () => {
+  const config = JSON.parse(
+    await readFile(
+      new URL("../public/broker/mac-local-broker-config.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const coordination = JSON.parse(
+    await readFile(
+      new URL("../public/broker/broker-coordination.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(config.status, "specified_not_running");
+  assert.equal(config.intendedHost, "mac");
+  assert.equal(config.role, "fallback_lab_bootstrap_coordinator");
+  assert.equal(config.bootstrapRole.mayCoordinateRabbitNativeInstall, true);
+  assert.equal(config.bootstrapRole.mayBootstrapRestartScopedPrivilegeSession, true);
+  assert.equal(config.bootstrapRole.containsRootPayload, false);
+  assert.equal(config.executionPolicy.privilegedExecutionEnabled, false);
+  assert.equal(config.executionPolicy.temporaryPrivilegeLifetime, "until_reboot");
+  assert.equal(coordination.singleWriterPolicy.enabled, true);
+  assert.equal(coordination.rules.macBrokerMayBootstrapRabbitBroker, true);
+  assert.equal(coordination.rules.macBrokerMayBootstrapRestartScopedPrivilegeSession, true);
+  assert.equal(coordination.rules.macBrokerMayNotOverrideActiveRabbitBroker, true);
+});
+
+test("temporary privilege template is restart-scoped", async () => {
+  const template = JSON.parse(
+    await readFile(
+      new URL("../public/broker/request-templates/temporary-privilege-dry-run.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(template.action, "request_temporary_privilege_session");
+  assert.equal(template.ttlSeconds, 0);
+  assert.equal(template.sessionScope.lifetime, "until_reboot");
+  assert.equal(template.sessionScope.initialAuthorizationTiming, "after_device_restart");
+  assert.equal(template.sessionScope.rabbitNativeBrokerMayUseAfterBootstrap, true);
+  assert.equal(template.sessionScope.macLocalBrokerBootstrapRequiredInitially, true);
+  assert.equal(template.persistenceExpected, false);
 });

@@ -34,7 +34,7 @@ the executor:
 2. Classify the requested feature:
    - `safe-ui`: prompt/file library, QR launch, status display, settings.
    - `broker-request`: prepares a request but does not execute it.
-- `privileged`: requires broker approval, live checks, and validated access.
+   - `privileged`: requires broker approval, live checks, and validated access.
    - `blocked`: Creation-side/GitHub-side payload execution, arbitrary shell,
      flash/erase/slot changes, OTA-breaking permanent modification, or
      unvalidated root.

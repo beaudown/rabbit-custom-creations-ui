@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-adb-tcpip",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "rabbit_native_broker"
+  },
+  "action": "prepare_adb_tcpip_request",
+  "risk": "high",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "rollbackPlan": "Dry run only. Approved execution must record original ADB transport state, require explicit user approval, enable only a temporary TCP/IP debugging window, and verify disable/cleanup after expiry or reboot.",
+  "artifacts": []
+}

@@ -22,6 +22,10 @@ confirming removal/uninstall actions.
   routed through the broker.
 - QR/link panel for importing `creation-skill/manifest.json` into a Rabbit
   custom Creation.
+- Rabbit-native broker specification for an always-available broker that does
+  not depend on the MacBook being online.
+- Mac local fallback broker scaffold for lab bootstrap coordination, shared
+  GitHub-state awareness, and audit logging.
 
 ## Broker audit log
 
@@ -37,6 +41,13 @@ Seed files:
 - `public/creation-skill/manifest.json`
 - `public/creation-skill/instructions.md`
 - `public/creation-skill/settings.json`
+- `public/broker/rabbit-native-broker-spec.json`
+- `public/broker/remote-broker-config.json`
+- `public/broker/broker-coordination.json`
+- `public/broker/mac-local-broker-config.json`
+- `docs/rabbit-native-broker.md`
+- `docs/remote-broker-topology.md`
+- `docs/mac-local-broker.md`
 
 Expected Creation skill manifest URL after GitHub Pages deployment:
 
@@ -65,6 +76,29 @@ private transcripts, or tokens.
 npm install
 npm run dev
 ```
+
+## Mac local fallback broker
+
+The Mac broker is a local fallback and bootstrap coordinator. It shares the same
+GitHub-visible coordination files and audit log as the Rabbit-native broker
+plan, but it is not the final always-available broker because it requires the
+MacBook to be online.
+
+```bash
+npm run broker:mac
+```
+
+Default local API:
+
+```text
+http://127.0.0.1:8792
+```
+
+It can record presence, acquire a short lease, queue/deny/approve requests, and
+append audit records. Privileged execution remains disabled until a separate
+live Rabbit authorization path is validated. Temporary privilege sessions are
+modeled as restart-scoped: initial authorization after a device restart, then
+expiry on the next restart.
 
 ## Build
 
@@ -105,5 +139,28 @@ authorized, explicitly gated device-management path.
 
 Creation-side escalated privilege requests are supported as request records.
 The Creation may call broker workflows for temporary privilege, ADB-enable
-preparation, reboot, recovery, fastboot, USB storage exposure, and APK canary.
+preparation, ADB TCP/IP preparation, reboot, recovery, fastboot, USB storage
+exposure, and APK canary.
 Execution remains broker-side after approval and live checks.
+
+## Current broker status
+
+Implemented:
+
+- GitHub Pages UI.
+- Creation import pack.
+- Request templates.
+- Audit policy and seed logs.
+- Rabbit-native broker specification.
+- Mac local fallback broker scaffold.
+- Broker coordination manifest with single-writer lease policy.
+
+Not implemented yet:
+
+- A broker service installed/running on the Rabbit.
+- Privileged execution.
+- A validated OTA-safe install path for the on-device broker.
+- A live remote API endpoint.
+
+GitHub Pages is static. It can host the UI and files, but it cannot be the
+always-on executor.

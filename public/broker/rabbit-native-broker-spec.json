@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "name": "rabbit-native-broker",
+  "status": "specified_not_installed",
+  "intendedHost": "rabbit_r1",
+  "macbookRequired": false,
+  "githubRole": "manifests_templates_prompts_audit_storage",
+  "creationRole": "caller_and_user_interface",
+  "brokerRole": "validator_decider_executor_when_validated",
+  "installStatus": {
+    "installedOnRabbit": false,
+    "validatedOnRabbit": false,
+    "privilegedExecutionAvailable": false,
+    "otaSafeInstallPathValidated": false
+  },
+  "localApi": {
+    "preferredBaseUrl": "http://127.0.0.1:8791",
+    "endpoints": [
+      "GET /health",
+      "GET /hints",
+      "GET /state",
+      "POST /requests",
+      "POST /approve",
+      "POST /deny"
+    ]
+  },
+  "remoteApi": {
+    "enabledByDefault": false,
+    "requiresAuthentication": true,
+    "requiresExplicitEnable": true,
+    "intendedUse": "allow remote request intake while Rabbit is away from MacBook"
+  },
+  "privilegedRequestClasses": [
+    "request_temporary_privilege_session",
+    "prepare_adb_enable_request",
+    "prepare_adb_tcpip_request",
+    "prepare_reboot_request",
+    "prepare_usb_mass_storage_request",
+    "prepare_apk_canary_request"
+  ],
+  "defaultBlocks": [
+    "persistent_root",
+    "ota_breaking_modification",
+    "remote_flashing",
+    "erase_partition",
+    "slot_change",
+    "arbitrary_shell_without_high_risk_mode"
+  ],
+  "safetyDefaults": {
+    "dryRunFirst": true,
+    "requiresApproveOrDeny": true,
+    "requiresLiveDeviceCheck": true,
+    "defaultSessionLifetime": "until_reboot",
+    "initialAuthorizationTiming": "after_device_restart",
+    "rebootClearsTemporaryPrivilege": true,
+    "persistentChangeDefault": false,
+    "auditEveryRequest": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "name": "mac-local-fallback-broker",
+  "status": "specified_not_running",
+  "intendedHost": "mac",
+  "role": "fallback_lab_bootstrap_coordinator",
+  "finalRuntime": false,
+  "macbookRequired": true,
+  "coordinationManifest": "broker/broker-coordination.json",
+  "sharedAuditLog": "broker/audit-log.jsonl",
+  "sharedTemplates": "broker/request-templates/",
+  "localApi": {
+    "preferredBaseUrl": "http://127.0.0.1:8792",
+    "endpoints": [
+      "GET /health",
+      "GET /state",
+      "POST /lease",
+      "POST /requests",
+      "POST /approve",
+      "POST /deny"
+    ]
+  },
+  "bootstrapRole": {
+    "mayCoordinateRabbitNativeInstall": true,
+    "mayQueuePrivilegeBootstrapRequest": true,
+    "mayBootstrapRestartScopedPrivilegeSession": true,
+    "mayWritePresenceForRemoteBroker": true,
+    "mayWriteAuditRecords": true,
+    "containsRootPayload": false,
+    "performsSilentPrivilegeEscalation": false
+  },
+  "executionPolicy": {
+    "singleWriterLeaseRequired": true,
+    "yieldToRabbitNativeBroker": true,
+    "privilegedExecutionEnabled": false,
+    "requiresSeparateLiveDeviceAuthorization": true,
+    "initialLiveAuthorizationTiming": "after_device_restart",
+    "temporaryPrivilegeLifetime": "until_reboot",
+    "remoteFlashingDefault": "blocked",
+    "otaBreakingModificationDefault": "blocked"
+  }
+}
