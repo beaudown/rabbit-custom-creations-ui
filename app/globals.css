@@ -372,8 +372,10 @@ h3 {
 .emptyState,
 .publishPanel,
 .workflowPanel,
+.actionPlanPanel,
 .promptPanel,
 .statusPanel,
+.leasePanel,
 .syncPanel,
 .rootPanel,
 .auditPanel {
@@ -416,6 +418,60 @@ h3 {
   display: grid;
   gap: 13px;
   margin-top: 16px;
+}
+
+.actionPlanPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.actionPlanList {
+  display: grid;
+  gap: 9px;
+}
+
+.actionPlanItem {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  border: 1px solid rgba(97, 244, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(8, 12, 18, 0.72);
+  padding: 11px;
+}
+
+.actionPlanItem > span {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--foreground);
+  color: #08090d;
+  font-weight: 950;
+}
+
+.actionPlanItem strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.actionPlanItem p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.actionPlanItem button {
+  grid-column: 1 / -1;
+  min-height: 48px;
+  border-radius: 9px;
+  background: rgba(97, 244, 255, 0.12);
+  color: var(--foreground);
+  font-weight: 900;
 }
 
 .stepRail {
@@ -707,6 +763,61 @@ h3 {
   display: grid;
   gap: 12px;
   margin-top: 16px;
+}
+
+.leasePanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.leasePanel > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.leaseGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.leaseTile {
+  display: grid;
+  gap: 6px;
+  min-height: 64px;
+  border: 1px solid rgba(97, 244, 255, 0.22);
+  border-radius: 10px;
+  background: rgba(97, 244, 255, 0.07);
+  padding: 11px;
+}
+
+.leaseTile span {
+  color: #8de7ff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.leaseTile strong {
+  color: var(--foreground);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.leaseActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.leaseActions button {
+  min-height: 50px;
+  border-radius: 9px;
+  background: rgba(164, 255, 99, 0.1);
+  color: var(--foreground);
+  font-weight: 900;
 }
 
 .syncPanel > p {
@@ -1052,6 +1163,8 @@ h3 {
   .auditRecord,
   .rootGrid,
   .statusGrid,
+  .leaseGrid,
+  .leaseActions,
   .syncGrid,
   .composerActions,
   .settingsGrid {

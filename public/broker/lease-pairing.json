@@ -13,7 +13,14 @@
     "rabbitConnectorAutoRetrieve": true,
     "manualEntryRequired": false,
     "refreshOnMacBrokerStartup": true,
-    "refreshWhenMacBrokerBecomesAvailable": true
+    "refreshWhenMacBrokerBecomesAvailable": true,
+    "leaseManagerEndpoints": [
+      "GET /lease/pairing",
+      "POST /lease/refresh",
+      "POST /lease/renew",
+      "POST /lease/release"
+    ],
+    "leaseActionsAffectSuperuserSession": false
   },
   "current": {
     "brokerId": null,

@@ -163,6 +163,13 @@ async function writeLeasePairing(coordination) {
       manualEntryRequired: false,
       refreshOnMacBrokerStartup: true,
       refreshWhenMacBrokerBecomesAvailable: true,
+      leaseManagerEndpoints: [
+        "GET /lease/pairing",
+        "POST /lease/refresh",
+        "POST /lease/renew",
+        "POST /lease/release",
+      ],
+      leaseActionsAffectSuperuserSession: false,
     },
     current: {
       brokerId,
@@ -211,6 +218,41 @@ async function acquireLease(reason = "mac broker heartbeat") {
   });
 }
 
+async function releaseLease(reason = "manual lease release") {
+  return updateCoordination((coordination) => {
+    const existingLease = coordination.activeLease;
+    const released =
+      existingLease?.holder === brokerId ||
+      existingLease?.role === "mac-local-fallback" ||
+      String(existingLease?.holder || "").startsWith("mac-local");
+
+    if (released) {
+      coordination.activeLease = null;
+    }
+
+    const macBroker = coordination.knownBrokers.find((broker) => broker.id === "mac-local-fallback");
+    if (macBroker) {
+      macBroker.status = "running";
+      macBroker.lastSeen = new Date().toISOString();
+      macBroker.instanceId = brokerId;
+      macBroker.canExecutePrivilegedRequests = false;
+    }
+
+    coordination.lastLeaseRelease = {
+      requestedBy: brokerId,
+      reason,
+      released,
+      releasedAt: new Date().toISOString(),
+      doesNotAffectRabbitNativeSuperuserSession: true,
+    };
+
+    return coordination;
+  }).then(async (coordination) => {
+    await writeLeasePairing(coordination);
+    return coordination;
+  });
+}
+
 async function handleRequest(request, response) {
   const url = new URL(request.url || "/", `http://${request.headers.host}`);
 
@@ -246,6 +288,62 @@ async function handleRequest(request, response) {
 
   if (request.method === "GET" && url.pathname === "/lease/pairing") {
     sendJson(response, 200, await readJson(paths.leasePairing));
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/lease/refresh") {
+    const coordination = await readJson(paths.coordination);
+    const pairing = await writeLeasePairing(coordination);
+    const audit = await appendAudit(
+      "Lease pairing refresh",
+      "refreshed",
+      "Regenerated connector-readable lease pairing metadata. Rabbit-local SU state is unaffected.",
+    );
+    sendJson(response, 200, {
+      brokerId,
+      status: "refreshed",
+      pairing,
+      audit,
+      superuserSessionAffected: false,
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/lease/renew") {
+    const body = await readBody(request);
+    const coordination = await acquireLease(body.reason || "manual lease renewal");
+    const audit = await appendAudit(
+      "Lease renewed",
+      "renewed",
+      "Renewed broker ownership lease for shared queue/result writes only. Rabbit-local SU state is unaffected.",
+      body,
+    );
+    sendJson(response, 200, {
+      brokerId,
+      status: "renewed",
+      coordination,
+      audit,
+      superuserSessionAffected: false,
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/lease/release") {
+    const body = await readBody(request);
+    const coordination = await releaseLease(body.reason || "manual lease release");
+    const audit = await appendAudit(
+      "Lease released",
+      "released",
+      "Released Mac broker ownership lease for shared queue/result writes only. Rabbit-local SU state is unaffected.",
+      body,
+    );
+    sendJson(response, 200, {
+      brokerId,
+      status: "released",
+      coordination,
+      audit,
+      superuserSessionAffected: false,
+    });
     return;
   }
 

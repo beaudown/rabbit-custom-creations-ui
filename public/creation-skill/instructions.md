@@ -3,6 +3,10 @@
 Use this skill inside a Rabbit custom Creation to request broker-backed
 developer workflows.
 
+Keep broker management inside one Superuser Management Creation/tool with
+nested modules for superuser actions, prompts, requests, queue, lease, logs,
+device workflows, and settings.
+
 ## What this Creation may do
 
 - Open prompt and file libraries from GitHub.
@@ -18,6 +22,8 @@ developer workflows.
   values come from, and what those values mean.
 - Show the GitHub sync contract, including queue inbox/outbox paths, request
   states, and the export bundle path.
+- Show a step-by-step actionable flow with the exact button/action to use and
+  the expected outcome before a privileged request is queued.
 - Explain that broker leases default to 72 hours and that Rabbit-native broker
   operation should not depend on Mac reachability after bootstrap.
 - Explain that lease expiry only affects shared result-writing ownership; it

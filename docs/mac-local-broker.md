@@ -18,6 +18,8 @@ runtime.
   accepting a request.
 - Write accepted requests to `public/broker/queue/inbox/{requestId}.json`.
 - Serve `GET /sync/manifest` and `GET /sync/export` for queue-aware clients.
+- Serve lease manager actions: `POST /lease/refresh`, `POST /lease/renew`, and
+  `POST /lease/release`.
 
 ## Non-Role
 
@@ -57,6 +59,10 @@ after bootstrap.
 The Mac broker regenerates lease pairing metadata on startup or when it becomes
 available again. Rabbit should retrieve `broker/lease-pairing.json` through its
 connector automatically; the QR is a fallback pairing route.
+
+Lease manager actions affect shared ownership/result-write coordination only.
+They must not revoke or alter Rabbit-local current-boot temporary superuser
+state after bootstrap.
 
 ## Start Locally
 

@@ -138,11 +138,11 @@ const auditRecords = [
 ];
 
 const workflowSteps = [
-  "Open Creation",
-  "Load GitHub",
+  "Open Superuser Management",
+  "Pair GitHub",
+  "Pick Action",
   "Dry Run",
   "Approve",
-  "Execute",
   "Log Result",
 ];
 
@@ -159,6 +159,16 @@ const brokerStatus = [
   { label: "Request files", value: "Ready" },
   { label: "Rabbit broker", value: "Primary" },
   { label: "Mac broker", value: "Fallback" },
+];
+
+const brokerModules = [
+  "Superuser",
+  "Prompts",
+  "Requests",
+  "Queue",
+  "Lease",
+  "Logs",
+  "Device workflows",
 ];
 
 const syncPaths = [
@@ -179,6 +189,13 @@ const requestStates = [
   "dead_letter",
 ];
 
+const leaseManagerStats = [
+  { label: "Holder", value: "Mac fallback" },
+  { label: "Duration", value: "72 hours" },
+  { label: "Pairing", value: "QR + connector" },
+  { label: "SU impact", value: "None" },
+];
+
 const rootRequestButtons = [
   "Temp SU",
   "ADB Enable",
@@ -187,6 +204,39 @@ const rootRequestButtons = [
   "Recovery",
   "USB Storage",
   "APK Canary",
+];
+
+const superuserActionPlan = [
+  {
+    step: "Import",
+    action: "Scan skill QR",
+    outcome: "Rabbit opens the Superuser Management Creation with GitHub-hosted configuration.",
+  },
+  {
+    step: "Pair",
+    action: "Reconnect from QR",
+    outcome: "The Creation loads lease metadata through the Rabbit connector or fallback QR.",
+  },
+  {
+    step: "Choose",
+    action: "Pick workflow",
+    outcome: "Prompts explain inputs, risk, required checks, and the broker that can handle it.",
+  },
+  {
+    step: "Prepare",
+    action: "Fill request",
+    outcome: "A dry-run JSON request is generated with missing values called out before queueing.",
+  },
+  {
+    step: "Authorize",
+    action: "Approve live",
+    outcome: "Privileged work stays gated by explicit approval and current device state.",
+  },
+  {
+    step: "Verify",
+    action: "Read audit",
+    outcome: "Results, blocked actions, and rollback clues are searchable in active and archived logs.",
+  },
 ];
 
 const promptGuides: PromptGuide[] = [
@@ -472,6 +522,7 @@ export default function Home() {
     approval_decision: "dry-run only",
   });
   const [queueStatus, setQueueStatus] = useState("Not queued");
+  const [leaseActionStatus, setLeaseActionStatus] = useState("Lease manager idle");
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -580,6 +631,38 @@ export default function Home() {
       );
     } catch {
       setQueueStatus("Mac broker unavailable at 127.0.0.1:8792");
+    }
+  }
+
+  async function runLeaseAction(action: "refresh" | "renew" | "release" | "reconnect") {
+    const endpoint =
+      action === "reconnect" ? "pairing" : action;
+    const method = action === "reconnect" ? "GET" : "POST";
+    const path =
+      endpoint === "pairing" ? "/lease/pairing" : `/lease/${endpoint}`;
+
+    setLeaseActionStatus(`${action} in progress...`);
+    try {
+      const response = await fetch(`http://127.0.0.1:8792${path}`, {
+        method,
+        headers: method === "POST" ? { "content-type": "application/json" } : undefined,
+        body:
+          method === "POST"
+            ? JSON.stringify({ reason: `ui lease ${action}` })
+            : undefined,
+      });
+      const body = await response.json();
+      const marker =
+        body.audit?.id ||
+        body.current?.activeLease?.holder ||
+        body.status ||
+        body.current?.brokerId ||
+        "ok";
+      setLeaseActionStatus(
+        `${action} complete: ${marker}; SU unaffected`,
+      );
+    } catch {
+      setLeaseActionStatus(`Mac broker unavailable for ${action}`);
     }
   }
 
@@ -751,10 +834,19 @@ export default function Home() {
           <img src={skillQrUrl} alt="QR code for the Creation skill manifest" />
         </section>
 
-        <section className="workflowPanel" aria-label="Broker workflow guide">
+        <section className="workflowPanel" aria-label="Superuser Management guide">
           <div>
-            <p className="eyebrow">Skill Guide</p>
-            <h2>Broker walkthrough</h2>
+            <p className="eyebrow">Unified Tool</p>
+            <h2>Superuser Management</h2>
+          </div>
+          <p className="panelNote">
+            One Creation should manage superuser actions, prompts, requests,
+            queue, lease, logs, and device workflows without leaving the tool.
+          </p>
+          <div className="stateRail">
+            {brokerModules.map((module) => (
+              <span key={module}>{module}</span>
+            ))}
           </div>
           <div className="stepRail">
             {workflowSteps.map((step, index) => (
@@ -765,6 +857,32 @@ export default function Home() {
             ))}
           </div>
           <button className="wideButton">Start guided request</button>
+        </section>
+
+        <section className="actionPlanPanel" aria-label="Superuser step-by-step actions">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Step By Step</p>
+              <h2>Actionable flow</h2>
+            </div>
+            <span>6 steps</span>
+          </div>
+          <p className="panelNote">
+            Each row shows the next actionable item and the expected outcome
+            before the broker queues anything.
+          </p>
+          <div className="actionPlanList">
+            {superuserActionPlan.map((item, index) => (
+              <article className="actionPlanItem" key={item.step}>
+                <span>{index + 1}</span>
+                <div>
+                  <strong>{item.step}</strong>
+                  <p>{item.outcome}</p>
+                </div>
+                <button>{item.action}</button>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="promptPanel" aria-label="Broker prompt guide">
@@ -896,6 +1014,38 @@ export default function Home() {
           <img src={leasePairingQrUrl} alt="QR code for broker lease pairing" />
         </section>
 
+        <section className="leasePanel" aria-label="Superuser lease controls">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Superuser Management</p>
+              <h2>Ownership controls</h2>
+            </div>
+            <span>SU safe</span>
+          </div>
+          <p>
+            Refresh, renew, release, or reconnect pairing metadata for shared
+            result-writing ownership. These actions do not affect Rabbit-local
+            current-boot SU.
+          </p>
+          <div className="leaseGrid">
+            {leaseManagerStats.map((item) => (
+              <div className="leaseTile" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ))}
+          </div>
+          <div className="leaseActions">
+            <button onClick={() => runLeaseAction("refresh")}>Refresh</button>
+            <button onClick={() => runLeaseAction("renew")}>Renew</button>
+            <button onClick={() => runLeaseAction("release")}>Release</button>
+            <button onClick={() => runLeaseAction("reconnect")}>
+              Reconnect from QR
+            </button>
+          </div>
+          <div className="queueStatus">{leaseActionStatus}</div>
+        </section>
+
         <section className="syncPanel" aria-label="GitHub sync contract">
           <div className="promptHeader">
             <div>
@@ -928,14 +1078,15 @@ export default function Home() {
           </button>
         </section>
 
-        <section className="rootPanel" aria-label="Broker root request shortcuts">
+        <section className="rootPanel" aria-label="Superuser request shortcuts">
           <div>
-            <p className="eyebrow">Broker Calls</p>
-            <h2>Root workflows</h2>
+            <p className="eyebrow">Superuser Actions</p>
+            <h2>Common workflows</h2>
           </div>
           <p>
-            Creation buttons call broker requests. Execution waits for approval,
-            live checks, and a temporary session gate.
+            Creation buttons call broker requests underneath the same
+            Superuser Management tool. Execution waits for approval, live
+            checks, and a temporary session gate.
           </p>
           <div className="brokerSplit">
             <span>Rabbit primary</span>

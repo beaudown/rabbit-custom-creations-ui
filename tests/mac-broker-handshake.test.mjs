@@ -99,7 +99,35 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const pairing = await pairingResponse.json();
     assert.equal(pairing.lease.defaultLeaseTtlSeconds, 259200);
     assert.equal(pairing.pairing.rabbitConnectorAutoRetrieve, true);
+    assert.equal(pairing.pairing.leaseActionsAffectSuperuserSession, false);
     assert.equal(pairing.current.brokerId, "mac-local-test");
+
+    const refreshResponse = await fetch(`${baseUrl}/lease/refresh`, {
+      method: "POST",
+    });
+    assert.equal(refreshResponse.status, 200);
+    const refreshBody = await refreshResponse.json();
+    assert.equal(refreshBody.status, "refreshed");
+    assert.equal(refreshBody.superuserSessionAffected, false);
+
+    const renewResponse = await fetch(`${baseUrl}/lease/renew`, {
+      method: "POST",
+      body: JSON.stringify({ reason: "test renew" }),
+    });
+    assert.equal(renewResponse.status, 200);
+    const renewBody = await renewResponse.json();
+    assert.equal(renewBody.status, "renewed");
+    assert.equal(renewBody.superuserSessionAffected, false);
+
+    const releaseResponse = await fetch(`${baseUrl}/lease/release`, {
+      method: "POST",
+      body: JSON.stringify({ reason: "test release" }),
+    });
+    assert.equal(releaseResponse.status, 200);
+    const releaseBody = await releaseResponse.json();
+    assert.equal(releaseBody.status, "released");
+    assert.equal(releaseBody.superuserSessionAffected, false);
+    assert.equal(releaseBody.coordination.activeLease, null);
 
     const syncExportResponse = await fetch(`${baseUrl}/sync/export`);
     assert.equal(syncExportResponse.status, 200);

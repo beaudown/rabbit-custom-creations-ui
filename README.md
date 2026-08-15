@@ -4,6 +4,11 @@ A compact, high-contrast Rabbit r1 web UI prototype for organizing custom
 creations into reachable folders, sorting them, recategorizing them, and
 confirming removal/uninstall actions.
 
+The broker work should live under one unified Superuser Management
+Creation/tool with nested modules for superuser actions, prompts, requests,
+queue, lease, logs, device workflows, and settings. The user should not have to
+leave one tool to manage the broker stack.
+
 ## Features
 
 - Dark, high-contrast visual system sized for compact touch screens.
@@ -32,6 +37,9 @@ confirming removal/uninstall actions.
   variables into a dry-run broker request JSON preview.
 - GitHub sync contract for shared broker queue folders, request states, and
   portable sync exports.
+- Superuser Management step-by-step action flow that shows the actionable item
+  and expected outcome for import, pairing, workflow selection, dry run,
+  authorization, and audit review.
 
 ## Broker audit log
 
@@ -130,6 +138,18 @@ public/broker/lease-pairing.json
 The Rabbit connector should automatically retrieve that file when pairing broker
 ownership. The QR code is a fallback/manual pairing affordance, not a root
 payload.
+
+Lease manager actions:
+
+```text
+GET /lease/pairing
+POST /lease/refresh
+POST /lease/renew
+POST /lease/release
+```
+
+These actions only affect broker ownership/result-writing coordination. They do
+not revoke Rabbit-local current-boot SU/root state after bootstrap.
 
 The UI request composer can post a completed dry-run request to the Mac broker
 at `http://127.0.0.1:8792/requests` when that broker is running.

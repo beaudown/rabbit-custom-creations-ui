@@ -65,6 +65,13 @@
     "leaseControlsExecutionResultWritesOnly": true,
     "leasePairingPath": "broker/lease-pairing.json",
     "rabbitConnectorAutoRetrievesLeasePairing": true,
+    "leaseManagerEndpoints": [
+      "GET /lease/pairing",
+      "POST /lease/refresh",
+      "POST /lease/renew",
+      "POST /lease/release"
+    ],
+    "leaseActionsAffectSuperuserSession": false,
     "temporaryPrivilegeStillExpiresOnRestart": true
   },
   "superuserSessionPolicy": {

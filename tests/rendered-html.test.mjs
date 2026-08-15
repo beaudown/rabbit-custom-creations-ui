@@ -21,6 +21,13 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Import Skill/);
   assert.match(source, /create-qr-code/);
   assert.match(source, /Rabbit Broker/);
+  assert.match(source, /Superuser Management/);
+  assert.match(source, /One Creation should manage superuser actions/);
+  assert.match(source, /Actionable flow/);
+  assert.match(source, /Scan skill QR/);
+  assert.match(source, /Pick workflow/);
+  assert.match(source, /Approve live/);
+  assert.match(source, /expected outcome/);
   assert.match(source, /On-device target/);
   assert.match(source, /always-with-device/);
   assert.match(source, /Mac broker/);
@@ -32,6 +39,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /72 hours/);
   assert.match(source, /Lease Pairing/);
   assert.match(source, /72-hour ownership/);
+  assert.match(source, /Superuser lease controls/);
+  assert.match(source, /Ownership controls/);
+  assert.match(source, /Reconnect from QR/);
+  assert.match(source, /runLeaseAction/);
+  assert.match(source, /SU unaffected/);
   assert.match(source, /lease-pairing\.json/);
   assert.match(source, /Rabbit connector auto-retrieves/);
   assert.match(source, /Warn at 1,200/);
@@ -40,6 +52,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /USB Storage/);
   assert.match(source, /guided mount help/);
   assert.match(source, /Creation buttons call broker requests/);
+  assert.match(source, /Common workflows/);
   assert.match(source, /Prompt Guide/);
   assert.match(source, /Suggested prompts/);
   assert.match(source, /View all prompt details/);
@@ -217,6 +230,10 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(config.defaultLeaseTtlSeconds, 259200);
   assert.equal(config.executionPolicy.defaultLeaseTtlSeconds, 259200);
   assert.equal(config.executionPolicy.regenerateLeaseOnMacBrokerStartup, true);
+  assert.equal(config.executionPolicy.leaseRefreshSupported, true);
+  assert.equal(config.executionPolicy.leaseRenewSupported, true);
+  assert.equal(config.executionPolicy.leaseReleaseSupported, true);
+  assert.equal(config.executionPolicy.leaseActionsAffectSuperuserSession, false);
   assert.equal(config.bootstrapRole.rabbitNativeBrokerMayOperateWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.enabled, true);
   assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 259200);
@@ -248,6 +265,9 @@ test("lease pairing manifest supports QR and connector retrieval", async () => {
   assert.equal(pairing.pairing.qrTarget, "broker/lease-pairing.json");
   assert.equal(pairing.pairing.rabbitConnectorAutoRetrieve, true);
   assert.equal(pairing.pairing.refreshOnMacBrokerStartup, true);
+  assert.equal(pairing.pairing.leaseActionsAffectSuperuserSession, false);
+  assert.ok(pairing.pairing.leaseManagerEndpoints.includes("POST /lease/renew"));
+  assert.ok(pairing.pairing.leaseManagerEndpoints.includes("POST /lease/release"));
 });
 
 test("temporary privilege template is restart-scoped", async () => {

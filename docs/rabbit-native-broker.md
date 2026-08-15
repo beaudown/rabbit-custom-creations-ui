@@ -3,6 +3,11 @@
 The target broker should run on the Rabbit r1 itself so the user can make
 Creation-side requests while away from the MacBook.
 
+The user-facing surface should be one Superuser Management Creation/tool.
+Superuser actions, prompts, request composition, queue browsing, lease pairing,
+audit logs, USB/ADB/reboot workflows, and settings should be nested modules
+inside that console rather than separate tools the user has to jump between.
+
 ## Desired Split
 
 ```text
@@ -50,6 +55,9 @@ or install path.
   default.
 - Load the prompt library and explain each suggested prompt, required variable,
   value source, and value meaning before queueing a request.
+- Present a step-by-step action flow with the concrete UI action to take and
+  the expected outcome for import, pairing, workflow selection, dry run,
+  authorization, and audit review.
 - Read `public/broker/sync-manifest.json` so Rabbit and Mac brokers agree on
   queue folders, request states, and export shape.
 
@@ -123,3 +131,6 @@ requiring the Mac broker to be reachable.
 
 The Rabbit connector should automatically retrieve `broker/lease-pairing.json`
 when pairing broker ownership. QR pairing exists for fallback/manual recovery.
+The custom Creation should expose reconnect, refresh, release, and renew actions
+for this pairing data. Those actions affect shared ownership/result-writing
+only, not Rabbit-local current-boot temporary superuser state.
