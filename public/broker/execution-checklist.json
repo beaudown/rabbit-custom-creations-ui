@@ -9,6 +9,9 @@
     "gatewayClaimsRequireEvidence": true,
     "githubMayNotExecuteRequests": true,
     "creationMayNotClaimRootExecution": true,
+    "bridgeMustSelectRouteBeforeQueueing": true,
+    "adbAuthorizationPromptMustBeTracked": true,
+    "offlineRecoveryHelpMustBeAvailable": true,
     "persistentChangeDefault": "blocked"
   },
   "items": [
@@ -87,11 +90,13 @@
         "request_id",
         "device_state",
         "broker_id",
+        "route_target",
         "approval_decision"
       ],
       "evidence": [
         "Template validates with validate_broker_request.py",
         "Required prompt variables are filled",
+        "Bridge route target is selected",
         "Request preview includes missingRequiredVariables=[]"
       ],
       "blocksIfMissing": "The broker cannot safely map the user outcome to an allowlisted action."
@@ -144,11 +149,13 @@
       "dependencies": [
         "broker/audit-log.jsonl",
         "broker/audit-manifest.json",
-        "archive index when active log rolls over"
+        "archive index when active log rolls over",
+        "offline debug and rollback guide"
       ],
       "evidence": [
-        "Request ID, artifact hash, broker ID, action, device state, or time is searchable",
-        "Result records distinguish blocked, dry-run, executed, failed, and rollback states"
+        "Request ID, artifact hash, broker ID, route target, action, device state, or time is searchable",
+        "Result records distinguish blocked, dry-run, executed, failed, and rollback states",
+        "Offline help explains ADB, USB storage mode, reboot modes, route failures, and rollback checks"
       ],
       "blocksIfMissing": "Debugging must be labeled unknown rather than inferred."
     }

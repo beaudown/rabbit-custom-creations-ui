@@ -13,8 +13,33 @@
     "requiresExplicitApprovalForPrivilegedActions": true,
     "recordsBlockedActions": true,
     "recordsDryRuns": true,
-    "recordsRollbackAttempts": true
+    "recordsRollbackAttempts": true,
+    "reviewBundlesMayBeSentToAssistantClients": true,
+    "assistantClientsMaySuggestRequests": true,
+    "assistantClientsMayExecutePrivilegedActions": false
   },
+  "reviewTargets": [
+    "rabbit_llm",
+    "hermes_gateway",
+    "openclaw_gateway",
+    "chatgpt_codex_client",
+    "claude_client",
+    "rabbit_intern",
+    "dlam_synthesis"
+  ],
+  "handoffFields": [
+    "request_id",
+    "action",
+    "broker_id",
+    "route_target",
+    "device_state",
+    "artifact_sha256",
+    "created_at",
+    "rollback_note",
+    "expected_output",
+    "blockers",
+    "next_suggested_step"
+  ],
   "active": {
     "recordCount": 3,
     "firstRecordId": "audit-20260815-000001",

@@ -33,8 +33,8 @@
       "id": "start_safe_request",
       "outcome": "Create a safe broker request.",
       "doFirst": "Pick a workflow in the prompt guide.",
-      "expectedResponse": "The Creation maps the desired outcome to a request template and shows required variables.",
-      "nextAction": "Fill request_id, device_state, broker_id, lease_holder, and approval_decision.",
+      "expectedResponse": "The Creation maps the desired outcome to a request template, shows required variables, and selects a route target.",
+      "nextAction": "Fill request_id, device_state, broker_id, route_target, lease_holder, and approval_decision.",
       "stopCondition": "Stop if required variables are missing or the broker route is not eligible.",
       "requestTemplate": "broker/request-templates/normal-reboot-request.json"
     },
@@ -60,7 +60,7 @@
       "id": "debug_or_rollback",
       "outcome": "Explain what happened or prepare rollback.",
       "doFirst": "Search active and archived audit logs.",
-      "expectedResponse": "Logs identify request, broker, decision, artifact hashes, result, changed items, and rollback clues.",
+      "expectedResponse": "Logs identify request, broker, route, decision, artifact hashes, result, changed items, rollback clues, and offline debug help.",
       "nextAction": "Search by request ID, artifact hash, broker ID, action, device state, or time.",
       "stopCondition": "Stop if no matching audit evidence exists and label the result as unknown.",
       "requestTemplate": null
@@ -73,6 +73,9 @@
     "githubMayNotExecuteRequests": true,
     "creationMayNotClaimRootExecution": true,
     "gatewayClaimsRequireEvidence": true,
-    "deviceAffectingActionsRequireLiveAuthorization": true
+    "deviceAffectingActionsRequireLiveAuthorization": true,
+    "bridgeMustShowRouteTarget": true,
+    "adbAuthorizationPromptMustBeTracked": true,
+    "offlineRecoveryHelpMustBeAvailable": true
   }
 }

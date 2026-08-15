@@ -372,15 +372,20 @@ h3 {
 .emptyState,
 .publishPanel,
 .workflowPanel,
+.pwaPanel,
 .actionPlanPanel,
 .playbookPanel,
 .checklistPanel,
 .promptPanel,
 .statusPanel,
 .gatewayPanel,
+.bridgePanel,
 .leasePanel,
 .syncPanel,
 .rootPanel,
+.modePanel,
+.adbPanel,
+.offlinePanel,
 .auditPanel {
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -423,6 +428,7 @@ h3 {
   margin-top: 16px;
 }
 
+.pwaPanel,
 .actionPlanPanel {
   display: grid;
   gap: 12px;
@@ -847,7 +853,12 @@ h3 {
 }
 
 .statusPanel p,
-.gatewayPanel > p {
+.gatewayPanel > p,
+.bridgePanel > p,
+.pwaPanel > p,
+.modePanel > p,
+.adbPanel > p,
+.offlinePanel > p {
   margin-bottom: 0;
   color: var(--muted);
   line-height: 1.4;
@@ -886,9 +897,52 @@ h3 {
   margin-top: 16px;
 }
 
+.bridgePanel,
+.modePanel,
+.adbPanel,
+.offlinePanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
 .gatewayList {
   display: grid;
   gap: 9px;
+}
+
+.routeList {
+  display: grid;
+  gap: 9px;
+}
+
+.routeItem {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(97, 244, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(97, 244, 255, 0.055);
+  padding: 11px;
+}
+
+.routeItem span {
+  color: #8de7ff;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.routeItem strong {
+  color: var(--foreground);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.routeItem p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
 }
 
 .gatewayItem {
@@ -1145,6 +1199,54 @@ h3 {
   font-size: 0.7rem;
   font-weight: 850;
   text-align: center;
+}
+
+.handoffList {
+  display: grid;
+  gap: 9px;
+}
+
+.handoffItem {
+  display: grid;
+  gap: 9px;
+  border: 1px solid rgba(164, 255, 99, 0.2);
+  border-radius: 10px;
+  background: rgba(164, 255, 99, 0.055);
+  padding: 11px;
+}
+
+.handoffItem > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.handoffItem strong {
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+
+.handoffItem span {
+  color: var(--accent-2);
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.handoffItem p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.handoffItem button {
+  min-height: 48px;
+  border-radius: 9px;
+  background: rgba(164, 255, 99, 0.14);
+  color: var(--foreground);
+  font-weight: 900;
 }
 
 .auditList {

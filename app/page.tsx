@@ -158,7 +158,7 @@ const brokerStatus = [
   { label: "GitHub UI", value: "Ready" },
   { label: "Request files", value: "Ready" },
   { label: "Rabbit broker", value: "Primary" },
-  { label: "Rabbit bridge", value: "Local API" },
+  { label: "Rabbit bridge", value: "Router" },
   { label: "Rabbit gateway", value: "Connector" },
   { label: "OpenClaw", value: "Gateway" },
   { label: "Hermes", value: "Gateway" },
@@ -202,12 +202,146 @@ const leaseManagerStats = [
 
 const rootRequestButtons = [
   "Temp SU",
-  "ADB Enable",
+  "ADB USB",
+  "ADB TCP/IP",
+  "ADB Auth",
+  "ADB Broadcast",
   "Reboot",
   "Fastboot",
   "Recovery",
-  "USB Storage",
+  "USB Storage Mode",
+  "Audit Lookup",
+  "Rollback Help",
+  "Debug Help",
   "APK Canary",
+];
+
+const bridgeRoutes = [
+  {
+    label: "Route check",
+    target: "Mac broker if local lease is reachable",
+    detail: "Bridge checks broker health, lease pairing, and queue state before deciding where a request should go.",
+  },
+  {
+    label: "Primary route",
+    target: "Rabbit on-device broker",
+    detail: "If the Mac fallback is unavailable or not needed, the Creation routes to the Rabbit broker on the device.",
+  },
+  {
+    label: "Validation",
+    target: "Expected output + blockers",
+    detail: "Bridge shows dry-run output, missing inputs, likely blockers, and concise hints before approval.",
+  },
+  {
+    label: "Assistant clients",
+    target: "OpenClaw, Hermes, Claude, ChatGPT/Codex",
+    detail: "Assistant gateways may suggest or structure requests; broker approval and execution stay with the active broker path.",
+  },
+];
+
+const deviceModes = [
+  {
+    mode: "Normal reboot",
+    expected: "Device returns to stock rabbitOS and clears current-boot temporary privilege.",
+  },
+  {
+    mode: "Recovery",
+    expected: "Broker guides recovery-mode entry and labels recovery mount options before any action.",
+  },
+  {
+    mode: "Fastboot",
+    expected: "Fastboot entry is allowed as a reboot mode; flashing remains blocked unless explicitly re-scoped later.",
+  },
+  {
+    mode: "USB Storage Mode",
+    expected: "Broker discovers whether rabbitOS, recovery, or MTK paths can expose allowed storage to the connected host.",
+  },
+];
+
+const adbControls = [
+  {
+    label: "ADB over USB",
+    detail: "Checks cable state, authorization state, and whether the system prompt can be surfaced for user approval.",
+  },
+  {
+    label: "ADB over TCP/IP",
+    detail: "Separates TCP/IP transport from USB authorization and records network reachability before queueing.",
+  },
+  {
+    label: "System auth prompt",
+    detail: "Requests the broker to surface or guide the Android allow-permission prompt when the live system supports it.",
+  },
+  {
+    label: "Awareness broadcast",
+    detail: "Publishes ADB USB/TCP/IP availability, discovery hints, and current transport blockers to the UI.",
+  },
+];
+
+const offlineRecovery = [
+  {
+    label: "Audit lookup",
+    detail: "Search active and archived JSONL records by request ID, action, broker, device state, artifact hash, or time.",
+  },
+  {
+    label: "Rollback guide",
+    detail: "Show last known pre-check, changed items, persistence expectation, recovery path, and verification step.",
+  },
+  {
+    label: "Debug help",
+    detail: "Keep offline explanations for ADB, reboot modes, storage exposure, queue states, and broker routing errors.",
+  },
+];
+
+const auditReviewTargets = [
+  {
+    label: "Rabbit LLM",
+    role: "on-device review",
+    detail: "Summarize the audit context and suggest the next Rabbit-local action.",
+  },
+  {
+    label: "Hermes",
+    role: "handoff analysis",
+    detail: "Compare broker results against the shared Rabbit handoff and flag unverifiable claims.",
+  },
+  {
+    label: "OpenClaw",
+    role: "federated memory",
+    detail: "Correlate request history, gateway state, and durable Rabbit project memory.",
+  },
+  {
+    label: "ChatGPT/Codex",
+    role: "implementation review",
+    detail: "Inspect request structure, expected output, blockers, tests, and next code changes.",
+  },
+  {
+    label: "Rabbit intern",
+    role: "guided assistant",
+    detail: "Turn the audit record into concise next-step prompts for the user.",
+  },
+  {
+    label: "DLAM",
+    role: "multi-agent synthesis",
+    detail: "Merge broker state, audit evidence, and assistant feedback into one expected outcome plan.",
+  },
+];
+
+const pwaCapabilities = [
+  {
+    label: "Hosted UI",
+    detail: "GitHub Pages serves the Superuser Management app and QR entry point.",
+  },
+  {
+    label: "Offline cache",
+    detail: "Service worker caches the UI, broker manifests, prompt guides, templates, and recovery docs.",
+  },
+  {
+    label: "Broker API client",
+    detail: "The PWA can call Rabbit or Mac broker endpoints when the browser runtime can reach them.",
+  },
+  {
+    label: "No browser root",
+    detail: "Privileged work is represented as broker requests; the PWA never claims direct root execution.",
+  },
 ];
 
 const superuserActionPlan = [
@@ -305,7 +439,7 @@ const responsePlaybook = [
     outcome: "Start a safe request",
     firstStep: "Pick workflow",
     expectedResponse: "Prompt guide maps the outcome to a request template and highlights required values.",
-    nextAction: "Fill request_id, device_state, broker_id, lease_holder, and approval_decision.",
+    nextAction: "Fill request_id, device_state, broker_id, route_target, lease_holder, and approval_decision.",
     stopIf: "Required variables are missing.",
   },
   {
@@ -325,7 +459,7 @@ const responsePlaybook = [
   {
     outcome: "Debug or roll back",
     firstStep: "Read audit",
-    expectedResponse: "Active and archived logs show request, decision, result, changed items, and rollback clues.",
+    expectedResponse: "Active and archived logs show request, decision, result, changed items, rollback clues, and offline help.",
     nextAction: "Search by request ID, artifact hash, broker ID, action, or time.",
     stopIf: "No matching audit evidence exists.",
   },
@@ -356,8 +490,8 @@ const executionChecklist = [
   {
     item: "Request template",
     requiredFor: "Request, dry run, approval",
-    dependency: "template + required variables",
-    evidence: "Template validates, no missing variables",
+    dependency: "template + required variables + route target",
+    evidence: "Template validates, route is selected, no missing variables",
     blocker: "No allowlisted action",
   },
   {
@@ -377,9 +511,9 @@ const executionChecklist = [
   {
     item: "Audit lookup",
     requiredFor: "Debug, rollback",
-    dependency: "active log + archive index",
-    evidence: "Searchable request or artifact",
-    blocker: "Unknown result",
+    dependency: "active log + archive index + offline debug guide",
+    evidence: "Searchable request, artifact, route, and rollback clue",
+    blocker: "Unknown result or missing offline evidence",
   },
 ];
 
@@ -667,6 +801,7 @@ export default function Home() {
   });
   const [queueStatus, setQueueStatus] = useState("Not queued");
   const [leaseActionStatus, setLeaseActionStatus] = useState("Lease manager idle");
+  const [auditHandoffStatus, setAuditHandoffStatus] = useState("No audit handoff exported");
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -829,6 +964,48 @@ export default function Home() {
     link.download = `${composedRequest.requestId || "broker-request"}-sync-export.json`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  function downloadAuditHandoff(target: string) {
+    const auditHandoff = {
+      schemaVersion: 1,
+      createdAt: new Date().toISOString(),
+      source: "rabbit-custom-creations-ui",
+      target,
+      purpose: "review_audit_and_suggest_next_expected_outcome",
+      auditManifest: "broker/audit-manifest.json",
+      activeLog: "broker/audit-log.jsonl",
+      archiveDir: "broker/archive",
+      searchableFields: [
+        "request_id",
+        "action",
+        "broker_id",
+        "route_target",
+        "device_state",
+        "artifact_sha256",
+        "created_at",
+        "rollback_note",
+      ],
+      latestRecords: auditRecords,
+      composedRequest,
+      instructions: [
+        "Use audit evidence first.",
+        "Separate confirmed facts from missing evidence.",
+        "Suggest dry-run or rollback-safe next steps before live action.",
+        "Do not claim privileged execution unless the broker result proves it.",
+      ],
+    };
+    const blob = new Blob([`${JSON.stringify(auditHandoff, null, 2)}\n`], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const safeTarget = target.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `audit-handoff-${safeTarget || "review"}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setAuditHandoffStatus(`Audit handoff exported for ${target}`);
   }
 
   return (
@@ -1001,6 +1178,29 @@ export default function Home() {
             ))}
           </div>
           <button className="wideButton">Start guided request</button>
+        </section>
+
+        <section className="pwaPanel" aria-label="Hosted PWA capabilities">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Hosted PWA</p>
+              <h2>On-device management</h2>
+            </div>
+            <span>Installable</span>
+          </div>
+          <p>
+            This app is the hosted Superuser Management surface. It can install
+            as a PWA, cache broker guides offline, and call broker APIs when the
+            Rabbit browser/runtime can reach them.
+          </p>
+          <div className="routeList">
+            {pwaCapabilities.map((item) => (
+              <article className="routeItem" key={item.label}>
+                <span>{item.label}</span>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="actionPlanPanel" aria-label="Superuser step-by-step actions">
@@ -1244,6 +1444,30 @@ export default function Home() {
           </div>
         </section>
 
+        <section className="bridgePanel" aria-label="Bridge routing policy">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Bridge Routing</p>
+              <h2>Broker selection</h2>
+            </div>
+            <span>Auto route</span>
+          </div>
+          <p>
+            The bridge is routing and validation logic. It checks local Mac
+            fallback reachability first, then routes to the Rabbit on-device
+            broker when local fallback is unavailable or not needed.
+          </p>
+          <div className="routeList">
+            {bridgeRoutes.map((item) => (
+              <article className="routeItem" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.target}</strong>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="publishPanel" aria-label="Lease pairing QR">
           <div>
             <p className="eyebrow">Lease Pairing</p>
@@ -1347,8 +1571,77 @@ export default function Home() {
             ))}
           </div>
           <div className="helpStrip">
-            USB Storage includes guided mount help, mode discovery, external
-            host checks, and fallback directions.
+            USB Storage Mode is treated as a reboot/exposure workflow with
+            guided mount help, mode discovery, external host checks, and
+            fallback directions.
+          </div>
+        </section>
+
+        <section className="modePanel" aria-label="Device reboot modes">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Device Modes</p>
+              <h2>Reboot targets</h2>
+            </div>
+            <span>4 modes</span>
+          </div>
+          <p>
+            Reboot, recovery, fastboot, and USB Storage Mode are exposed as
+            guided mode changes. Each mode shows expected host-visible results
+            before approval.
+          </p>
+          <div className="routeList">
+            {deviceModes.map((item) => (
+              <article className="routeItem" key={item.mode}>
+                <span>{item.mode}</span>
+                <p>{item.expected}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="adbPanel" aria-label="ADB USB and TCPIP controls">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">ADB Control</p>
+              <h2>USB + TCP/IP</h2>
+            </div>
+            <span>Prompt aware</span>
+          </div>
+          <p>
+            ADB workflows track USB, TCP/IP, system authorization prompts, and
+            transport awareness as first-class broker requests.
+          </p>
+          <div className="routeList">
+            {adbControls.map((item) => (
+              <article className="routeItem" key={item.label}>
+                <span>{item.label}</span>
+                <p>{item.detail}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="offlinePanel" aria-label="Offline rollback and debug help">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Offline Recovery</p>
+              <h2>Audit + rollback</h2>
+            </div>
+            <span>On device</span>
+          </div>
+          <p>
+            The Creation should keep enough offline help to explain common
+            failures even when GitHub, Mac fallback, or assistant gateways are
+            unreachable.
+          </p>
+          <div className="routeList">
+            {offlineRecovery.map((item) => (
+              <article className="routeItem" key={item.label}>
+                <span>{item.label}</span>
+                <p>{item.detail}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -1370,6 +1663,21 @@ export default function Home() {
             <span>Archive 500</span>
             <span>No secrets</span>
           </div>
+          <div className="handoffList" aria-label="Audit review handoff targets">
+            {auditReviewTargets.map((target) => (
+              <article className="handoffItem" key={target.label}>
+                <div>
+                  <strong>{target.label}</strong>
+                  <span>{target.role}</span>
+                </div>
+                <p>{target.detail}</p>
+                <button onClick={() => downloadAuditHandoff(target.label)}>
+                  Send review bundle
+                </button>
+              </article>
+            ))}
+          </div>
+          <div className="queueStatus">{auditHandoffStatus}</div>
           <div className="auditList">
             {auditRecords.map((record) => (
               <article className="auditRecord" key={record.id}>

@@ -1,0 +1,38 @@
+{
+  "name": "Rabbit Superuser Management",
+  "short_name": "R1 SU Manager",
+  "description": "Hosted Rabbit r1 Superuser Management PWA for broker-guided creations, audit review, and offline recovery help.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "orientation": "portrait",
+  "categories": [
+    "developer",
+    "utilities",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Broker Queue",
+      "short_name": "Queue",
+      "description": "Open the broker request and sync queue surface.",
+      "url": "./#queue"
+    },
+    {
+      "name": "Audit Review",
+      "short_name": "Audit",
+      "description": "Open audit lookup, handoff, rollback, and debug help.",
+      "url": "./#audit"
+    }
+  ]
+}

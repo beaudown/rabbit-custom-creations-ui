@@ -12,6 +12,18 @@ It should also read the Rabbit gateway connector, OpenClaw gateway, and Hermes
 gateway roles from `broker/gateway-topology.json` when explaining routing or
 handoff state.
 
+The hosted PWA is the visible Superuser Management surface. It can present the
+broker guides, compose requests, cache offline recovery help, export audit
+handoffs, and call reachable broker APIs. It is not the privileged executor by
+itself; browser/PWA code must route privileged work to the Rabbit on-device
+broker or the Mac fallback broker.
+
+The bridge is routing and validation logic. Check the Mac local broker and lease
+metadata first when local, then route to the Rabbit on-device broker when the
+Mac fallback is unavailable or not needed. Before sending a request, show the
+route target, expected output, blockers, concise hints, dry-run status, and the
+approval needed.
+
 When the user wants to provoke a specific response or expected outcome, read
 `walkthrough-guide.md` and `broker/walkthrough-guide.json` first. Show the
 do-first step, expected broker response, next action, and stop condition before
@@ -32,6 +44,9 @@ dependencies, required evidence, and blockers before moving forward.
   storage export, APK canary, and device-state checks.
 - Show approve/deny steps before any privileged action.
 - Show audit log status and archive search hints.
+- Export audit review bundles for Rabbit LLM, Hermes, OpenClaw, ChatGPT/Codex,
+  Claude, Rabbit intern, and DLAM review. These clients may suggest next steps
+  or expected outcomes, but the active broker remains the execution boundary.
 - Show the broker prompt library with each prompt's purpose, variables, where
   values come from, and what those values mean.
 - Show the GitHub sync contract, including queue inbox/outbox paths, request
@@ -43,8 +58,13 @@ dependencies, required evidence, and blockers before moving forward.
 - Show the dependency checklist for hosted manifests, gateway topology, lease
   pairing, request templates, dry-run result, live device gate, and audit lookup.
 - Show the gateway mesh: Rabbit bridge, Rabbit on-device broker, Rabbit gateway
-  connector, OpenClaw gateway, Hermes gateway, Mac fallback broker, and GitHub
-  storage.
+  connector, OpenClaw gateway, Hermes gateway, Rabbit LLM, Claude,
+  ChatGPT/Codex, Rabbit intern, DLAM, Mac fallback broker, and GitHub storage.
+- Treat ADB over USB, ADB over TCP/IP, the Android system authorization prompt,
+  and ADB availability broadcasting as first-class broker workflows.
+- Treat USB storage exposure as a reboot or supported mode-change workflow, not
+  only a preparation step.
+- Keep audit lookup, rollback help, and debug help available offline on device.
 - Explain that broker leases default to 72 hours and that Rabbit-native broker
   operation should not depend on Mac reachability after bootstrap.
 - Explain that lease expiry only affects shared result-writing ownership; it
@@ -62,6 +82,8 @@ dependencies, required evidence, and blockers before moving forward.
   broker logs a confirmed result.
 - Do not claim Rabbit storage can be mounted by USB mass storage until the
   broker discovers and confirms a supported exposure mode.
+- Do not claim the hosted PWA itself can bypass browser sandboxing or execute
+  privileged device commands.
 - For USB storage workflows, ask the broker to discover Android file transfer,
   recovery mount options, MediaTek/Preloader-visible storage, read-only export,
   or USB mass-storage mode if supported by the live device.

@@ -26,6 +26,13 @@
       "meaning": "Identifies whether Rabbit-native or Mac fallback broker is handling the request."
     },
     {
+      "name": "route_target",
+      "label": "Route target",
+      "required": true,
+      "source": "Selected by the bridge after checking Mac fallback reachability and Rabbit on-device broker status.",
+      "meaning": "Shows whether the request should go to the Mac local fallback broker or the Rabbit on-device broker."
+    },
+    {
       "name": "lease_holder",
       "label": "Lease holder",
       "required": true,
@@ -77,9 +84,10 @@
         "request_id",
         "device_state",
         "template_path",
-        "broker_id"
+        "broker_id",
+        "route_target"
       ],
-      "prompt": "Create a guided broker request using {{template_path}} for {{device_state}}. Use request {{request_id}} and route it to {{broker_id}} if that broker is eligible."
+      "prompt": "Create a guided broker request using {{template_path}} for {{device_state}}. Use request {{request_id}} and route it to {{route_target}} through {{broker_id}} if that broker is eligible."
     },
     {
       "id": "temporary-su-bootstrap",
@@ -110,6 +118,8 @@
       "summary": "Checks whether the requested ADB USB or TCP/IP workflow has the required live state, user approval, and broker lease.",
       "does": [
         "Separates ADB over USB from ADB over TCP/IP.",
+        "Tracks whether the Android allow-permission prompt can be surfaced.",
+        "Broadcasts ADB USB/TCP/IP availability and blockers back to the UI.",
         "Checks if the action is only a request or a live execution.",
         "Warns when ordinary Creation or APK context cannot authorize ADB."
       ],
@@ -117,10 +127,11 @@
         "request_id",
         "device_state",
         "template_path",
+        "route_target",
         "lease_holder",
         "approval_decision"
       ],
-      "prompt": "Run ADB preflight for {{request_id}} using {{template_path}}. Device state is {{device_state}}. Active lease holder is {{lease_holder}}. Approval decision is {{approval_decision}}."
+      "prompt": "Run ADB preflight for {{request_id}} using {{template_path}}. Device state is {{device_state}} and route target is {{route_target}}. Active lease holder is {{lease_holder}}. Approval decision is {{approval_decision}}."
     },
     {
       "id": "usb-storage-discovery",
@@ -129,6 +140,7 @@
       "risk": "high",
       "summary": "Walks through supported storage exposure modes before assuming USB mass storage is available.",
       "does": [
+        "Treats USB storage exposure as a reboot or supported mode-change workflow.",
         "Checks Android file transfer, recovery mount options, MediaTek/Preloader-visible storage, and read-only export options.",
         "Explains what another computer should see over USB.",
         "Provides next-step guidance for connection or mount errors."

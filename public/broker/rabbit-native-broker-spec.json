@@ -11,7 +11,11 @@
   "gatewayIntegrations": [
     "rabbit_gateway_connector",
     "openclaw_gateway",
-    "hermes_gateway"
+    "hermes_gateway",
+    "claude_client",
+    "chatgpt_codex_client",
+    "rabbit_intern",
+    "dlam_synthesis"
   ],
   "brokerRole": "validator_decider_executor_when_validated",
   "installStatus": {
@@ -28,9 +32,17 @@
       "GET /state",
       "GET /gateways",
       "GET /bridge/status",
+      "GET /bridge/route",
+      "GET /adb/status",
       "POST /requests",
       "POST /approve",
-      "POST /deny"
+      "POST /deny",
+      "POST /adb/usb",
+      "POST /adb/tcpip",
+      "POST /adb/authorize",
+      "POST /adb/broadcast",
+      "POST /device/reboot-mode",
+      "POST /audit/handoff"
     ]
   },
   "remoteApi": {
@@ -43,10 +55,64 @@
     "request_temporary_privilege_session",
     "prepare_adb_enable_request",
     "prepare_adb_tcpip_request",
+    "prepare_adb_authorization_prompt_request",
+    "prepare_adb_awareness_broadcast_request",
     "prepare_reboot_request",
+    "prepare_usb_storage_reboot_mode_request",
     "prepare_usb_mass_storage_request",
     "prepare_apk_canary_request"
   ],
+  "bridgeRoutingPolicy": {
+    "bridgeIsRouterNotExecutor": true,
+    "preferMacFallbackWhenLocalReachableAndLeaseValid": true,
+    "fallbackToRabbitNativeBrokerWhenMacUnavailable": true,
+    "rabbitNativeBrokerIsDefaultOnDeviceRoute": true,
+    "showExpectedOutputBeforeQueueing": true,
+    "showBlockersAndHintsBeforeApproval": true,
+    "queueDryRunBeforeLiveAction": true,
+    "routeTargetRequiredBeforeQueueing": true,
+    "assistantClientsMaySuggestRequests": true,
+    "assistantClientsMayExecutePrivilegedActions": false
+  },
+  "adbPolicy": {
+    "adbOverUsbIsFirstClassWorkflow": true,
+    "adbOverTcpipIsFirstClassWorkflow": true,
+    "systemAuthorizationPromptTracked": true,
+    "systemAuthorizationPromptRequiresLiveSupport": true,
+    "ordinaryCreationCannotAuthorizeAdbAlone": true,
+    "broadcastTransportAwareness": true,
+    "awarenessFields": [
+      "usb_state",
+      "tcpip_state",
+      "authorization_state",
+      "transport_blockers",
+      "discovery_hints"
+    ]
+  },
+  "deviceModePolicy": {
+    "normalReboot": true,
+    "recoveryReboot": true,
+    "fastbootReboot": true,
+    "usbStorageModeReboot": true,
+    "usbStorageModeRequiresDiscovery": true,
+    "remoteFlashingStillBlockedByDefault": true
+  },
+  "offlineRecoveryPolicy": {
+    "cacheOnDevice": true,
+    "auditLookupOffline": true,
+    "rollbackHelpOffline": true,
+    "debugHelpOffline": true,
+    "searchFields": [
+      "request_id",
+      "action",
+      "broker_id",
+      "route_target",
+      "device_state",
+      "artifact_sha256",
+      "created_at",
+      "rollback_note"
+    ]
+  },
   "defaultBlocks": [
     "persistent_root",
     "ota_breaking_modification",

@@ -45,8 +45,27 @@ leave one tool to manage the broker stack.
 - Dependency checklist that shows required prerequisites, evidence, and blockers
   before import, pairing, dry run, approval, current-boot SU, or rollback.
 - Gateway topology contract for the Rabbit bridge, on-device broker, Rabbit
-  gateway connector, OpenClaw gateway, Hermes gateway, Mac fallback broker, and
-  GitHub storage under the same Superuser Management tool.
+  gateway connector, OpenClaw gateway, Hermes gateway, Rabbit LLM, Claude,
+  ChatGPT/Codex, Rabbit intern, DLAM, Mac fallback broker, and GitHub storage
+  under the same Superuser Management tool.
+- Hosted PWA metadata and service worker cache for offline broker guides,
+  request templates, audit lookup, rollback help, and debug help.
+- Audit handoff bundles that can be sent to Rabbit LLM, Hermes, OpenClaw,
+  ChatGPT/Codex, Claude, Rabbit intern, or DLAM for review and next-step
+  suggestions.
+
+## Hosted PWA role
+
+The hosted PWA is the installable control surface. It can show the Superuser
+Management UI, broker guides, request composer, bridge routing state, QR links,
+audit review, rollback help, debug help, and offline cached broker contracts. It
+can call reachable Rabbit or Mac broker APIs from the browser runtime.
+
+The PWA is not the privileged executor by itself. Browser code cannot bypass the
+Rabbit runtime sandbox, surface root on its own, or perform ADB/fastboot/storage
+mode changes unless a validated native broker or system capability exposes that
+operation through an approved local endpoint. The bridge routes and validates;
+the active broker executes after dry run, approval, and live device checks.
 
 ## Broker audit log
 

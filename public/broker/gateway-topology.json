@@ -9,6 +9,11 @@
     "rabbit_gateway_connector",
     "openclaw_gateway",
     "hermes_gateway",
+    "rabbit_llm",
+    "claude_client",
+    "chatgpt_codex_client",
+    "rabbit_intern",
+    "dlam_synthesis",
     "mac_local_fallback_broker",
     "github_storage"
   ],
@@ -54,7 +59,55 @@
       "label": "Hermes gateway",
       "host": "hermes_runtime_when_available",
       "role": "assistant_bridge_and_handoff_consumer",
+      "maySuggestRequests": true,
+      "mayReviewAuditBundles": true,
+      "mayExecutePrivilegedActions": false,
       "verificationBoundary": "claims_require_tool_evidence_or_handoff_confirmation"
+    },
+    {
+      "id": "rabbit_llm",
+      "label": "Rabbit LLM",
+      "host": "rabbit_r1",
+      "role": "on_device_audit_review_and_next_step_guidance",
+      "maySuggestRequests": true,
+      "mayReviewAuditBundles": true,
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "claude_client",
+      "label": "Claude",
+      "host": "assistant_runtime",
+      "role": "structured_request_and_audit_review_client",
+      "maySuggestRequests": true,
+      "mayReviewAuditBundles": true,
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "chatgpt_codex_client",
+      "label": "ChatGPT/Codex",
+      "host": "assistant_runtime_or_mac",
+      "role": "implementation_review_and_request_structuring_client",
+      "maySuggestRequests": true,
+      "mayReviewAuditBundles": true,
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "rabbit_intern",
+      "label": "Rabbit intern",
+      "host": "rabbit_or_assistant_runtime",
+      "role": "guided_prompt_and_user_next_step_client",
+      "maySuggestRequests": true,
+      "mayReviewAuditBundles": true,
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "dlam_synthesis",
+      "label": "DLAM",
+      "host": "distributed_assistant_layer",
+      "role": "multi_agent_audit_context_and_expected_outcome_synthesis",
+      "maySuggestRequests": true,
+      "mayReviewAuditBundles": true,
+      "mayExecutePrivilegedActions": false
     },
     {
       "id": "mac_local_fallback_broker",
@@ -77,17 +130,28 @@
     "rabbit_native_broker -> github_storage",
     "mac_local_fallback_broker -> github_storage",
     "openclaw_gateway -> github_storage",
-    "hermes_gateway -> github_storage"
+    "hermes_gateway -> github_storage",
+    "rabbit_llm -> github_storage",
+    "claude_client -> github_storage",
+    "chatgpt_codex_client -> github_storage",
+    "rabbit_intern -> github_storage",
+    "dlam_synthesis -> github_storage"
   ],
   "rules": {
     "singleUserFacingTool": "superuser_management",
     "githubIsStorageNotExecutor": true,
     "creationIsCallerNotExecutor": true,
+    "bridgeIsRouterNotExecutor": true,
     "rabbitNativeBrokerIsPreferredExecutor": true,
     "rabbitBridgeConnectsCreationToOnDeviceBroker": true,
+    "rabbitBridgeSelectsMacFallbackWhenReachable": true,
+    "rabbitBridgeFallsBackToOnDeviceBroker": true,
     "rabbitGatewayConnectorRetrievesHostedState": true,
     "openClawGatewayIsCoordinationAware": true,
     "hermesGatewayIsCoordinationAware": true,
+    "assistantClientsMayReviewAuditBundles": true,
+    "assistantClientsMaySuggestRequests": true,
+    "assistantClientsMayExecutePrivilegedActions": false,
     "gatewayClaimsRequireEvidence": true,
     "privilegedExecutionRequiresValidatedRabbitExecutor": true,
     "noDeviceCommandFromGatewayTopology": true

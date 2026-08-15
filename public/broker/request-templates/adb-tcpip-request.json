@@ -14,6 +14,40 @@
   "dryRun": true,
   "ttlSeconds": 600,
   "persistenceExpected": false,
-  "rollbackPlan": "Dry run only. Approved execution must record original ADB transport state, require explicit user approval, enable only a temporary TCP/IP debugging window, and verify disable/cleanup after expiry or reboot.",
-  "artifacts": []
+  "routePolicy": {
+    "routeTargetRequired": true,
+    "preferredRoute": "rabbit_native_broker",
+    "macFallbackAllowedForBootstrap": true
+  },
+  "adb": {
+    "transport": "tcpip",
+    "requiresUsbOrPriorAuthorization": true,
+    "systemAuthorizationPrompt": {
+      "requested": true,
+      "requiresLiveSystemSupport": true,
+      "userMustAllowOnDevice": true
+    },
+    "awarenessBroadcast": {
+      "enabled": true,
+      "fields": [
+        "tcpip_state",
+        "usb_state",
+        "authorization_state",
+        "network_reachability",
+        "transport_blockers",
+        "discovery_hints"
+      ]
+    }
+  },
+  "rollbackPlan": "Dry run only. Approved execution must record original ADB transport state, require explicit user approval, surface or guide the Android authorization prompt when supported, enable only a temporary TCP/IP debugging window, broadcast discovery state, and verify disable/cleanup after expiry or reboot.",
+  "artifacts": [
+    {
+      "kind": "adb_transport",
+      "value": "tcpip"
+    },
+    {
+      "kind": "authorization_prompt",
+      "value": "system_allow_permission_prompt_if_supported"
+    }
+  ]
 }

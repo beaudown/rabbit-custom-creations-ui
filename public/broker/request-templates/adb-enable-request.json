@@ -14,6 +14,37 @@
   "dryRun": true,
   "ttlSeconds": 600,
   "persistenceExpected": false,
-  "rollbackPlan": "Dry run only. Approved execution must record original USB/ADB state and verify expected state after reboot.",
-  "artifacts": []
+  "routePolicy": {
+    "routeTargetRequired": true,
+    "preferredRoute": "rabbit_native_broker",
+    "macFallbackAllowedForBootstrap": true
+  },
+  "adb": {
+    "transport": "usb",
+    "systemAuthorizationPrompt": {
+      "requested": true,
+      "requiresLiveSystemSupport": true,
+      "userMustAllowOnDevice": true
+    },
+    "awarenessBroadcast": {
+      "enabled": true,
+      "fields": [
+        "usb_state",
+        "authorization_state",
+        "transport_blockers",
+        "discovery_hints"
+      ]
+    }
+  },
+  "rollbackPlan": "Dry run only. Approved execution must record original USB/ADB state, surface or guide the Android authorization prompt when supported, broadcast transport state, and verify expected state after reboot.",
+  "artifacts": [
+    {
+      "kind": "adb_transport",
+      "value": "usb"
+    },
+    {
+      "kind": "authorization_prompt",
+      "value": "system_allow_permission_prompt_if_supported"
+    }
+  ]
 }

@@ -25,9 +25,15 @@
     "macLocalFallbackAvailable": true,
     "macLocalFallbackRole": "bootstrap_and_lab_coordinator",
     "rabbitBridgeIncluded": true,
+    "rabbitBridgeRole": "route_validate_dry_run_and_select_broker",
+    "rabbitBridgePrefersMacFallbackWhenReachable": true,
+    "rabbitBridgeFallsBackToOnDeviceBroker": true,
     "rabbitGatewayConnectorIncluded": true,
     "openClawGatewayAware": true,
     "hermesGatewayAware": true,
+    "assistantClientsMaySuggestRequests": true,
+    "assistantClientsMayReviewAuditBundles": true,
+    "assistantClientsMayExecutePrivilegedActions": false,
     "remoteFlashingDefault": "blocked",
     "otaBreakingModificationDefault": "blocked"
   },
@@ -38,9 +44,16 @@
     "remoteExecution": false,
     "adbUsbRequest": true,
     "adbTcpRequest": true,
+    "adbAuthorizationPromptRequest": true,
+    "adbAwarenessBroadcast": true,
     "rebootRequest": true,
     "recoveryRequest": true,
     "fastbootRequest": true,
-    "usbStorageDiscoveryRequest": true
+    "usbStorageDiscoveryRequest": true,
+    "usbStorageRebootMode": true,
+    "offlineAuditLookup": true,
+    "offlineRollbackHelp": true,
+    "offlineDebugHelp": true,
+    "hostedPwaInstall": true
   }
 }

@@ -14,6 +14,18 @@
   "dryRun": true,
   "ttlSeconds": 600,
   "persistenceExpected": false,
+  "routePolicy": {
+    "routeTargetRequired": true,
+    "preferredRoute": "rabbit_native_broker",
+    "macFallbackAllowedForBootstrap": true
+  },
+  "deviceMode": {
+    "kind": "reboot_or_supported_mode_change",
+    "requestedMode": "usb_storage_mode",
+    "externalHostShouldSeeStorage": true,
+    "requiresDiscoveryBeforeExecution": true,
+    "preferReadOnlyExposure": true
+  },
   "rollbackPlan": "Dry run only. Approved execution must first discover which USB storage exposure modes rabbitOS, recovery, or MediaTek/Preloader paths actually support, prefer read-only exposure when possible, record the original USB mode, expose only allowed storage, and verify normal mode after disconnect/reboot.",
   "artifacts": [
     {
