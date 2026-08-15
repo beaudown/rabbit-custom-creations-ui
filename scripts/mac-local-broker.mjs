@@ -26,7 +26,12 @@ const paths = {
 };
 
 function sendJson(response, statusCode, body) {
-  response.writeHead(statusCode, { "content-type": "application/json" });
+  response.writeHead(statusCode, {
+    "access-control-allow-headers": "content-type",
+    "access-control-allow-methods": "GET,POST,OPTIONS",
+    "access-control-allow-origin": "*",
+    "content-type": "application/json",
+  });
   response.end(JSON.stringify(body, null, 2));
 }
 
@@ -136,6 +141,89 @@ async function buildSyncExport() {
       deadLetter,
     },
     templates,
+  };
+}
+
+async function buildBridgeRoute() {
+  const coordination = await readJson(paths.coordination);
+  const lease = coordination.activeLease;
+  const macLeaseActive =
+    lease?.role === "mac-local-fallback" &&
+    !leaseExpired(lease);
+  const rabbitBroker = coordination.knownBrokers.find((broker) => broker.id === "rabbit-native");
+  const rabbitEligible =
+    rabbitBroker?.status === "running" ||
+    rabbitBroker?.status === "specified_not_installed";
+
+  return {
+    schemaVersion: 1,
+    brokerId,
+    bridgeRole: "route_validate_dry_run_and_select_broker",
+    routeTarget: macLeaseActive ? "mac_local_fallback_broker" : "rabbit_native_broker",
+    selectedReason: macLeaseActive
+      ? "Mac fallback broker is reachable and owns the active result-writing lease."
+      : "Mac fallback is unavailable or not lease-active; use Rabbit on-device broker when installed.",
+    eligibleRoutes: [
+      {
+        id: "mac_local_fallback_broker",
+        reachable: true,
+        canExecutePrivilegedActions: false,
+        canQueueDryRuns: true,
+        leaseActive: macLeaseActive,
+      },
+      {
+        id: "rabbit_native_broker",
+        reachable: rabbitBroker?.status === "running",
+        canExecutePrivilegedActions: rabbitBroker?.canExecutePrivilegedRequests === true,
+        canQueueDryRuns: rabbitEligible,
+        leaseActive: lease?.holder === "rabbit-native" && !leaseExpired(lease),
+      },
+    ],
+    expectedOutput: "Dry-run or queued request with audit ID; no privileged execution from bridge detection.",
+    blockers: [
+      "Rabbit-native broker is specified but not installed.",
+      "Mac fallback privileged execution is disabled.",
+      "Live device authorization is still required for device-affecting actions.",
+    ],
+    hints: [
+      "Use this route response to fill route_target before queueing.",
+      "Use /requests for dry-run intake.",
+      "Use /audit/handoff to package evidence for assistant review.",
+    ],
+    privilegedExecutionPerformed: false,
+  };
+}
+
+function buildAdbStatus() {
+  return {
+    schemaVersion: 1,
+    brokerId,
+    adb: {
+      usb: {
+        status: "unknown_until_live_device_check",
+        authorizationPrompt: "requires_live_system_support",
+      },
+      tcpip: {
+        status: "unknown_until_live_device_check",
+        requiresUsbOrPriorAuthorization: true,
+      },
+      awarenessBroadcast: {
+        enabled: true,
+        fields: [
+          "usb_state",
+          "tcpip_state",
+          "authorization_state",
+          "network_reachability",
+          "transport_blockers",
+          "discovery_hints",
+        ],
+      },
+    },
+    blockers: [
+      "No live Rabbit state check has been performed by this broker.",
+      "Ordinary hosted PWA code cannot authorize ADB by itself.",
+    ],
+    privilegedExecutionPerformed: false,
   };
 }
 
@@ -256,6 +344,11 @@ async function releaseLease(reason = "manual lease release") {
 async function handleRequest(request, response) {
   const url = new URL(request.url || "/", `http://${request.headers.host}`);
 
+  if (request.method === "OPTIONS") {
+    sendJson(response, 204, {});
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/health") {
     const coordination = existsSync(paths.coordination) ? await readJson(paths.coordination) : null;
     sendJson(response, 200, {
@@ -268,6 +361,27 @@ async function handleRequest(request, response) {
       coordinationStatus: coordination?.status || "missing",
       leasePairing: "broker/lease-pairing.json",
     });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/bridge/route") {
+    sendJson(response, 200, await buildBridgeRoute());
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/bridge/status") {
+    sendJson(response, 200, {
+      schemaVersion: 1,
+      brokerId,
+      bridgeRole: "route_validate_dry_run_and_select_broker",
+      status: "running",
+      privilegedExecutionPerformed: false,
+    });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/adb/status") {
+    sendJson(response, 200, buildAdbStatus());
     return;
   }
 
@@ -378,6 +492,70 @@ async function handleRequest(request, response) {
       queued,
       privilegedExecutionPerformed: false,
       nextStep: "Use explicit live authorization before any device-side privileged execution.",
+    });
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    ["/adb/usb", "/adb/tcpip", "/adb/authorize", "/adb/broadcast", "/device/reboot-mode"].includes(url.pathname)
+  ) {
+    const body = await readBody(request);
+    const route = await buildBridgeRoute();
+    const actionMap = {
+      "/adb/usb": "ADB USB dry run",
+      "/adb/tcpip": "ADB TCP/IP dry run",
+      "/adb/authorize": "ADB authorization prompt dry run",
+      "/adb/broadcast": "ADB awareness broadcast dry run",
+      "/device/reboot-mode": "Device reboot mode dry run",
+    };
+    const audit = await appendAudit(
+      actionMap[url.pathname],
+      "dry_run_only",
+      "Safe broker MVP endpoint recorded request context only; no device command was executed.",
+      body,
+    );
+    sendJson(response, 202, {
+      brokerId,
+      status: "dry_run_only",
+      route,
+      audit,
+      expectedOutput: route.expectedOutput,
+      blockers: route.blockers,
+      privilegedExecutionPerformed: false,
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/audit/handoff") {
+    const body = await readBody(request);
+    const [auditManifest, route, adbStatus] = await Promise.all([
+      readJson(join(root, "public/broker/audit-manifest.json")),
+      buildBridgeRoute(),
+      Promise.resolve(buildAdbStatus()),
+    ]);
+    const audit = await appendAudit(
+      "Audit handoff prepared",
+      "handoff_ready",
+      "Packaged audit context for assistant review; no privileged execution was performed.",
+      body,
+    );
+    sendJson(response, 200, {
+      schemaVersion: 1,
+      brokerId,
+      status: "handoff_ready",
+      target: body.target || "unspecified_review_client",
+      auditManifest,
+      route,
+      adbStatus,
+      audit,
+      instructions: [
+        "Use audit evidence first.",
+        "Separate confirmed facts from missing evidence.",
+        "Suggest dry-run or rollback-safe next steps before live action.",
+        "Do not claim privileged execution unless a broker result proves it.",
+      ],
+      privilegedExecutionPerformed: false,
     });
     return;
   }

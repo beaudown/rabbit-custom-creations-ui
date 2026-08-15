@@ -802,6 +802,9 @@ export default function Home() {
   const [queueStatus, setQueueStatus] = useState("Not queued");
   const [leaseActionStatus, setLeaseActionStatus] = useState("Lease manager idle");
   const [auditHandoffStatus, setAuditHandoffStatus] = useState("No audit handoff exported");
+  const [brokerEndpoint, setBrokerEndpoint] = useState("http://127.0.0.1:8792");
+  const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
+  const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -897,7 +900,7 @@ export default function Home() {
 
     setQueueStatus("Queueing to Mac broker...");
     try {
-      const response = await fetch("http://127.0.0.1:8792/requests", {
+      const response = await fetch(`${brokerEndpoint.replace(/\/$/, "")}/requests`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: requestPreview,
@@ -909,7 +912,45 @@ export default function Home() {
           : `Broker rejected: ${body.status ?? response.status}`,
       );
     } catch {
-      setQueueStatus("Mac broker unavailable at 127.0.0.1:8792");
+      setQueueStatus(`Mac broker unavailable at ${brokerEndpoint}`);
+    }
+  }
+
+  async function detectBrokerBridge() {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
+    setBridgeProbeStatus("Checking broker bridge...");
+    try {
+      const [healthResponse, routeResponse, adbResponse] = await Promise.all([
+        fetch(`${baseUrl}/health`),
+        fetch(`${baseUrl}/bridge/route`),
+        fetch(`${baseUrl}/adb/status`),
+      ]);
+      if (!healthResponse.ok || !routeResponse.ok || !adbResponse.ok) {
+        setBridgeProbeStatus("Broker bridge reachable, but one safe endpoint failed");
+        return;
+      }
+      const health = await healthResponse.json();
+      const route = await routeResponse.json();
+      const adb = await adbResponse.json();
+      setBridgeProbeStatus(
+        `${health.role ?? "broker"} online; selected ${route.routeTarget}; privileged execution ${health.privilegedExecutionEnabled ? "enabled" : "disabled"}`,
+      );
+      setBridgeRoutePreview(
+        JSON.stringify(
+          {
+            routeTarget: route.routeTarget,
+            expectedOutput: route.expectedOutput,
+            blockers: route.blockers,
+            adbUsb: adb.adb?.usb?.status,
+            adbTcpip: adb.adb?.tcpip?.status,
+          },
+          null,
+          2,
+        ),
+      );
+    } catch {
+      setBridgeProbeStatus(`No broker bridge reachable at ${baseUrl}`);
+      setBridgeRoutePreview("The PWA remains usable offline for guides, templates, and audit handoff exports.");
     }
   }
 
@@ -1457,6 +1498,20 @@ export default function Home() {
             fallback reachability first, then routes to the Rabbit on-device
             broker when local fallback is unavailable or not needed.
           </p>
+          <label className="composerField">
+            <span>Broker endpoint</span>
+            <input
+              value={brokerEndpoint}
+              onChange={(event) => setBrokerEndpoint(event.target.value)}
+              placeholder="http://127.0.0.1:8792"
+            />
+            <small>Use the Mac fallback endpoint now; switch to the Rabbit broker endpoint when installed.</small>
+          </label>
+          <button className="wideButton" onClick={detectBrokerBridge}>
+            Detect broker bridge
+          </button>
+          <div className="queueStatus">{bridgeProbeStatus}</div>
+          <pre className="requestPreview">{bridgeRoutePreview}</pre>
           <div className="routeList">
             {bridgeRoutes.map((item) => (
               <article className="routeItem" key={item.label}>

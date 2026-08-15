@@ -51,6 +51,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Bridge Routing/);
   assert.match(source, /Broker selection/);
   assert.match(source, /Mac broker if local lease is reachable/);
+  assert.match(source, /Detect broker bridge/);
+  assert.match(source, /brokerEndpoint/);
+  assert.match(source, /detectBrokerBridge/);
+  assert.match(source, /\/bridge\/route/);
+  assert.match(source, /\/adb\/status/);
   assert.match(source, /Claude/);
   assert.match(source, /ChatGPT\/Codex/);
   assert.match(source, /Mac broker/);
@@ -100,7 +105,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /requestPreview/);
   assert.match(source, /lease_holder/);
   assert.match(source, /device_state/);
-  assert.match(source, /Mac broker unavailable at 127\.0\.0\.1:8792/);
+  assert.match(source, /Mac broker unavailable at \$\{brokerEndpoint\}/);
   assert.match(source, /GitHub Sync/);
   assert.match(source, /Shared queue/);
   assert.match(source, /Download sync export/);

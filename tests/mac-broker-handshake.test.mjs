@@ -51,6 +51,13 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(health.leaseTtlSeconds, 259200);
     assert.equal(health.leasePairing, "broker/lease-pairing.json");
 
+    const adbStatusResponse = await fetch(`${baseUrl}/adb/status`);
+    assert.equal(adbStatusResponse.status, 200);
+    const adbStatus = await adbStatusResponse.json();
+    assert.equal(adbStatus.adb.usb.status, "unknown_until_live_device_check");
+    assert.equal(adbStatus.adb.tcpip.requiresUsbOrPriorAuthorization, true);
+    assert.equal(adbStatus.privilegedExecutionPerformed, false);
+
     const leaseResponse = await fetch(`${baseUrl}/lease`, {
       method: "POST",
       body: JSON.stringify({ reason: "test lease" }),
@@ -62,6 +69,14 @@ test("mac local broker performs isolated health, lease, and request handshake", 
       Date.parse(leaseBody.coordination.activeLease.expiresAt) -
       Date.parse(leaseBody.coordination.activeLease.acquiredAt);
     assert.ok(leaseMs >= 259_100_000);
+
+    const routeResponse = await fetch(`${baseUrl}/bridge/route`);
+    assert.equal(routeResponse.status, 200);
+    const route = await routeResponse.json();
+    assert.equal(route.bridgeRole, "route_validate_dry_run_and_select_broker");
+    assert.equal(route.routeTarget, "mac_local_fallback_broker");
+    assert.equal(route.privilegedExecutionPerformed, false);
+    assert.ok(route.blockers.includes("Mac fallback privileged execution is disabled."));
 
     const requestResponse = await fetch(`${baseUrl}/requests`, {
       method: "POST",
@@ -79,6 +94,44 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const auditLog = await readFile(join(sandbox, "public/broker/audit-log.jsonl"), "utf8");
     assert.match(auditLog, /test-request-001/);
     assert.match(auditLog, /Mac fallback broker accepted request/);
+
+    const adbDryRunResponse = await fetch(`${baseUrl}/adb/authorize`, {
+      method: "POST",
+      body: JSON.stringify({
+        requestId: "test-adb-auth-001",
+        routeTarget: "mac_local_fallback_broker",
+      }),
+    });
+    assert.equal(adbDryRunResponse.status, 202);
+    const adbDryRun = await adbDryRunResponse.json();
+    assert.equal(adbDryRun.status, "dry_run_only");
+    assert.equal(adbDryRun.privilegedExecutionPerformed, false);
+    assert.equal(adbDryRun.route.routeTarget, "mac_local_fallback_broker");
+
+    const rebootDryRunResponse = await fetch(`${baseUrl}/device/reboot-mode`, {
+      method: "POST",
+      body: JSON.stringify({
+        requestId: "test-usb-storage-mode-001",
+        requestedMode: "usb_storage_mode",
+      }),
+    });
+    assert.equal(rebootDryRunResponse.status, 202);
+    const rebootDryRun = await rebootDryRunResponse.json();
+    assert.equal(rebootDryRun.status, "dry_run_only");
+    assert.equal(rebootDryRun.privilegedExecutionPerformed, false);
+
+    const handoffResponse = await fetch(`${baseUrl}/audit/handoff`, {
+      method: "POST",
+      body: JSON.stringify({
+        target: "chatgpt_codex_client",
+        requestId: "test-request-001",
+      }),
+    });
+    assert.equal(handoffResponse.status, 200);
+    const handoff = await handoffResponse.json();
+    assert.equal(handoff.status, "handoff_ready");
+    assert.equal(handoff.target, "chatgpt_codex_client");
+    assert.equal(handoff.privilegedExecutionPerformed, false);
 
     const queuedRequest = JSON.parse(
       await readFile(
