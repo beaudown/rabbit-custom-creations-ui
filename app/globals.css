@@ -374,6 +374,7 @@ h3 {
 .workflowPanel,
 .actionPlanPanel,
 .playbookPanel,
+.checklistPanel,
 .promptPanel,
 .statusPanel,
 .gatewayPanel,
@@ -429,6 +430,12 @@ h3 {
 }
 
 .playbookPanel {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.checklistPanel {
   display: grid;
   gap: 12px;
   margin-top: 16px;
@@ -522,6 +529,65 @@ h3 {
 }
 
 .playbookItem dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.checklistList {
+  display: grid;
+  gap: 9px;
+}
+
+.checklistItem {
+  display: grid;
+  gap: 9px;
+  border: 1px solid rgba(255, 209, 102, 0.2);
+  border-radius: 10px;
+  background: rgba(255, 209, 102, 0.055);
+  padding: 12px;
+}
+
+.checklistTitle {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.checklistTitle h3 {
+  font-size: 0.92rem;
+}
+
+.checklistTitle span {
+  color: #ffe6a6;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.checklistItem dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.checklistItem dl > div {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid rgba(255, 209, 102, 0.48);
+  padding-left: 9px;
+}
+
+.checklistItem dt {
+  color: #ffe6a6;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.checklistItem dd {
   margin: 0;
   color: var(--muted);
   font-size: 0.78rem;

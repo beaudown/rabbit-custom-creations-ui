@@ -27,6 +27,10 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Response Playbook/);
   assert.match(source, /Do this first/);
   assert.match(source, /Provoke a\s+broker response/);
+  assert.match(source, /Required Gates/);
+  assert.match(source, /Dependency checklist/);
+  assert.match(source, /Hosted manifest/);
+  assert.match(source, /Live device gate/);
   assert.match(source, /Stop/);
   assert.match(source, /Scan skill QR/);
   assert.match(source, /Pick workflow/);
@@ -124,12 +128,14 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rules.brokerExecutesEscalatedPrivileges, true);
   assert.equal(manifest.usbStorageGuide, "usb-storage-guide.md");
   assert.equal(manifest.walkthroughGuide, "walkthrough-guide.md");
+  assert.equal(manifest.executionChecklist, "execution-checklist.md");
   assert.equal(manifest.remoteBrokerConfig, "../broker/remote-broker-config.json");
   assert.equal(manifest.rabbitNativeBrokerSpec, "../broker/rabbit-native-broker-spec.json");
   assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
   assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
   assert.equal(manifest.gatewayTopology, "../broker/gateway-topology.json");
   assert.equal(manifest.walkthroughGuideData, "../broker/walkthrough-guide.json");
+  assert.equal(manifest.executionChecklistData, "../broker/execution-checklist.json");
   assert.equal(manifest.leasePairing, "../broker/lease-pairing.json");
   assert.equal(manifest.promptLibrary, "../broker/prompt-library.json");
   assert.equal(manifest.syncManifest, "../broker/sync-manifest.json");
@@ -143,6 +149,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(instructions, /prompt library/);
   assert.match(instructions, /broker\/gateway-topology\.json/);
   assert.match(instructions, /broker\/walkthrough-guide\.json/);
+  assert.match(instructions, /broker\/execution-checklist\.json/);
   assert.match(instructions, /Rabbit bridge/);
   assert.match(instructions, /OpenClaw gateway/);
   assert.match(instructions, /Hermes gateway/);
@@ -155,6 +162,15 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(walkthrough, /Do first/);
   assert.match(walkthrough, /Expect/);
   assert.match(walkthrough, /Stop if/);
+
+  const checklist = await readFile(
+    new URL("../public/creation-skill/execution-checklist.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(checklist, /Superuser Management Execution Checklist/);
+  assert.match(checklist, /Hosted Manifest Ready/);
+  assert.match(checklist, /Live Device Gate Ready/);
+  assert.match(checklist, /Blocks if missing/);
 });
 
 test("sync manifest defines shared GitHub queue contract", async () => {
@@ -170,6 +186,7 @@ test("sync manifest defines shared GitHub queue contract", async () => {
   assert.equal(manifest.paths.outbox, "broker/queue/outbox");
   assert.equal(manifest.paths.gatewayTopology, "broker/gateway-topology.json");
   assert.equal(manifest.paths.walkthroughGuide, "broker/walkthrough-guide.json");
+  assert.equal(manifest.paths.executionChecklist, "broker/execution-checklist.json");
   assert.equal(manifest.rules.oneRequestPerFile, true);
   assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
   assert.equal(manifest.paths.leasePairing, "broker/lease-pairing.json");
@@ -337,6 +354,25 @@ test("walkthrough guide defines expected response order", async () => {
   assert.ok(guide.entries.every((entry) => entry.doFirst));
   assert.ok(guide.entries.every((entry) => entry.expectedResponse));
   assert.ok(guide.entries.every((entry) => entry.stopCondition));
+});
+
+test("execution checklist defines dependency gates", async () => {
+  const checklist = JSON.parse(
+    await readFile(
+      new URL("../public/broker/execution-checklist.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(checklist.schemaVersion, 1);
+  assert.equal(checklist.globalRules.showBeforeQueueing, true);
+  assert.equal(checklist.globalRules.liveDeviceAuthorizationRequiredForDeviceAffectingActions, true);
+  assert.equal(checklist.globalRules.persistentChangeDefault, "blocked");
+  assert.ok(checklist.items.some((item) => item.id === "hosted_manifest_ready"));
+  assert.ok(checklist.items.some((item) => item.id === "live_device_gate_ready"));
+  assert.ok(checklist.items.every((item) => item.dependencies.length));
+  assert.ok(checklist.items.every((item) => item.evidence.length));
+  assert.ok(checklist.items.every((item) => item.blocksIfMissing));
 });
 
 test("lease pairing manifest supports QR and connector retrieval", async () => {

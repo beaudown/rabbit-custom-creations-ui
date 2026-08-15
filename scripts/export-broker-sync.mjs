@@ -49,6 +49,7 @@ const syncManifest = await readJson(join(brokerRoot, "sync-manifest.json"));
 const coordination = await readJson(join(brokerRoot, "broker-coordination.json"));
 const gatewayTopology = await readJson(join(brokerRoot, "gateway-topology.json"));
 const walkthroughGuide = await readJson(join(brokerRoot, "walkthrough-guide.json"));
+const executionChecklist = await readJson(join(brokerRoot, "execution-checklist.json"));
 const leasePairing = await readJson(join(brokerRoot, "lease-pairing.json"));
 const promptLibrary = await readJson(join(brokerRoot, "prompt-library.json"));
 const auditManifest = await readJson(join(brokerRoot, "audit-manifest.json"));
@@ -87,6 +88,15 @@ const exportBundle = {
     entryCount: walkthroughGuide.entries.length,
     defaultOrder: walkthroughGuide.defaultOrder,
     rules: walkthroughGuide.rules,
+  },
+  executionChecklistSummary: {
+    name: executionChecklist.name,
+    itemCount: executionChecklist.items.length,
+    globalRules: executionChecklist.globalRules,
+    requiredFor: executionChecklist.items.map((item) => ({
+      id: item.id,
+      requiredFor: item.requiredFor,
+    })),
   },
   leasePairingSummary: {
     status: leasePairing.status,

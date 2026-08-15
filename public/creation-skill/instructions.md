@@ -17,6 +17,10 @@ When the user wants to provoke a specific response or expected outcome, read
 do-first step, expected broker response, next action, and stop condition before
 queueing a request.
 
+Before queueing, approving, or escalating any request, also read
+`execution-checklist.md` and `broker/execution-checklist.json`. Show missing
+dependencies, required evidence, and blockers before moving forward.
+
 ## What this Creation may do
 
 - Open prompt and file libraries from GitHub.
@@ -36,6 +40,8 @@ queueing a request.
   the expected outcome before a privileged request is queued.
 - Show the response playbook for import, broker pairing, safe request setup,
   elevated dry run, current-boot SU approval, and audit/rollback lookup.
+- Show the dependency checklist for hosted manifests, gateway topology, lease
+  pairing, request templates, dry-run result, live device gate, and audit lookup.
 - Show the gateway mesh: Rabbit bridge, Rabbit on-device broker, Rabbit gateway
   connector, OpenClaw gateway, Hermes gateway, Mac fallback broker, and GitHub
   storage.

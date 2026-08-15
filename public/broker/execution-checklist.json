@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "name": "superuser-management-execution-checklist",
+  "purpose": "Prerequisite, dependency, blocker, and verification gates for Superuser Management workflows.",
+  "globalRules": {
+    "showBeforeQueueing": true,
+    "dryRunBeforeLiveAction": true,
+    "liveDeviceAuthorizationRequiredForDeviceAffectingActions": true,
+    "gatewayClaimsRequireEvidence": true,
+    "githubMayNotExecuteRequests": true,
+    "creationMayNotClaimRootExecution": true,
+    "persistentChangeDefault": "blocked"
+  },
+  "items": [
+    {
+      "id": "hosted_manifest_ready",
+      "label": "Hosted manifest ready",
+      "requiredFor": [
+        "import_tool",
+        "start_safe_request"
+      ],
+      "dependencies": [
+        "creation-skill/manifest.json",
+        "broker/sync-manifest.json",
+        "broker/gateway-topology.json",
+        "broker/walkthrough-guide.json"
+      ],
+      "evidence": [
+        "HTTP 200 for manifest and broker JSON files",
+        "JSON parses without error"
+      ],
+      "blocksIfMissing": "The Creation cannot know available tools, routes, or guide order."
+    },
+    {
+      "id": "gateway_topology_ready",
+      "label": "Gateway topology ready",
+      "requiredFor": [
+        "pair_brokers",
+        "dry_run_elevated_action",
+        "approve_current_boot_su"
+      ],
+      "dependencies": [
+        "rabbit_bridge",
+        "rabbit_native_broker_spec",
+        "rabbit_gateway_connector",
+        "openclaw_gateway_context",
+        "hermes_gateway_context",
+        "mac_local_fallback_broker"
+      ],
+      "evidence": [
+        "broker/gateway-topology.json lists each gateway role",
+        "Gateway claims are labeled as context unless backed by evidence"
+      ],
+      "blocksIfMissing": "The tool cannot route requests or explain which component owns a response."
+    },
+    {
+      "id": "lease_pairing_ready",
+      "label": "Lease pairing ready",
+      "requiredFor": [
+        "pair_brokers",
+        "start_safe_request",
+        "dry_run_elevated_action"
+      ],
+      "dependencies": [
+        "broker/lease-pairing.json",
+        "broker/broker-coordination.json",
+        "active_lease_or_explicit_no_live_executor"
+      ],
+      "evidence": [
+        "Lease pairing metadata is connector-readable",
+        "72-hour lease policy is visible",
+        "Lease actions show superuserSessionAffected=false"
+      ],
+      "blocksIfMissing": "Execution-result ownership is ambiguous."
+    },
+    {
+      "id": "request_template_ready",
+      "label": "Request template ready",
+      "requiredFor": [
+        "start_safe_request",
+        "dry_run_elevated_action",
+        "approve_current_boot_su"
+      ],
+      "dependencies": [
+        "broker/request-templates",
+        "prompt variables",
+        "request_id",
+        "device_state",
+        "broker_id",
+        "approval_decision"
+      ],
+      "evidence": [
+        "Template validates with validate_broker_request.py",
+        "Required prompt variables are filled",
+        "Request preview includes missingRequiredVariables=[]"
+      ],
+      "blocksIfMissing": "The broker cannot safely map the user outcome to an allowlisted action."
+    },
+    {
+      "id": "dry_run_result_ready",
+      "label": "Dry-run result ready",
+      "requiredFor": [
+        "approve_current_boot_su"
+      ],
+      "dependencies": [
+        "queued_or_blocked_response",
+        "audit_record_or_queue_path",
+        "no_device_change"
+      ],
+      "evidence": [
+        "Broker returns queued, blocked, yielded, or missing-live-check",
+        "Audit record or queue path is shown",
+        "privilegedExecutionPerformed=false for dry run"
+      ],
+      "blocksIfMissing": "Live approval would be blind and should not continue."
+    },
+    {
+      "id": "live_device_gate_ready",
+      "label": "Live device gate ready",
+      "requiredFor": [
+        "approve_current_boot_su"
+      ],
+      "dependencies": [
+        "explicit user approval",
+        "fresh device state check",
+        "validated broker executor",
+        "current boot cycle",
+        "rollback or inspection note"
+      ],
+      "evidence": [
+        "Approval is recorded",
+        "Device state is current",
+        "Broker identity is current",
+        "Action is allowlisted and non-persistent by default"
+      ],
+      "blocksIfMissing": "No live elevated action should run."
+    },
+    {
+      "id": "audit_lookup_ready",
+      "label": "Audit lookup ready",
+      "requiredFor": [
+        "debug_or_rollback"
+      ],
+      "dependencies": [
+        "broker/audit-log.jsonl",
+        "broker/audit-manifest.json",
+        "archive index when active log rolls over"
+      ],
+      "evidence": [
+        "Request ID, artifact hash, broker ID, action, device state, or time is searchable",
+        "Result records distinguish blocked, dry-run, executed, failed, and rollback states"
+      ],
+      "blocksIfMissing": "Debugging must be labeled unknown rather than inferred."
+    }
+  ]
+}

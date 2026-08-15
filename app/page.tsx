@@ -331,6 +331,58 @@ const responsePlaybook = [
   },
 ];
 
+const executionChecklist = [
+  {
+    item: "Hosted manifest",
+    requiredFor: "Import, safe request",
+    dependency: "manifest, sync, topology, walkthrough",
+    evidence: "HTTP 200 + valid JSON",
+    blocker: "No route or guide order",
+  },
+  {
+    item: "Gateway topology",
+    requiredFor: "Pair, dry run, SU approval",
+    dependency: "Rabbit bridge, Rabbit broker, gateways",
+    evidence: "Each gateway role is listed",
+    blocker: "Unknown response owner",
+  },
+  {
+    item: "Lease pairing",
+    requiredFor: "Pair, request, dry run",
+    dependency: "lease-pairing + coordination",
+    evidence: "72-hour policy + SU unaffected",
+    blocker: "Ambiguous result writer",
+  },
+  {
+    item: "Request template",
+    requiredFor: "Request, dry run, approval",
+    dependency: "template + required variables",
+    evidence: "Template validates, no missing variables",
+    blocker: "No allowlisted action",
+  },
+  {
+    item: "Dry-run result",
+    requiredFor: "Live approval",
+    dependency: "queued/blocked response + audit",
+    evidence: "No device change",
+    blocker: "Blind approval",
+  },
+  {
+    item: "Live device gate",
+    requiredFor: "Current-boot SU",
+    dependency: "approval, fresh state, executor",
+    evidence: "Current broker and device identity",
+    blocker: "No elevated action",
+  },
+  {
+    item: "Audit lookup",
+    requiredFor: "Debug, rollback",
+    dependency: "active log + archive index",
+    evidence: "Searchable request or artifact",
+    blocker: "Unknown result",
+  },
+];
+
 const promptGuides: PromptGuide[] = [
   {
     id: "guided-request-start",
@@ -1009,6 +1061,44 @@ export default function Home() {
                   <div>
                     <dt>Stop</dt>
                     <dd>{item.stopIf}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="checklistPanel" aria-label="Required execution checklist">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Required Gates</p>
+              <h2>Dependency checklist</h2>
+            </div>
+            <span>7 gates</span>
+          </div>
+          <p className="panelNote">
+            Verify dependencies, evidence, and blockers before advancing from
+            import to dry run, approval, current-boot SU, or rollback.
+          </p>
+          <div className="checklistList">
+            {executionChecklist.map((item) => (
+              <article className="checklistItem" key={item.item}>
+                <div className="checklistTitle">
+                  <h3>{item.item}</h3>
+                  <span>{item.requiredFor}</span>
+                </div>
+                <dl>
+                  <div>
+                    <dt>Needs</dt>
+                    <dd>{item.dependency}</dd>
+                  </div>
+                  <div>
+                    <dt>Evidence</dt>
+                    <dd>{item.evidence}</dd>
+                  </div>
+                  <div>
+                    <dt>Blocks</dt>
+                    <dd>{item.blocker}</dd>
                   </div>
                 </dl>
               </article>
