@@ -25,6 +25,11 @@ test("broker sync export script writes portable bundle", async () => {
   const bundle = JSON.parse(await readFile(outputPath, "utf8"));
   assert.equal(bundle.schemaVersion, 1);
   assert.equal(bundle.syncManifest.paths.inbox, "broker/queue/inbox");
+  assert.equal(bundle.syncManifest.paths.gatewayTopology, "broker/gateway-topology.json");
+  assert.ok(bundle.gatewayTopologySummary.included.includes("rabbit_bridge"));
+  assert.ok(bundle.gatewayTopologySummary.included.includes("openclaw_gateway"));
+  assert.ok(bundle.gatewayTopologySummary.included.includes("hermes_gateway"));
+  assert.equal(bundle.gatewayTopologySummary.rules.githubIsStorageNotExecutor, true);
   assert.equal(bundle.leasePairingSummary.defaultLeaseTtlSeconds, 259200);
   assert.equal(bundle.leasePairingSummary.qrTarget, "broker/lease-pairing.json");
   assert.equal(bundle.leasePairingSummary.rabbitConnectorAutoRetrieve, true);

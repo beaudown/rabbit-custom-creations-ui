@@ -28,6 +28,7 @@ GitHub Pages cannot run an always-on HTTP broker or execute device actions.
    - Requires a validated way to run a local service on the Rabbit.
    - Must remain OTA-safe by default and avoid persistent system modification
      unless separately approved.
+   - Is reached by the Creation through the Rabbit bridge/local broker API.
 
 3. **VPS or hosted container**
    - Good for durable queueing and richer approval UI.
@@ -38,12 +39,21 @@ GitHub Pages cannot run an always-on HTTP broker or execute device actions.
    - Can share GitHub request, dependency, presence, lease, and audit files.
    - Not acceptable as the only production broker if the MacBook may be off.
 
+5. **OpenClaw and Hermes gateways**
+   - Useful for shared memory, handoff awareness, remote administration context,
+     and assistant-to-assistant coordination.
+   - Must not be treated as proof of device state or privileged execution unless
+     backed by current tool evidence or the shared handoff.
+
 ## Recommended Split
 
 ```text
-Rabbit Creation
+Superuser Management Creation
+  -> Rabbit bridge to on-device broker API
+  -> Rabbit gateway connector for hosted manifests and lease pairing
   -> GitHub Pages UI and import pack
-  -> Remote broker intake API
+  -> Remote broker intake API when enabled
+  -> OpenClaw and Hermes gateway context
   -> GitHub-backed request/audit storage
   -> Rabbit-native executor when available
   -> Mac local fallback broker for lab/bootstrap support

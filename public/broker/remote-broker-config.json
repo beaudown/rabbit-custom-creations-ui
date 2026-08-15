@@ -6,6 +6,7 @@
   "rabbitNativeBrokerSpec": "broker/rabbit-native-broker-spec.json",
   "macLocalFallbackBrokerConfig": "broker/mac-local-broker-config.json",
   "coordinationManifest": "broker/broker-coordination.json",
+  "gatewayTopology": "broker/gateway-topology.json",
   "syncManifest": "broker/sync-manifest.json",
   "remoteIntake": {
     "enabled": false,
@@ -23,6 +24,10 @@
     "macbookRequired": false,
     "macLocalFallbackAvailable": true,
     "macLocalFallbackRole": "bootstrap_and_lab_coordinator",
+    "rabbitBridgeIncluded": true,
+    "rabbitGatewayConnectorIncluded": true,
+    "openClawGatewayAware": true,
+    "hermesGatewayAware": true,
     "remoteFlashingDefault": "blocked",
     "otaBreakingModificationDefault": "blocked"
   },

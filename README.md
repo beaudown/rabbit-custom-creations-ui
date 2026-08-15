@@ -40,6 +40,9 @@ leave one tool to manage the broker stack.
 - Superuser Management step-by-step action flow that shows the actionable item
   and expected outcome for import, pairing, workflow selection, dry run,
   authorization, and audit review.
+- Gateway topology contract for the Rabbit bridge, on-device broker, Rabbit
+  gateway connector, OpenClaw gateway, Hermes gateway, Mac fallback broker, and
+  GitHub storage under the same Superuser Management tool.
 
 ## Broker audit log
 
@@ -58,6 +61,7 @@ Seed files:
 - `public/broker/rabbit-native-broker-spec.json`
 - `public/broker/remote-broker-config.json`
 - `public/broker/broker-coordination.json`
+- `public/broker/gateway-topology.json`
 - `public/broker/mac-local-broker-config.json`
 - `public/broker/prompt-library.json`
 - `public/broker/sync-manifest.json`

@@ -158,6 +158,10 @@ const brokerStatus = [
   { label: "GitHub UI", value: "Ready" },
   { label: "Request files", value: "Ready" },
   { label: "Rabbit broker", value: "Primary" },
+  { label: "Rabbit bridge", value: "Local API" },
+  { label: "Rabbit gateway", value: "Connector" },
+  { label: "OpenClaw", value: "Gateway" },
+  { label: "Hermes", value: "Gateway" },
   { label: "Mac broker", value: "Fallback" },
 ];
 
@@ -236,6 +240,49 @@ const superuserActionPlan = [
     step: "Verify",
     action: "Read audit",
     outcome: "Results, blocked actions, and rollback clues are searchable in active and archived logs.",
+  },
+];
+
+const gatewayTopology = [
+  {
+    name: "Creation UI",
+    role: "touch interface",
+    detail: "Starts guided requests and shows approvals, hints, results, and logs.",
+  },
+  {
+    name: "Rabbit bridge",
+    role: "local handoff",
+    detail: "Connects the Creation UI to the on-device broker API when available.",
+  },
+  {
+    name: "Rabbit on-device broker",
+    role: "primary executor",
+    detail: "Validates requests locally and owns current-boot actions after bootstrap.",
+  },
+  {
+    name: "Rabbit gateway connector",
+    role: "retrieval path",
+    detail: "Loads GitHub-hosted manifests, prompts, templates, and lease pairing data.",
+  },
+  {
+    name: "OpenClaw gateway",
+    role: "federation and admin",
+    detail: "Shares Rabbit memory, handoff state, and remote admin context without owning device execution.",
+  },
+  {
+    name: "Hermes gateway",
+    role: "assistant bridge",
+    detail: "Can consume the same handoff and gateway state when available; unverified claims stay labeled.",
+  },
+  {
+    name: "Mac local broker",
+    role: "fallback bootstrap",
+    detail: "Coordinates lab bootstrap and lease files when the MacBook is online.",
+  },
+  {
+    name: "GitHub storage",
+    role: "shared state",
+    detail: "Stores queue files, manifests, prompt packs, QR targets, and audit archives.",
   },
 ];
 
@@ -993,6 +1040,32 @@ export default function Home() {
                 <span>{item.label}</span>
                 <strong>{item.value}</strong>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="gatewayPanel" aria-label="Superuser gateway topology">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Gateway Mesh</p>
+              <h2>Broker bridge stack</h2>
+            </div>
+            <span>Unified</span>
+          </div>
+          <p>
+            Superuser Management includes the on-device broker, local bridge,
+            Rabbit gateway connector, OpenClaw gateway, Hermes gateway, Mac
+            fallback broker, and GitHub storage as one routed control surface.
+          </p>
+          <div className="gatewayList">
+            {gatewayTopology.map((item) => (
+              <article className="gatewayItem" key={item.name}>
+                <div>
+                  <strong>{item.name}</strong>
+                  <span>{item.role}</span>
+                </div>
+                <p>{item.detail}</p>
+              </article>
             ))}
           </div>
         </section>

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "name": "superuser-management-gateway-topology",
+  "purpose": "Defines the routed gateway stack under the unified Superuser Management Creation.",
+  "superuserManagementIncludes": [
+    "creation_ui",
+    "rabbit_bridge",
+    "rabbit_native_broker",
+    "rabbit_gateway_connector",
+    "openclaw_gateway",
+    "hermes_gateway",
+    "mac_local_fallback_broker",
+    "github_storage"
+  ],
+  "nodes": [
+    {
+      "id": "creation_ui",
+      "label": "Superuser Management Creation",
+      "host": "rabbit_r1_creation",
+      "role": "touch_ui_and_request_caller",
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "rabbit_bridge",
+      "label": "Rabbit bridge",
+      "host": "rabbit_r1",
+      "role": "local_creation_to_broker_bridge",
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "rabbit_native_broker",
+      "label": "Rabbit on-device broker",
+      "host": "rabbit_r1",
+      "role": "primary_validator_decider_executor_when_validated",
+      "status": "specified_not_installed",
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "rabbit_gateway_connector",
+      "label": "Rabbit gateway connector",
+      "host": "rabbit_r1",
+      "role": "github_manifest_prompt_template_and_lease_retrieval",
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "openclaw_gateway",
+      "label": "OpenClaw gateway",
+      "host": "mac_or_openclaw_runtime",
+      "role": "federated_memory_remote_admin_context_and_gateway_awareness",
+      "executionBoundary": "does_not_supersede_rabbit_native_broker_or_live_device_authorization"
+    },
+    {
+      "id": "hermes_gateway",
+      "label": "Hermes gateway",
+      "host": "hermes_runtime_when_available",
+      "role": "assistant_bridge_and_handoff_consumer",
+      "verificationBoundary": "claims_require_tool_evidence_or_handoff_confirmation"
+    },
+    {
+      "id": "mac_local_fallback_broker",
+      "label": "Mac local broker",
+      "host": "mac",
+      "role": "fallback_lab_bootstrap_and_lease_coordinator",
+      "mayExecutePrivilegedActions": false
+    },
+    {
+      "id": "github_storage",
+      "label": "GitHub storage",
+      "host": "github_pages_or_repository",
+      "role": "static_ui_queue_manifest_prompt_audit_storage",
+      "mayExecutePrivilegedActions": false
+    }
+  ],
+  "routes": [
+    "creation_ui -> rabbit_bridge -> rabbit_native_broker",
+    "creation_ui -> rabbit_gateway_connector -> github_storage",
+    "rabbit_native_broker -> github_storage",
+    "mac_local_fallback_broker -> github_storage",
+    "openclaw_gateway -> github_storage",
+    "hermes_gateway -> github_storage"
+  ],
+  "rules": {
+    "singleUserFacingTool": "superuser_management",
+    "githubIsStorageNotExecutor": true,
+    "creationIsCallerNotExecutor": true,
+    "rabbitNativeBrokerIsPreferredExecutor": true,
+    "rabbitBridgeConnectsCreationToOnDeviceBroker": true,
+    "rabbitGatewayConnectorRetrievesHostedState": true,
+    "openClawGatewayIsCoordinationAware": true,
+    "hermesGatewayIsCoordinationAware": true,
+    "gatewayClaimsRequireEvidence": true,
+    "privilegedExecutionRequiresValidatedRabbitExecutor": true,
+    "noDeviceCommandFromGatewayTopology": true
+  }
+}

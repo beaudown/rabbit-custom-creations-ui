@@ -6,6 +6,13 @@
   "macbookRequired": false,
   "githubRole": "manifests_templates_prompts_audit_storage",
   "creationRole": "caller_and_user_interface",
+  "bridgeRole": "local_creation_to_on_device_broker_api",
+  "gatewayTopology": "broker/gateway-topology.json",
+  "gatewayIntegrations": [
+    "rabbit_gateway_connector",
+    "openclaw_gateway",
+    "hermes_gateway"
+  ],
   "brokerRole": "validator_decider_executor_when_validated",
   "installStatus": {
     "installedOnRabbit": false,
@@ -19,6 +26,8 @@
       "GET /health",
       "GET /hints",
       "GET /state",
+      "GET /gateways",
+      "GET /bridge/status",
       "POST /requests",
       "POST /approve",
       "POST /deny"

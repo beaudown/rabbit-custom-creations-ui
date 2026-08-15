@@ -20,6 +20,14 @@
     "refreshOnMacBrokerStartup": true,
     "refreshWhenMacBrokerBecomesAvailable": true
   },
+  "gatewayTopology": {
+    "path": "broker/gateway-topology.json",
+    "rabbitBridgeIncluded": true,
+    "rabbitGatewayConnectorIncluded": true,
+    "openClawGatewayAware": true,
+    "hermesGatewayAware": true,
+    "gatewaysMayNotOverrideActiveBroker": true
+  },
   "preferredExecutorOrder": [
     "rabbit-native",
     "mac-local-fallback",

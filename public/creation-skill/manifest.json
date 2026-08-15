@@ -10,6 +10,7 @@
   "rabbitNativeBrokerSpec": "../broker/rabbit-native-broker-spec.json",
   "macLocalFallbackBrokerConfig": "../broker/mac-local-broker-config.json",
   "brokerCoordination": "../broker/broker-coordination.json",
+  "gatewayTopology": "../broker/gateway-topology.json",
   "leasePairing": "../broker/lease-pairing.json",
   "promptLibrary": "../broker/prompt-library.json",
   "syncManifest": "../broker/sync-manifest.json",

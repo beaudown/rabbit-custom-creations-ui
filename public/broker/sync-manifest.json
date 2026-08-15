@@ -12,6 +12,7 @@
     "exports": "broker/exports",
     "promptLibrary": "broker/prompt-library.json",
     "coordination": "broker/broker-coordination.json",
+    "gatewayTopology": "broker/gateway-topology.json",
     "leasePairing": "broker/lease-pairing.json",
     "auditLog": "broker/audit-log.jsonl",
     "auditManifest": "broker/audit-manifest.json",
@@ -47,6 +48,7 @@
   "exportIncludes": [
     "sync-manifest.json",
     "broker-coordination.json",
+    "gateway-topology.json",
     "prompt-library.json",
     "audit-manifest.json",
     "request-templates",

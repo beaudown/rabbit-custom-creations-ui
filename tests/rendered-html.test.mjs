@@ -30,6 +30,12 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /expected outcome/);
   assert.match(source, /On-device target/);
   assert.match(source, /always-with-device/);
+  assert.match(source, /Rabbit bridge/);
+  assert.match(source, /Rabbit gateway connector/);
+  assert.match(source, /OpenClaw gateway/);
+  assert.match(source, /Hermes gateway/);
+  assert.match(source, /Gateway Mesh/);
+  assert.match(source, /Broker bridge stack/);
   assert.match(source, /Mac broker/);
   assert.match(source, /fallback bootstrap authority/);
   assert.match(source, /bootstrap only; Rabbit SU stays local/);
@@ -117,6 +123,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rabbitNativeBrokerSpec, "../broker/rabbit-native-broker-spec.json");
   assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
   assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
+  assert.equal(manifest.gatewayTopology, "../broker/gateway-topology.json");
   assert.equal(manifest.leasePairing, "../broker/lease-pairing.json");
   assert.equal(manifest.promptLibrary, "../broker/prompt-library.json");
   assert.equal(manifest.syncManifest, "../broker/sync-manifest.json");
@@ -128,6 +135,10 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(instructions, /Creation-side escalated privilege request/);
   assert.match(instructions, /USB mass-storage or supported storage exposure/);
   assert.match(instructions, /prompt library/);
+  assert.match(instructions, /broker\/gateway-topology\.json/);
+  assert.match(instructions, /Rabbit bridge/);
+  assert.match(instructions, /OpenClaw gateway/);
+  assert.match(instructions, /Hermes gateway/);
 });
 
 test("sync manifest defines shared GitHub queue contract", async () => {
@@ -141,6 +152,7 @@ test("sync manifest defines shared GitHub queue contract", async () => {
   assert.equal(manifest.schemaVersion, 1);
   assert.equal(manifest.paths.inbox, "broker/queue/inbox");
   assert.equal(manifest.paths.outbox, "broker/queue/outbox");
+  assert.equal(manifest.paths.gatewayTopology, "broker/gateway-topology.json");
   assert.equal(manifest.rules.oneRequestPerFile, true);
   assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
   assert.equal(manifest.paths.leasePairing, "broker/lease-pairing.json");
@@ -170,6 +182,11 @@ test("remote broker config marks executor as not deployed", async () => {
   assert.equal(config.recommendedRuntime, "rabbit_native_service");
   assert.equal(config.macLocalFallbackBrokerConfig, "broker/mac-local-broker-config.json");
   assert.equal(config.coordinationManifest, "broker/broker-coordination.json");
+  assert.equal(config.gatewayTopology, "broker/gateway-topology.json");
+  assert.equal(config.execution.rabbitBridgeIncluded, true);
+  assert.equal(config.execution.rabbitGatewayConnectorIncluded, true);
+  assert.equal(config.execution.openClawGatewayAware, true);
+  assert.equal(config.execution.hermesGatewayAware, true);
   assert.equal(config.featureFlags.remoteRequests, true);
   assert.equal(config.featureFlags.remoteExecution, false);
 });
@@ -185,6 +202,13 @@ test("rabbit-native broker spec is explicit about install status", async () => {
   assert.equal(spec.status, "specified_not_installed");
   assert.equal(spec.intendedHost, "rabbit_r1");
   assert.equal(spec.macbookRequired, false);
+  assert.equal(spec.bridgeRole, "local_creation_to_on_device_broker_api");
+  assert.equal(spec.gatewayTopology, "broker/gateway-topology.json");
+  assert.ok(spec.gatewayIntegrations.includes("rabbit_gateway_connector"));
+  assert.ok(spec.gatewayIntegrations.includes("openclaw_gateway"));
+  assert.ok(spec.gatewayIntegrations.includes("hermes_gateway"));
+  assert.ok(spec.localApi.endpoints.includes("GET /gateways"));
+  assert.ok(spec.localApi.endpoints.includes("GET /bridge/status"));
   assert.equal(spec.installStatus.installedOnRabbit, false);
   assert.equal(spec.installStatus.privilegedExecutionAvailable, false);
   assert.equal(spec.safetyDefaults.defaultSessionLifetime, "until_reboot");
@@ -239,6 +263,12 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 259200);
   assert.equal(coordination.singleWriterPolicy.leaseLabel, "72_hour_lease");
   assert.equal(coordination.leasePairing.path, "broker/lease-pairing.json");
+  assert.equal(coordination.gatewayTopology.path, "broker/gateway-topology.json");
+  assert.equal(coordination.gatewayTopology.rabbitBridgeIncluded, true);
+  assert.equal(coordination.gatewayTopology.rabbitGatewayConnectorIncluded, true);
+  assert.equal(coordination.gatewayTopology.openClawGatewayAware, true);
+  assert.equal(coordination.gatewayTopology.hermesGatewayAware, true);
+  assert.equal(coordination.gatewayTopology.gatewaysMayNotOverrideActiveBroker, true);
   assert.equal(coordination.leasePairing.rabbitConnectorAutoRetrieve, true);
   assert.equal(coordination.singleWriterPolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.leaseControlsExecutionResultWritesOnly, true);
@@ -249,6 +279,28 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(coordination.rules.temporaryPrivilegeIndependentOfLeaseExpiry, true);
   assert.equal(coordination.rules.temporaryPrivilegeIndependentOfMacReachabilityAfterBootstrap, true);
   assert.equal(coordination.rules.macBrokerMayNotOverrideActiveRabbitBroker, true);
+});
+
+test("gateway topology defines unified superuser routing", async () => {
+  const topology = JSON.parse(
+    await readFile(
+      new URL("../public/broker/gateway-topology.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(topology.schemaVersion, 1);
+  assert.equal(topology.rules.singleUserFacingTool, "superuser_management");
+  assert.ok(topology.superuserManagementIncludes.includes("rabbit_bridge"));
+  assert.ok(topology.superuserManagementIncludes.includes("rabbit_native_broker"));
+  assert.ok(topology.superuserManagementIncludes.includes("rabbit_gateway_connector"));
+  assert.ok(topology.superuserManagementIncludes.includes("openclaw_gateway"));
+  assert.ok(topology.superuserManagementIncludes.includes("hermes_gateway"));
+  assert.equal(topology.rules.githubIsStorageNotExecutor, true);
+  assert.equal(topology.rules.creationIsCallerNotExecutor, true);
+  assert.equal(topology.rules.rabbitBridgeConnectsCreationToOnDeviceBroker, true);
+  assert.equal(topology.rules.gatewayClaimsRequireEvidence, true);
+  assert.equal(topology.rules.noDeviceCommandFromGatewayTopology, true);
 });
 
 test("lease pairing manifest supports QR and connector retrieval", async () => {

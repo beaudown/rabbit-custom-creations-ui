@@ -7,6 +7,10 @@ The user-facing surface should be one Superuser Management Creation/tool.
 Superuser actions, prompts, request composition, queue browsing, lease pairing,
 audit logs, USB/ADB/reboot workflows, and settings should be nested modules
 inside that console rather than separate tools the user has to jump between.
+That same tool includes the Rabbit on-device broker, the bridge from the
+Creation to the on-device broker API, the Rabbit gateway connector, OpenClaw
+gateway awareness, Hermes gateway awareness, the Mac fallback broker, and
+GitHub-backed storage.
 
 ## Desired Split
 
@@ -60,6 +64,12 @@ or install path.
   authorization, and audit review.
 - Read `public/broker/sync-manifest.json` so Rabbit and Mac brokers agree on
   queue folders, request states, and export shape.
+- Read `public/broker/gateway-topology.json` so the Creation, Rabbit bridge,
+  Rabbit-native broker, Rabbit gateway connector, OpenClaw gateway, Hermes
+  gateway, Mac fallback broker, and GitHub storage share one routing model.
+- Treat gateway claims from OpenClaw or Hermes as context unless backed by tool
+  evidence or the shared handoff. Gateway state must not override active broker
+  lease, live authorization, or device-state checks.
 
 ## Contextual Prompt Walkthrough
 

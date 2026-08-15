@@ -47,6 +47,7 @@ async function indexFiles(label, path) {
 
 const syncManifest = await readJson(join(brokerRoot, "sync-manifest.json"));
 const coordination = await readJson(join(brokerRoot, "broker-coordination.json"));
+const gatewayTopology = await readJson(join(brokerRoot, "gateway-topology.json"));
 const leasePairing = await readJson(join(brokerRoot, "lease-pairing.json"));
 const promptLibrary = await readJson(join(brokerRoot, "prompt-library.json"));
 const auditManifest = await readJson(join(brokerRoot, "audit-manifest.json"));
@@ -73,6 +74,12 @@ const exportBundle = {
       status: broker.status,
       canExecutePrivilegedRequests: broker.canExecutePrivilegedRequests,
     })),
+  },
+  gatewayTopologySummary: {
+    name: gatewayTopology.name,
+    included: gatewayTopology.superuserManagementIncludes,
+    routes: gatewayTopology.routes,
+    rules: gatewayTopology.rules,
   },
   leasePairingSummary: {
     status: leasePairing.status,

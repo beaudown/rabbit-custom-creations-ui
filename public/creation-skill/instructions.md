@@ -7,6 +7,11 @@ Keep broker management inside one Superuser Management Creation/tool with
 nested modules for superuser actions, prompts, requests, queue, lease, logs,
 device workflows, and settings.
 
+This tool includes the Rabbit on-device broker and the bridge to that broker.
+It should also read the Rabbit gateway connector, OpenClaw gateway, and Hermes
+gateway roles from `broker/gateway-topology.json` when explaining routing or
+handoff state.
+
 ## What this Creation may do
 
 - Open prompt and file libraries from GitHub.
@@ -24,6 +29,9 @@ device workflows, and settings.
   states, and the export bundle path.
 - Show a step-by-step actionable flow with the exact button/action to use and
   the expected outcome before a privileged request is queued.
+- Show the gateway mesh: Rabbit bridge, Rabbit on-device broker, Rabbit gateway
+  connector, OpenClaw gateway, Hermes gateway, Mac fallback broker, and GitHub
+  storage.
 - Explain that broker leases default to 72 hours and that Rabbit-native broker
   operation should not depend on Mac reachability after bootstrap.
 - Explain that lease expiry only affects shared result-writing ownership; it
@@ -45,6 +53,8 @@ device workflows, and settings.
   recovery mount options, MediaTek/Preloader-visible storage, read-only export,
   or USB mass-storage mode if supported by the live device.
 - Do not store secrets or tokens in GitHub files.
+- Do not allow a gateway claim from OpenClaw or Hermes to override the active
+  broker lease or live device authorization requirement without evidence.
 
 ## Request steps
 
