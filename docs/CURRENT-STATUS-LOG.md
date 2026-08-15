@@ -51,6 +51,12 @@ Updated: 2026-08-14 20:05 PDT
   - Cleanup must preserve audit history, queue files, rollback records, published templates, and Rabbit-local current-boot superuser state.
   - Safe Mac broker now exposes startup cleanup evidence through `/health`, `/broker/service`, and generated lease-pairing metadata.
   - Validation passed after this change: `npm run broker:validate`, `npm run lint`, and `npm test` with localhost permission, 20/20 passing.
+  - Live smoke test started the updated Mac broker, verified `/health` and
+    `/broker/service` reported `startupCleanup.performed=true`,
+    `previousBrokerConfigurationsCleared=true`, and
+    `privilegedExecutionPerformed=false`, then stopped the test broker.
+  - Runtime seed files touched by the smoke test were restored to the committed
+    GitHub state.
 
 ## Safety Boundary
 
