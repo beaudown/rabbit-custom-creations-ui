@@ -57,12 +57,14 @@
     "auditEveryRequest": true
   },
   "leasePolicy": {
-    "defaultLeaseTtlSeconds": 86400,
-    "leaseLabel": "24_hour_day_lease",
+    "defaultLeaseTtlSeconds": 259200,
+    "leaseLabel": "72_hour_lease",
     "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
     "macLocalBrokerBootstrapRequiredInitially": true,
     "macLocalBrokerRequiredAfterBootstrap": false,
     "leaseControlsExecutionResultWritesOnly": true,
+    "leasePairingPath": "broker/lease-pairing.json",
+    "rabbitConnectorAutoRetrievesLeasePairing": true,
     "temporaryPrivilegeStillExpiresOnRestart": true
   },
   "superuserSessionPolicy": {

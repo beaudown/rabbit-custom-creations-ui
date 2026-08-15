@@ -8,7 +8,8 @@ import { randomUUID } from "node:crypto";
 const root = process.cwd();
 const port = Number.parseInt(process.env.MAC_BROKER_PORT || "8792", 10);
 const brokerId = process.env.MAC_BROKER_ID || `mac-local-${hostname()}`;
-const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "86400", 10);
+const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "259200", 10);
+const brokerStartedAt = new Date().toISOString();
 
 const paths = {
   auditLog: join(root, "public/broker/audit-log.jsonl"),
@@ -16,6 +17,7 @@ const paths = {
   config: join(root, "public/broker/mac-local-broker-config.json"),
   promptLibrary: join(root, "public/broker/prompt-library.json"),
   syncManifest: join(root, "public/broker/sync-manifest.json"),
+  leasePairing: join(root, "public/broker/lease-pairing.json"),
   templates: join(root, "public/broker/request-templates"),
   queueInbox: join(root, "public/broker/queue/inbox"),
   queueOutbox: join(root, "public/broker/queue/outbox"),
@@ -144,6 +146,36 @@ async function updateCoordination(mutator) {
   return next;
 }
 
+async function writeLeasePairing(coordination) {
+  const pairing = {
+    schemaVersion: 1,
+    status: "live_generated",
+    purpose: "QR and connector-readable lease pairing metadata for broker ownership coordination.",
+    lease: {
+      defaultLeaseTtlSeconds: leaseTtlSeconds,
+      leaseLabel: "72_hour_lease",
+      controls: "shared_queue_and_execution_result_write_ownership_only",
+      doesNotGateRabbitNativeSuperuserSession: true,
+    },
+    pairing: {
+      qrTarget: "broker/lease-pairing.json",
+      rabbitConnectorAutoRetrieve: true,
+      manualEntryRequired: false,
+      refreshOnMacBrokerStartup: true,
+      refreshWhenMacBrokerBecomesAvailable: true,
+    },
+    current: {
+      brokerId,
+      brokerRole: "mac-local-fallback",
+      brokerStartedAt,
+      generatedAt: new Date().toISOString(),
+      activeLease: coordination.activeLease,
+    },
+  };
+  await writeFile(paths.leasePairing, `${JSON.stringify(pairing, null, 2)}\n`);
+  return pairing;
+}
+
 async function acquireLease(reason = "mac broker heartbeat") {
   return updateCoordination((coordination) => {
     const rabbitBroker = coordination.knownBrokers.find((broker) => broker.id === "rabbit-native");
@@ -173,6 +205,9 @@ async function acquireLease(reason = "mac broker heartbeat") {
     }
 
     return coordination;
+  }).then(async (coordination) => {
+    await writeLeasePairing(coordination);
+    return coordination;
   });
 }
 
@@ -189,6 +224,7 @@ async function handleRequest(request, response) {
       containsRootPayload: false,
       leaseTtlSeconds,
       coordinationStatus: coordination?.status || "missing",
+      leasePairing: "broker/lease-pairing.json",
     });
     return;
   }
@@ -205,6 +241,11 @@ async function handleRequest(request, response) {
 
   if (request.method === "GET" && url.pathname === "/sync/manifest") {
     sendJson(response, 200, await readJson(paths.syncManifest));
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/lease/pairing") {
+    sendJson(response, 200, await readJson(paths.leasePairing));
     return;
   }
 

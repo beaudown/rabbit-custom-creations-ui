@@ -29,7 +29,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Broker Log/);
   assert.match(source, /1,500 active records/);
   assert.match(source, /Until reboot/);
-  assert.match(source, /24 hours/);
+  assert.match(source, /72 hours/);
+  assert.match(source, /Lease Pairing/);
+  assert.match(source, /72-hour ownership/);
+  assert.match(source, /lease-pairing\.json/);
+  assert.match(source, /Rabbit connector auto-retrieves/);
   assert.match(source, /Warn at 1,200/);
   assert.match(source, /Archive 500/);
   assert.match(source, /No secrets/);
@@ -100,6 +104,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.equal(manifest.rabbitNativeBrokerSpec, "../broker/rabbit-native-broker-spec.json");
   assert.equal(manifest.macLocalFallbackBrokerConfig, "../broker/mac-local-broker-config.json");
   assert.equal(manifest.brokerCoordination, "../broker/broker-coordination.json");
+  assert.equal(manifest.leasePairing, "../broker/lease-pairing.json");
   assert.equal(manifest.promptLibrary, "../broker/prompt-library.json");
   assert.equal(manifest.syncManifest, "../broker/sync-manifest.json");
   assert.ok(
@@ -125,7 +130,10 @@ test("sync manifest defines shared GitHub queue contract", async () => {
   assert.equal(manifest.paths.outbox, "broker/queue/outbox");
   assert.equal(manifest.rules.oneRequestPerFile, true);
   assert.equal(manifest.rules.githubMayNotExecuteRequests, true);
-  assert.equal(manifest.rules.defaultLeaseTtlSeconds, 86400);
+  assert.equal(manifest.paths.leasePairing, "broker/lease-pairing.json");
+  assert.equal(manifest.rules.defaultLeaseTtlSeconds, 259200);
+  assert.equal(manifest.rules.leasePairingQrTarget, "broker/lease-pairing.json");
+  assert.equal(manifest.rules.rabbitConnectorAutoRetrievesLeasePairing, true);
   assert.equal(manifest.rules.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.equal(manifest.rules.leaseControlsExecutionResultWritesOnly, true);
   assert.equal(manifest.rules.leaseDoesNotGateRabbitNativeSuperuserSession, true);
@@ -169,7 +177,10 @@ test("rabbit-native broker spec is explicit about install status", async () => {
   assert.equal(spec.safetyDefaults.defaultSessionLifetime, "until_reboot");
   assert.equal(spec.safetyDefaults.initialAuthorizationTiming, "after_device_restart");
   assert.equal(spec.safetyDefaults.rebootClearsTemporaryPrivilege, true);
-  assert.equal(spec.leasePolicy.defaultLeaseTtlSeconds, 86400);
+  assert.equal(spec.leasePolicy.defaultLeaseTtlSeconds, 259200);
+  assert.equal(spec.leasePolicy.leaseLabel, "72_hour_lease");
+  assert.equal(spec.leasePolicy.leasePairingPath, "broker/lease-pairing.json");
+  assert.equal(spec.leasePolicy.rabbitConnectorAutoRetrievesLeasePairing, true);
   assert.equal(spec.leasePolicy.macLocalBrokerRequiredAfterBootstrap, false);
   assert.equal(spec.leasePolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.equal(spec.leasePolicy.leaseControlsExecutionResultWritesOnly, true);
@@ -202,11 +213,16 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(config.bootstrapRole.containsRootPayload, false);
   assert.equal(config.executionPolicy.privilegedExecutionEnabled, false);
   assert.equal(config.executionPolicy.temporaryPrivilegeLifetime, "until_reboot");
-  assert.equal(config.defaultLeaseTtlSeconds, 86400);
-  assert.equal(config.executionPolicy.defaultLeaseTtlSeconds, 86400);
+  assert.equal(config.leasePairing, "broker/lease-pairing.json");
+  assert.equal(config.defaultLeaseTtlSeconds, 259200);
+  assert.equal(config.executionPolicy.defaultLeaseTtlSeconds, 259200);
+  assert.equal(config.executionPolicy.regenerateLeaseOnMacBrokerStartup, true);
   assert.equal(config.bootstrapRole.rabbitNativeBrokerMayOperateWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.enabled, true);
-  assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 86400);
+  assert.equal(coordination.singleWriterPolicy.leaseTtlSeconds, 259200);
+  assert.equal(coordination.singleWriterPolicy.leaseLabel, "72_hour_lease");
+  assert.equal(coordination.leasePairing.path, "broker/lease-pairing.json");
+  assert.equal(coordination.leasePairing.rabbitConnectorAutoRetrieve, true);
   assert.equal(coordination.singleWriterPolicy.rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap, true);
   assert.equal(coordination.singleWriterPolicy.leaseControlsExecutionResultWritesOnly, true);
   assert.equal(coordination.singleWriterPolicy.leaseDoesNotGateRabbitNativeSuperuserSession, true);
@@ -216,6 +232,22 @@ test("mac local broker config is fallback-only and coordinated", async () => {
   assert.equal(coordination.rules.temporaryPrivilegeIndependentOfLeaseExpiry, true);
   assert.equal(coordination.rules.temporaryPrivilegeIndependentOfMacReachabilityAfterBootstrap, true);
   assert.equal(coordination.rules.macBrokerMayNotOverrideActiveRabbitBroker, true);
+});
+
+test("lease pairing manifest supports QR and connector retrieval", async () => {
+  const pairing = JSON.parse(
+    await readFile(
+      new URL("../public/broker/lease-pairing.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(pairing.schemaVersion, 1);
+  assert.equal(pairing.lease.defaultLeaseTtlSeconds, 259200);
+  assert.equal(pairing.lease.doesNotGateRabbitNativeSuperuserSession, true);
+  assert.equal(pairing.pairing.qrTarget, "broker/lease-pairing.json");
+  assert.equal(pairing.pairing.rabbitConnectorAutoRetrieve, true);
+  assert.equal(pairing.pairing.refreshOnMacBrokerStartup, true);
 });
 
 test("temporary privilege template is restart-scoped", async () => {

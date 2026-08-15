@@ -48,7 +48,8 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(health.ok, true);
     assert.equal(health.privilegedExecutionEnabled, false);
     assert.equal(health.containsRootPayload, false);
-    assert.equal(health.leaseTtlSeconds, 86400);
+    assert.equal(health.leaseTtlSeconds, 259200);
+    assert.equal(health.leasePairing, "broker/lease-pairing.json");
 
     const leaseResponse = await fetch(`${baseUrl}/lease`, {
       method: "POST",
@@ -60,7 +61,7 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const leaseMs =
       Date.parse(leaseBody.coordination.activeLease.expiresAt) -
       Date.parse(leaseBody.coordination.activeLease.acquiredAt);
-    assert.ok(leaseMs >= 86_300_000);
+    assert.ok(leaseMs >= 259_100_000);
 
     const requestResponse = await fetch(`${baseUrl}/requests`, {
       method: "POST",
@@ -92,6 +93,13 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(syncManifestResponse.status, 200);
     const syncManifest = await syncManifestResponse.json();
     assert.equal(syncManifest.paths.inbox, "broker/queue/inbox");
+
+    const pairingResponse = await fetch(`${baseUrl}/lease/pairing`);
+    assert.equal(pairingResponse.status, 200);
+    const pairing = await pairingResponse.json();
+    assert.equal(pairing.lease.defaultLeaseTtlSeconds, 259200);
+    assert.equal(pairing.pairing.rabbitConnectorAutoRetrieve, true);
+    assert.equal(pairing.current.brokerId, "mac-local-test");
 
     const syncExportResponse = await fetch(`${baseUrl}/sync/export`);
     assert.equal(syncExportResponse.status, 200);

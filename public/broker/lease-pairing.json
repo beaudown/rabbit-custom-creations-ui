@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "status": "seed_not_live",
+  "purpose": "QR and connector-readable lease pairing metadata for broker ownership coordination.",
+  "lease": {
+    "defaultLeaseTtlSeconds": 259200,
+    "leaseLabel": "72_hour_lease",
+    "controls": "shared_queue_and_execution_result_write_ownership_only",
+    "doesNotGateRabbitNativeSuperuserSession": true
+  },
+  "pairing": {
+    "qrTarget": "broker/lease-pairing.json",
+    "rabbitConnectorAutoRetrieve": true,
+    "manualEntryRequired": false,
+    "refreshOnMacBrokerStartup": true,
+    "refreshWhenMacBrokerBecomesAvailable": true
+  },
+  "current": {
+    "brokerId": null,
+    "brokerRole": "mac-local-fallback",
+    "activeLease": null,
+    "generatedAt": null
+  }
+}

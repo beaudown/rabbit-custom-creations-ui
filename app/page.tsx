@@ -151,7 +151,7 @@ const brokerSettings = [
   { label: "Warn at", value: "1,200" },
   { label: "Archive chunks", value: "500" },
   { label: "SU lifetime", value: "Until reboot" },
-  { label: "Lease", value: "24 hours" },
+  { label: "Lease", value: "72 hours" },
 ];
 
 const brokerStatus = [
@@ -550,6 +550,10 @@ export default function Home() {
   const skillQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=${encodeURIComponent(
     skillUrl,
   )}`;
+  const leasePairingUrl = `${publishUrl.replace(/\/$/, "")}/broker/lease-pairing.json`;
+  const leasePairingQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=${encodeURIComponent(
+    leasePairingUrl,
+  )}`;
 
   function updatePromptValue(name: string, value: string) {
     setPromptValues((current) => ({ ...current, [name]: value }));
@@ -873,6 +877,23 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="publishPanel" aria-label="Lease pairing QR">
+          <div>
+            <p className="eyebrow">Lease Pairing</p>
+            <h2>72-hour ownership</h2>
+            <input
+              value={leasePairingUrl}
+              readOnly
+              aria-label="Lease pairing manifest URL"
+            />
+            <p className="panelNote">
+              Rabbit connector auto-retrieves this lease metadata when pairing
+              broker ownership. SU remains current-boot local.
+            </p>
+          </div>
+          <img src={leasePairingQrUrl} alt="QR code for broker lease pairing" />
         </section>
 
         <section className="syncPanel" aria-label="GitHub sync contract">

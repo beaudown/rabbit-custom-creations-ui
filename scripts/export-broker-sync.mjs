@@ -47,6 +47,7 @@ async function indexFiles(label, path) {
 
 const syncManifest = await readJson(join(brokerRoot, "sync-manifest.json"));
 const coordination = await readJson(join(brokerRoot, "broker-coordination.json"));
+const leasePairing = await readJson(join(brokerRoot, "lease-pairing.json"));
 const promptLibrary = await readJson(join(brokerRoot, "prompt-library.json"));
 const auditManifest = await readJson(join(brokerRoot, "audit-manifest.json"));
 
@@ -72,6 +73,12 @@ const exportBundle = {
       status: broker.status,
       canExecutePrivilegedRequests: broker.canExecutePrivilegedRequests,
     })),
+  },
+  leasePairingSummary: {
+    status: leasePairing.status,
+    defaultLeaseTtlSeconds: leasePairing.lease.defaultLeaseTtlSeconds,
+    qrTarget: leasePairing.pairing.qrTarget,
+    rabbitConnectorAutoRetrieve: leasePairing.pairing.rabbitConnectorAutoRetrieve,
   },
   promptSummary: {
     name: promptLibrary.name,

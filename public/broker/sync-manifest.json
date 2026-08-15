@@ -12,6 +12,7 @@
     "exports": "broker/exports",
     "promptLibrary": "broker/prompt-library.json",
     "coordination": "broker/broker-coordination.json",
+    "leasePairing": "broker/lease-pairing.json",
     "auditLog": "broker/audit-log.jsonl",
     "auditManifest": "broker/audit-manifest.json",
     "requestTemplates": "broker/request-templates"
@@ -22,7 +23,9 @@
     "requestFilePattern": "{requestId}.json",
     "requestIdPattern": "^[A-Za-z0-9._-]{3,96}$",
     "singleWriterLeaseRequiredForExecutionResults": true,
-    "defaultLeaseTtlSeconds": 86400,
+    "defaultLeaseTtlSeconds": 259200,
+    "leasePairingQrTarget": "broker/lease-pairing.json",
+    "rabbitConnectorAutoRetrievesLeasePairing": true,
     "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
     "leaseControlsExecutionResultWritesOnly": true,
     "leaseDoesNotGateRabbitNativeSuperuserSession": true,

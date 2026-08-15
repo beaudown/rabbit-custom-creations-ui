@@ -405,6 +405,13 @@ h3 {
   padding: 6px;
 }
 
+.panelNote {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
 .workflowPanel {
   display: grid;
   gap: 13px;

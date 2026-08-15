@@ -11,7 +11,8 @@
   "sharedAuditLog": "broker/audit-log.jsonl",
   "sharedTemplates": "broker/request-templates/",
   "sharedQueueInbox": "broker/queue/inbox/",
-  "defaultLeaseTtlSeconds": 86400,
+  "leasePairing": "broker/lease-pairing.json",
+  "defaultLeaseTtlSeconds": 259200,
   "localApi": {
     "preferredBaseUrl": "http://127.0.0.1:8792",
     "endpoints": [
@@ -39,7 +40,9 @@
     "singleWriterLeaseRequired": true,
     "leaseControlsExecutionResultWritesOnly": true,
     "yieldToRabbitNativeBroker": true,
-    "defaultLeaseTtlSeconds": 86400,
+    "defaultLeaseTtlSeconds": 259200,
+    "regenerateLeaseOnMacBrokerStartup": true,
+    "regenerateLeaseWhenMacBecomesAvailable": true,
     "privilegedExecutionEnabled": false,
     "requiresSeparateLiveDeviceAuthorization": true,
     "initialLiveAuthorizationTiming": "after_device_restart",

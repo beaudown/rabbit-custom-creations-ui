@@ -4,14 +4,21 @@
   "status": "seed",
   "singleWriterPolicy": {
     "enabled": true,
-    "leaseTtlSeconds": 86400,
-    "leaseLabel": "24_hour_day_lease",
-    "renewalPolicy": "renew_on_broker_heartbeat_or_request",
+    "leaseTtlSeconds": 259200,
+    "leaseLabel": "72_hour_lease",
+    "renewalPolicy": "regenerate_on_mac_broker_startup_or_renew_on_broker_heartbeat_or_request",
     "executionResultWriter": "active_lease_holder",
     "denyExecutionWithoutLease": true,
     "rabbitNativeBrokerMayRenewWithoutMacAfterBootstrap": true,
     "leaseControlsExecutionResultWritesOnly": true,
     "leaseDoesNotGateRabbitNativeSuperuserSession": true
+  },
+  "leasePairing": {
+    "path": "broker/lease-pairing.json",
+    "qrTarget": "broker/lease-pairing.json",
+    "rabbitConnectorAutoRetrieve": true,
+    "refreshOnMacBrokerStartup": true,
+    "refreshWhenMacBrokerBecomesAvailable": true
   },
   "preferredExecutorOrder": [
     "rabbit-native",

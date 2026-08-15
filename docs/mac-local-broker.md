@@ -8,7 +8,7 @@ runtime.
 ## Role
 
 - Register Mac broker presence in `public/broker/broker-coordination.json`.
-- Hold a 24-hour lease before writing execution results.
+- Hold a 72-hour lease before writing execution results.
 - Queue or deny requests using the same policy fields as the Rabbit broker.
 - Write audit records to `public/broker/audit-log.jsonl`.
 - Coordinate bootstrap requests for a future Rabbit-native broker.
@@ -48,11 +48,15 @@ Rabbit-local RAM/current-boot superuser session.
 ## Lease Behavior
 
 Only the active lease holder may write execution results. The default lease is
-24 hours. If the Rabbit-native broker is live and holding the lease, the Mac
+72 hours. If the Rabbit-native broker is live and holding the lease, the Mac
 broker must yield. If no Rabbit broker is present, the Mac broker may hold the
 lease for request intake, approval state, audit logging, and bootstrap
 coordination. This lease does not gate Rabbit-native temporary superuser access
 after bootstrap.
+
+The Mac broker regenerates lease pairing metadata on startup or when it becomes
+available again. Rabbit should retrieve `broker/lease-pairing.json` through its
+connector automatically; the QR is a fallback pairing route.
 
 ## Start Locally
 

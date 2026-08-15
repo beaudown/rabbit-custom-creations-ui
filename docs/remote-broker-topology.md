@@ -63,16 +63,19 @@ broker is preferred whenever it is running and validated. The Mac broker yields
 to the Rabbit broker and acts as fallback/bootstrap authority only when the
 Rabbit broker is absent, not installed, or not yet privileged.
 
-Leases default to 24 hours. This is long enough for a full development day while
-still giving the system a clear ownership boundary. The Rabbit-native broker may
-renew or retain its lease after Mac bootstrap so the Rabbit remains useful when
-fully remote.
+Leases default to 72 hours. This gives broker ownership enough room to survive a
+multi-day development window while still giving the system a clear ownership
+boundary. The Mac broker regenerates the lease when it restarts or becomes
+available again.
 
 Lease state is only the shared-write coordination layer. It must not be treated
 as the switch for the Rabbit-native broker's RAM/current-boot temporary
 superuser facility. Once bootstrapped and validated, Rabbit-local superuser
 calls should remain available for the current boot cycle regardless of Mac
 reachability.
+
+Lease pairing metadata lives at `broker/lease-pairing.json`. The Rabbit
+connector should retrieve it automatically; QR pairing is only a fallback.
 
 ## Sync Contract
 

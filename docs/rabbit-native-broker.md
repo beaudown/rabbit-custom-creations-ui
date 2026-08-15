@@ -111,7 +111,7 @@ truthfully be marked live.
 
 ## Lease Duration
 
-Broker leases default to 24 hours. The lease controls which broker may write
+Broker leases default to 72 hours. The lease controls which broker may write
 execution results; it does not control whether the Rabbit-native broker can call
 the current-boot temporary superuser facility. Temporary privilege remains
 restart-scoped and clears on Rabbit restart.
@@ -120,3 +120,6 @@ The Mac fallback broker is expected to bootstrap the Rabbit-native broker
 initially. After that, the Rabbit-native broker should be able to call/request
 temporary access locally and continue operating while fully remote, without
 requiring the Mac broker to be reachable.
+
+The Rabbit connector should automatically retrieve `broker/lease-pairing.json`
+when pairing broker ownership. QR pairing exists for fallback/manual recovery.

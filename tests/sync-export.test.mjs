@@ -25,6 +25,9 @@ test("broker sync export script writes portable bundle", async () => {
   const bundle = JSON.parse(await readFile(outputPath, "utf8"));
   assert.equal(bundle.schemaVersion, 1);
   assert.equal(bundle.syncManifest.paths.inbox, "broker/queue/inbox");
+  assert.equal(bundle.leasePairingSummary.defaultLeaseTtlSeconds, 259200);
+  assert.equal(bundle.leasePairingSummary.qrTarget, "broker/lease-pairing.json");
+  assert.equal(bundle.leasePairingSummary.rabbitConnectorAutoRetrieve, true);
   assert.ok(bundle.files.templates.some((file) => file.path.includes("adb-enable-request.json")));
   assert.equal(bundle.promptSummary.promptCount, 5);
   assert.equal(bundle.files.queue.inbox.length, 0);
