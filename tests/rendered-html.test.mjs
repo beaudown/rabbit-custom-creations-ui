@@ -56,6 +56,14 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /detectBrokerBridge/);
   assert.match(source, /\/bridge\/route/);
   assert.match(source, /\/adb\/status/);
+  assert.match(source, /Service Control/);
+  assert.match(source, /requestServiceControl/);
+  assert.match(source, /\/broker\/service/);
+  assert.match(source, /Skill Uploader/);
+  assert.match(source, /Custom imports/);
+  assert.match(source, /parseSkillUpload/);
+  assert.match(source, /queueSkillUpload/);
+  assert.match(source, /\/skills\/upload/);
   assert.match(source, /Claude/);
   assert.match(source, /ChatGPT\/Codex/);
   assert.match(source, /Mac broker/);
@@ -129,7 +137,9 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   assert.ok(manifest.shortcuts.some((shortcut) => shortcut.name === "Audit Review"));
   assert.match(serviceWorker, /broker\/rabbit-native-broker-spec\.json/);
   assert.match(serviceWorker, /broker\/request-templates\/adb-enable-request\.json/);
+  assert.match(serviceWorker, /broker\/request-templates\/custom-skill-upload-request\.json/);
   assert.match(serviceWorker, /creation-skill\/execution-checklist\.md/);
+  assert.match(serviceWorker, /creation-skill\/custom-skill-uploader\.md/);
   assert.match(main, /serviceWorker/);
 });
 
@@ -175,6 +185,12 @@ test("creation skill exposes broker request templates", async () => {
 
   assert.equal(manifest.rules.creationMayRequestEscalatedPrivileges, true);
   assert.equal(manifest.rules.brokerExecutesEscalatedPrivileges, true);
+  assert.equal(manifest.rules.singleCreationEntrypoint, true);
+  assert.equal(manifest.rules.creationMayUploadCustomSkills, true);
+  assert.equal(manifest.rules.customSkillHooksRequireBrokerApproval, true);
+  assert.equal(manifest.creationLauncher, "creation-launcher.json");
+  assert.equal(manifest.brokerServiceGuide, "broker-service-guide.md");
+  assert.equal(manifest.customSkillUploader, "custom-skill-uploader.md");
   assert.equal(manifest.usbStorageGuide, "usb-storage-guide.md");
   assert.equal(manifest.walkthroughGuide, "walkthrough-guide.md");
   assert.equal(manifest.executionChecklist, "execution-checklist.md");
@@ -193,6 +209,11 @@ test("creation skill exposes broker request templates", async () => {
       template.includes("usb-mass-storage-request.json"),
     ),
   );
+  assert.ok(
+    manifest.requestTemplates.some((template) =>
+      template.includes("custom-skill-upload-request.json"),
+    ),
+  );
   assert.match(instructions, /Creation-side escalated privilege request/);
   assert.match(instructions, /USB mass-storage or supported storage exposure/);
   assert.match(instructions, /prompt library/);
@@ -208,6 +229,9 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(instructions, /Android system authorization prompt/);
   assert.match(instructions, /Rabbit LLM/);
   assert.match(instructions, /DLAM/);
+  assert.match(instructions, /single Custom Creation entrypoint/);
+  assert.match(instructions, /custom-skill-uploader\.md/);
+  assert.match(instructions, /Hook activation requires broker/);
 
   const walkthrough = await readFile(
     new URL("../public/creation-skill/walkthrough-guide.md", import.meta.url),
@@ -283,6 +307,8 @@ test("remote broker config marks executor as not deployed", async () => {
   assert.equal(config.featureFlags.adbAuthorizationPromptRequest, true);
   assert.equal(config.featureFlags.adbAwarenessBroadcast, true);
   assert.equal(config.featureFlags.usbStorageRebootMode, true);
+  assert.equal(config.featureFlags.brokerServiceControl, true);
+  assert.equal(config.featureFlags.customSkillUploader, true);
   assert.equal(config.featureFlags.hostedPwaInstall, true);
 });
 
@@ -308,12 +334,16 @@ test("rabbit-native broker spec is explicit about install status", async () => {
   assert.ok(spec.localApi.endpoints.includes("GET /bridge/route"));
   assert.ok(spec.localApi.endpoints.includes("POST /adb/authorize"));
   assert.ok(spec.localApi.endpoints.includes("POST /device/reboot-mode"));
+  assert.ok(spec.localApi.endpoints.includes("POST /broker/service"));
+  assert.ok(spec.localApi.endpoints.includes("POST /skills/upload"));
   assert.equal(spec.bridgeRoutingPolicy.bridgeIsRouterNotExecutor, true);
   assert.equal(spec.bridgeRoutingPolicy.fallbackToRabbitNativeBrokerWhenMacUnavailable, true);
   assert.equal(spec.adbPolicy.systemAuthorizationPromptTracked, true);
   assert.equal(spec.adbPolicy.broadcastTransportAwareness, true);
   assert.equal(spec.deviceModePolicy.usbStorageModeReboot, true);
   assert.equal(spec.offlineRecoveryPolicy.rollbackHelpOffline, true);
+  assert.equal(spec.customSkillUploadPolicy.automaticHookActivation, false);
+  assert.equal(spec.customSkillUploadPolicy.hookActivationRequiresBrokerApproval, true);
   assert.equal(spec.installStatus.installedOnRabbit, false);
   assert.equal(spec.installStatus.privilegedExecutionAvailable, false);
   assert.equal(spec.safetyDefaults.defaultSessionLifetime, "until_reboot");
@@ -331,6 +361,7 @@ test("rabbit-native broker spec is explicit about install status", async () => {
   assert.equal(spec.superuserSessionPolicy.independentOfMacReachabilityAfterBootstrap, true);
   assert.equal(spec.superuserSessionPolicy.rabbitNativeBrokerMayRequestTemporarySuperuserWithoutMacAfterBootstrap, true);
   assert.ok(spec.privilegedRequestClasses.includes("prepare_adb_tcpip_request"));
+  assert.ok(spec.privilegedRequestClasses.includes("prepare_custom_skill_upload_request"));
 });
 
 test("mac local broker config is fallback-only and coordinated", async () => {
@@ -554,4 +585,27 @@ test("ADB and USB storage templates include route, auth, and mode contracts", as
   assert.equal(usbStorage.deviceMode.requestedMode, "usb_storage_mode");
   assert.equal(usbStorage.deviceMode.externalHostShouldSeeStorage, true);
   assert.equal(usbStorage.deviceMode.requiresDiscoveryBeforeExecution, true);
+});
+
+test("custom skill upload template is broker gated", async () => {
+  const template = JSON.parse(
+    await readFile(
+      new URL("../public/broker/request-templates/custom-skill-upload-request.json", import.meta.url),
+      "utf8",
+    ),
+  );
+  const launcher = JSON.parse(
+    await readFile(
+      new URL("../public/creation-skill/creation-launcher.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(template.action, "prepare_custom_skill_upload_request");
+  assert.equal(template.skillUpload.hookPolicy.automaticSystemHooking, false);
+  assert.equal(template.skillUpload.hookPolicy.requiresBrokerApproval, true);
+  assert.ok(template.skillUpload.acceptedExtensions.includes(".md"));
+  assert.ok(template.skillUpload.acceptedExtensions.includes(".zip"));
+  assert.equal(launcher.resourcePolicy.singleCreationOnly, true);
+  assert.equal(launcher.customSkillUploader.automaticHookActivation, false);
 });

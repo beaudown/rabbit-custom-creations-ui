@@ -31,6 +31,38 @@
     "brokerCoordination": "../broker/broker-coordination.json",
     "remoteExecutorStatus": "not_deployed"
   },
+  "launcher": {
+    "singleCreationEntrypoint": true,
+    "hostedPwaDefaultUrl": "https://beaudown.github.io/rabbit-custom-creations-ui/",
+    "creationLauncher": "creation-launcher.json",
+    "brokerServiceGuide": "broker-service-guide.md",
+    "detectBridgeOnLaunch": true,
+    "detectMacFallbackOnLaunch": true,
+    "detectRabbitBrokerOnLaunch": true,
+    "serviceControlEndpoint": "/broker/service",
+    "serviceControlDefaultDryRun": true
+  },
+  "customSkillUploader": {
+    "enabled": true,
+    "defaultDryRun": true,
+    "template": "../broker/request-templates/custom-skill-upload-request.json",
+    "guide": "custom-skill-uploader.md",
+    "hooksRequireTemporarySuperuser": true,
+    "hooksRequireBrokerApproval": true,
+    "automaticHookActivation": false,
+    "acceptedExtensions": [
+      ".txt",
+      ".md",
+      ".csv",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".xml",
+      ".pdf",
+      ".zip"
+    ]
+  },
   "audit": {
     "activeRecordTarget": 1500,
     "warningThreshold": 1200,

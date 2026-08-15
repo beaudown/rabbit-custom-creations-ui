@@ -63,6 +63,9 @@ const [
 if (creationManifest) {
   const localSkillRefs = [
     ["entrypoint", creationManifest.entrypoint],
+    ["creationLauncher", creationManifest.creationLauncher],
+    ["brokerServiceGuide", creationManifest.brokerServiceGuide],
+    ["customSkillUploader", creationManifest.customSkillUploader],
     ["usbStorageGuide", creationManifest.usbStorageGuide],
     ["walkthroughGuide", creationManifest.walkthroughGuide],
     ["executionChecklist", creationManifest.executionChecklist],

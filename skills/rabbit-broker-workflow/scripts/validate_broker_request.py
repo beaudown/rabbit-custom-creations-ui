@@ -14,6 +14,8 @@ SAFE_ACTIONS = {
     "prepare_adb_enable_request",
     "prepare_adb_tcpip_request",
     "prepare_usb_mass_storage_request",
+    "prepare_broker_service_control_request",
+    "prepare_custom_skill_upload_request",
     "request_temporary_privilege_session",
     "show_device_state_checklist",
 }
@@ -104,6 +106,8 @@ def main() -> None:
         "prepare_adb_tcpip_request",
         "prepare_storage_export_request",
         "prepare_usb_mass_storage_request",
+        "prepare_broker_service_control_request",
+        "prepare_custom_skill_upload_request",
     }:
         if not data["requiresLiveDeviceCheck"]:
             fail("privileged/reboot requests require live device checks")

@@ -53,6 +53,11 @@ leave one tool to manage the broker stack.
 - Audit handoff bundles that can be sent to Rabbit LLM, Hermes, OpenClaw,
   ChatGPT/Codex, Claude, Rabbit intern, or DLAM for review and next-step
   suggestions.
+- Single Custom Creation launcher contract with broker service-control requests
+  for bridge/broker status, start, stop, restart, and route refresh.
+- Custom Skill Uploader module for `.txt`, `.md`, `.csv`, `.json`, `.yaml`,
+  `.yml`, `.toml`, `.xml`, `.pdf`, and `.zip` skill files. Hook activation is
+  broker-approved and audited after a validated temporary SU session.
 
 ## Hosted PWA role
 

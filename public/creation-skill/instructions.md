@@ -7,6 +7,11 @@ Keep broker management inside one Superuser Management Creation/tool with
 nested modules for superuser actions, prompts, requests, queue, lease, logs,
 device workflows, and settings.
 
+This must be a single Custom Creation entrypoint. Load
+`creation-launcher.json` first so the user does not have to open multiple
+sandboxed creations for broker control, bridge routing, audit review, rollback,
+debug help, or settings.
+
 This tool includes the Rabbit on-device broker and the bridge to that broker.
 It should also read the Rabbit gateway connector, OpenClaw gateway, and Hermes
 gateway roles from `broker/gateway-topology.json` when explaining routing or
@@ -23,6 +28,21 @@ metadata first when local, then route to the Rabbit on-device broker when the
 Mac fallback is unavailable or not needed. Before sending a request, show the
 route target, expected output, blockers, concise hints, dry-run status, and the
 approval needed.
+
+Bridge and broker startup, stop, restart, and status actions are service-control
+requests. Read `broker-service-guide.md` and use
+`broker/request-templates/broker-service-control-request.json`. The Creation may
+ask for these service actions, but the broker must return the audit record,
+expected output, blockers, and verification state. The Creation must not claim
+it directly controlled a privileged service.
+
+Custom skill upload is also part of this single Creation. Read
+`custom-skill-uploader.md` and use
+`broker/request-templates/custom-skill-upload-request.json`. The Creation may
+upload, parse, and normalize `.txt`, `.md`, `.csv`, `.json`, `.yaml`, `.yml`,
+`.toml`, `.xml`, `.pdf`, or `.zip` files. Any system hook or privileged use of
+an uploaded skill must wait until a validated temporary superuser session exists
+and the broker approves and audits the hook request.
 
 When the user wants to provoke a specific response or expected outcome, read
 `walkthrough-guide.md` and `broker/walkthrough-guide.json` first. Show the
@@ -42,6 +62,11 @@ dependencies, required evidence, and blockers before moving forward.
 - Create broker requests for ADB enable preparation, normal reboot, fastboot
   reboot, recovery reboot, USB mass-storage or supported storage exposure,
   storage export, APK canary, and device-state checks.
+- Create broker service-control requests for bridge status, bridge start,
+  bridge restart, bridge stop, Rabbit on-device broker status/start/restart/stop,
+  and route refresh.
+- Upload and normalize custom skill files, then queue dry-run import/hook
+  requests for broker review.
 - Show approve/deny steps before any privileged action.
 - Show audit log status and archive search hints.
 - Export audit review bundles for Rabbit LLM, Hermes, OpenClaw, ChatGPT/Codex,
@@ -84,6 +109,10 @@ dependencies, required evidence, and blockers before moving forward.
   broker discovers and confirms a supported exposure mode.
 - Do not claim the hosted PWA itself can bypass browser sandboxing or execute
   privileged device commands.
+- Do not claim the Creation directly started, stopped, restarted, or escalated
+  the bridge or broker. It may only request those actions from a broker.
+- Do not auto-activate uploaded skill hooks. Hook activation requires broker
+  approval, audit logging, and a rollback note.
 - For USB storage workflows, ask the broker to discover Android file transfer,
   recovery mount options, MediaTek/Preloader-visible storage, read-only export,
   or USB mass-storage mode if supported by the live device.

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-broker-service-control",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "rabbit_native_or_mac_fallback_broker"
+  },
+  "action": "prepare_broker_service_control_request",
+  "risk": "high",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "serviceControl": {
+    "routeTargetRequired": true,
+    "allowedActions": [
+      "status",
+      "start_bridge",
+      "restart_bridge",
+      "stop_bridge",
+      "start_on_device_broker",
+      "restart_on_device_broker",
+      "stop_on_device_broker",
+      "refresh_routes"
+    ],
+    "defaultAction": "status",
+    "creationMayRequest": true,
+    "creationMayDirectlyControlService": false,
+    "brokerMustReturnAuditId": true
+  },
+  "rollbackPlan": "Dry run only. Approved service control must record original bridge/broker state, requested action, route target, expected output, blockers, and verification result. Stop or restart actions must not be claimed unless the broker returns a confirmed audit record.",
+  "artifacts": [
+    {
+      "kind": "service_control",
+      "value": "bridge_and_broker_lifecycle_request"
+    }
+  ]
+}

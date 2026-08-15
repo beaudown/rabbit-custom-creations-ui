@@ -344,6 +344,39 @@ const pwaCapabilities = [
   },
 ];
 
+const serviceControls = [
+  "status",
+  "start_bridge",
+  "restart_bridge",
+  "stop_bridge",
+  "start_on_device_broker",
+  "restart_on_device_broker",
+  "stop_on_device_broker",
+  "refresh_routes",
+];
+
+const skillUploadFormats = [
+  ".txt",
+  ".md",
+  ".csv",
+  ".json",
+  ".yaml",
+  ".yml",
+  ".toml",
+  ".xml",
+  ".pdf",
+  ".zip",
+];
+
+const skillUploaderStages = [
+  "Upload",
+  "Parse",
+  "Normalize",
+  "Dry run",
+  "Approve hook",
+  "Audit",
+];
+
 const superuserActionPlan = [
   {
     step: "Import",
@@ -805,6 +838,10 @@ export default function Home() {
   const [brokerEndpoint, setBrokerEndpoint] = useState("http://127.0.0.1:8792");
   const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
+  const [serviceControlStatus, setServiceControlStatus] = useState("No service-control request sent");
+  const [serviceControlPreview, setServiceControlPreview] = useState("Service state not checked");
+  const [skillUploadStatus, setSkillUploadStatus] = useState("No skill file loaded");
+  const [skillUploadPreview, setSkillUploadPreview] = useState("Upload .txt, .csv, .md, .json, .yaml, .pdf, or .zip skill files.");
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
@@ -951,6 +988,110 @@ export default function Home() {
     } catch {
       setBridgeProbeStatus(`No broker bridge reachable at ${baseUrl}`);
       setBridgeRoutePreview("The PWA remains usable offline for guides, templates, and audit handoff exports.");
+    }
+  }
+
+  async function requestServiceControl(serviceAction: string) {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
+    setServiceControlStatus(`Requesting ${serviceAction}...`);
+    try {
+      const response = await fetch(`${baseUrl}/broker/service`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          schemaVersion: 1,
+          requestId: `service-${serviceAction}`,
+          serviceAction,
+          source: "superuser_management_creation",
+          dryRun: true,
+        }),
+      });
+      const body = await response.json();
+      setServiceControlStatus(
+        `${body.status ?? response.status}: ${body.audit?.id ?? body.serviceAction ?? serviceAction}`,
+      );
+      setServiceControlPreview(
+        JSON.stringify(
+          {
+            serviceAction: body.serviceAction,
+            expectedOutput: body.expectedOutput,
+            blockers: body.blockers,
+            bridge: body.serviceStatus?.serviceControl?.bridge,
+            rabbitBroker: body.serviceStatus?.serviceControl?.rabbitOnDeviceBroker,
+            privilegedExecutionPerformed: body.privilegedExecutionPerformed,
+          },
+          null,
+          2,
+        ),
+      );
+    } catch {
+      setServiceControlStatus(`No broker service endpoint reachable at ${baseUrl}`);
+      setServiceControlPreview("Service-control remains offline-only until a broker endpoint is reachable.");
+    }
+  }
+
+  async function parseSkillUpload(file: File | null) {
+    if (!file) {
+      return;
+    }
+
+    const extension = `.${file.name.split(".").pop()?.toLowerCase() || ""}`;
+    const textReadable = [".txt", ".md", ".csv", ".json", ".yaml", ".yml", ".toml", ".xml"].includes(extension);
+    const uploadSummary = {
+      schemaVersion: 1,
+      requestId: `skill-upload-${file.name.replaceAll(/[^A-Za-z0-9._-]+/g, "-").slice(0, 64)}`,
+      action: "prepare_custom_skill_upload_request",
+      file: {
+        name: file.name,
+        type: file.type || "unknown",
+        size: file.size,
+        extension,
+        textReadable,
+      },
+      parsePlan: textReadable
+        ? "Read text, extract title/headings/fields, normalize into skill metadata, and queue dry run."
+        : "Record binary package metadata, hash externally before publish, and require broker-side parser.",
+      hookPolicy: {
+        mayUseAfterSuperuserEnabled: true,
+        automaticSystemHooking: false,
+        requiresBrokerApproval: true,
+        requiresAuditRecord: true,
+      },
+    };
+
+    if (textReadable) {
+      const content = await file.text();
+      const lines = content.split(/\r?\n/);
+      Object.assign(uploadSummary, {
+        textSample: lines.slice(0, 8).join("\n").slice(0, 1200),
+        lineCount: lines.length,
+        detectedHeadings: lines
+          .filter((line) => /^#{1,6}\s+/.test(line) || /^[A-Za-z0-9 _-]+:$/.test(line))
+          .slice(0, 8),
+      });
+    }
+
+    setSkillUploadStatus(`Parsed ${file.name}; dry-run import ready`);
+    setSkillUploadPreview(JSON.stringify(uploadSummary, null, 2));
+  }
+
+  async function queueSkillUpload() {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
+    setSkillUploadStatus("Queueing skill upload dry run...");
+    try {
+      const request = JSON.parse(skillUploadPreview);
+      const response = await fetch(`${baseUrl}/skills/upload`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(request),
+      });
+      const body = await response.json();
+      setSkillUploadStatus(
+        `${body.status ?? response.status}: ${body.audit?.id ?? body.fileName ?? "skill upload"}`,
+      );
+      setSkillUploadPreview(JSON.stringify(body, null, 2));
+    } catch {
+      setSkillUploadStatus(`No skill upload endpoint reachable at ${baseUrl}`);
     }
   }
 
@@ -1521,6 +1662,65 @@ export default function Home() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="bridgePanel" aria-label="Broker service controls">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Service Control</p>
+              <h2>Bridge startup</h2>
+            </div>
+            <span>Broker gated</span>
+          </div>
+          <p>
+            The Creation can request bridge and broker start, stop, restart, and
+            status actions. The active broker must decide, log, and verify the
+            result.
+          </p>
+          <div className="rootGrid">
+            {serviceControls.map((action) => (
+              <button key={action} onClick={() => requestServiceControl(action)}>
+                {action.replaceAll("_", " ")}
+              </button>
+            ))}
+          </div>
+          <div className="queueStatus">{serviceControlStatus}</div>
+          <pre className="requestPreview">{serviceControlPreview}</pre>
+        </section>
+
+        <section className="bridgePanel" aria-label="Custom skill uploader">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Skill Uploader</p>
+              <h2>Custom imports</h2>
+            </div>
+            <span>Dry run</span>
+          </div>
+          <p>
+            Upload skill files into the single Superuser Management Creation.
+            Text formats are parsed locally; package formats require broker-side
+            inspection. System hooks wait for broker approval after temporary SU
+            is available.
+          </p>
+          <label className="composerField">
+            <span>Skill file</span>
+            <input
+              type="file"
+              accept={skillUploadFormats.join(",")}
+              onChange={(event) => parseSkillUpload(event.target.files?.[0] ?? null)}
+            />
+            <small>Supported: {skillUploadFormats.join(", ")}</small>
+          </label>
+          <div className="stateRail">
+            {skillUploaderStages.map((stage) => (
+              <span key={stage}>{stage}</span>
+            ))}
+          </div>
+          <button className="wideButton" onClick={queueSkillUpload}>
+            Queue skill upload dry run
+          </button>
+          <div className="queueStatus">{skillUploadStatus}</div>
+          <pre className="requestPreview">{skillUploadPreview}</pre>
         </section>
 
         <section className="publishPanel" aria-label="Lease pairing QR">

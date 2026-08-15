@@ -58,6 +58,13 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(adbStatus.adb.tcpip.requiresUsbOrPriorAuthorization, true);
     assert.equal(adbStatus.privilegedExecutionPerformed, false);
 
+    const serviceStatusResponse = await fetch(`${baseUrl}/broker/service`);
+    assert.equal(serviceStatusResponse.status, 200);
+    const serviceStatus = await serviceStatusResponse.json();
+    assert.equal(serviceStatus.serviceControl.bridge.status, "running");
+    assert.equal(serviceStatus.serviceControl.rabbitOnDeviceBroker.status, "specified_not_installed");
+    assert.equal(serviceStatus.privilegedExecutionPerformed, false);
+
     const leaseResponse = await fetch(`${baseUrl}/lease`, {
       method: "POST",
       body: JSON.stringify({ reason: "test lease" }),
@@ -119,6 +126,36 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     const rebootDryRun = await rebootDryRunResponse.json();
     assert.equal(rebootDryRun.status, "dry_run_only");
     assert.equal(rebootDryRun.privilegedExecutionPerformed, false);
+
+    const serviceControlResponse = await fetch(`${baseUrl}/broker/service`, {
+      method: "POST",
+      body: JSON.stringify({
+        requestId: "test-service-restart-001",
+        serviceAction: "restart_bridge",
+      }),
+    });
+    assert.equal(serviceControlResponse.status, 202);
+    const serviceControl = await serviceControlResponse.json();
+    assert.equal(serviceControl.status, "dry_run_only");
+    assert.equal(serviceControl.serviceAction, "restart_bridge");
+    assert.equal(serviceControl.privilegedExecutionPerformed, false);
+
+    const skillUploadResponse = await fetch(`${baseUrl}/skills/upload`, {
+      method: "POST",
+      body: JSON.stringify({
+        requestId: "test-skill-upload-001",
+        file: {
+          name: "demo-skill.md",
+          size: 128,
+        },
+      }),
+    });
+    assert.equal(skillUploadResponse.status, 202);
+    const skillUpload = await skillUploadResponse.json();
+    assert.equal(skillUpload.status, "dry_run_only");
+    assert.equal(skillUpload.extension, ".md");
+    assert.equal(skillUpload.hookPolicy.automaticSystemHooking, false);
+    assert.equal(skillUpload.privilegedExecutionPerformed, false);
 
     const handoffResponse = await fetch(`${baseUrl}/audit/handoff`, {
       method: "POST",

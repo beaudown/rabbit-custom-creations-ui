@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "name": "superuser-management-creation-launcher",
+  "displayName": "Superuser Management",
+  "purpose": "Single Rabbit Custom Creation entrypoint for hosted PWA, broker bridge, on-device broker target, Mac fallback broker, guides, audit, rollback, and debug modules.",
+  "hostedPwa": {
+    "defaultUrl": "https://beaudown.github.io/rabbit-custom-creations-ui/",
+    "manifest": "../manifest.webmanifest",
+    "offlineCacheExpected": true
+  },
+  "startupOrder": [
+    "load_creation_manifest",
+    "open_or_embed_hosted_pwa",
+    "load_cached_guides",
+    "detect_broker_bridge",
+    "detect_mac_fallback_if_reachable",
+    "detect_rabbit_on_device_broker_if_available",
+    "show_route_target_and_blockers"
+  ],
+  "modules": [
+    "superuser_actions",
+    "bridge_routing",
+    "broker_service_control",
+    "custom_skill_uploader",
+    "adb_control",
+    "device_modes",
+    "usb_storage_mode",
+    "request_composer",
+    "audit_lookup",
+    "audit_handoff",
+    "rollback_help",
+    "debug_help",
+    "settings"
+  ],
+  "serviceControls": {
+    "endpoint": "/broker/service",
+    "defaultDryRun": true,
+    "supportedActions": [
+      "status",
+      "start_bridge",
+      "restart_bridge",
+      "stop_bridge",
+      "start_on_device_broker",
+      "restart_on_device_broker",
+      "stop_on_device_broker",
+      "refresh_routes"
+    ],
+    "rules": {
+      "creationMayRequestServiceControl": true,
+      "creationMayNotDirectlyStartPrivilegedServices": true,
+      "brokerMustReturnAuditId": true,
+      "brokerMustShowExpectedOutput": true,
+      "brokerMustShowBlockers": true
+    }
+  },
+  "customSkillUploader": {
+    "guide": "custom-skill-uploader.md",
+    "requestTemplate": "../broker/request-templates/custom-skill-upload-request.json",
+    "acceptedExtensions": [
+      ".txt",
+      ".md",
+      ".csv",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".xml",
+      ".pdf",
+      ".zip"
+    ],
+    "hookActivationRequiresTemporarySuperuser": true,
+    "hookActivationRequiresBrokerApproval": true,
+    "automaticHookActivation": false
+  },
+  "resourcePolicy": {
+    "singleCreationOnly": true,
+    "avoidMultipleCreationSandboxes": true,
+    "preferHostedPwaForHeavyUi": true,
+    "cacheGuidesForOfflineUse": true
+  }
+}

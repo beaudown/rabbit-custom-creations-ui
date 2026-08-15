@@ -42,7 +42,9 @@
       "POST /adb/authorize",
       "POST /adb/broadcast",
       "POST /device/reboot-mode",
-      "POST /audit/handoff"
+      "POST /audit/handoff",
+      "POST /broker/service",
+      "POST /skills/upload"
     ]
   },
   "remoteApi": {
@@ -60,8 +62,29 @@
     "prepare_reboot_request",
     "prepare_usb_storage_reboot_mode_request",
     "prepare_usb_mass_storage_request",
+    "prepare_broker_service_control_request",
+    "prepare_custom_skill_upload_request",
     "prepare_apk_canary_request"
   ],
+  "customSkillUploadPolicy": {
+    "singleCreationModule": true,
+    "acceptedExtensions": [
+      ".txt",
+      ".md",
+      ".csv",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".xml",
+      ".pdf",
+      ".zip"
+    ],
+    "automaticHookActivation": false,
+    "hookActivationRequiresTemporarySuperuser": true,
+    "hookActivationRequiresBrokerApproval": true,
+    "auditEverySkillImport": true
+  },
   "bridgeRoutingPolicy": {
     "bridgeIsRouterNotExecutor": true,
     "preferMacFallbackWhenLocalReachableAndLeaseValid": true,

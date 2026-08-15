@@ -227,6 +227,33 @@ function buildAdbStatus() {
   };
 }
 
+async function buildServiceStatus() {
+  const route = await buildBridgeRoute();
+  return {
+    schemaVersion: 1,
+    brokerId,
+    serviceControl: {
+      bridge: {
+        status: "running",
+        role: "route_validate_dry_run_and_select_broker",
+        endpoint: "/bridge/route",
+      },
+      macFallbackBroker: {
+        status: "running",
+        privilegedExecutionEnabled: false,
+        endpoint: `http://127.0.0.1:${port}`,
+      },
+      rabbitOnDeviceBroker: {
+        status: "specified_not_installed",
+        privilegedExecutionEnabled: false,
+        endpoint: "http://127.0.0.1:8791",
+      },
+    },
+    route,
+    privilegedExecutionPerformed: false,
+  };
+}
+
 async function updateCoordination(mutator) {
   const coordination = await readJson(paths.coordination);
   const next = await mutator(coordination);
@@ -385,6 +412,11 @@ async function handleRequest(request, response) {
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/broker/service") {
+    sendJson(response, 200, await buildServiceStatus());
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/state") {
     const [config, coordination, syncManifest] = await Promise.all([
       readJson(paths.config),
@@ -522,6 +554,102 @@ async function handleRequest(request, response) {
       audit,
       expectedOutput: route.expectedOutput,
       blockers: route.blockers,
+      privilegedExecutionPerformed: false,
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/broker/service") {
+    const body = await readBody(request);
+    const requestedAction = body.serviceAction || body.action || "status";
+    const allowedActions = new Set([
+      "status",
+      "start_bridge",
+      "restart_bridge",
+      "stop_bridge",
+      "start_on_device_broker",
+      "restart_on_device_broker",
+      "stop_on_device_broker",
+      "refresh_routes",
+    ]);
+    const allowed = allowedActions.has(requestedAction);
+    const serviceStatus = await buildServiceStatus();
+    const audit = await appendAudit(
+      "Broker service control",
+      allowed ? "dry_run_only" : "blocked",
+      allowed
+        ? `Service-control request ${requestedAction} recorded as dry run; no service lifecycle command was executed.`
+        : `Service-control request ${requestedAction} is not allowlisted.`,
+      body,
+    );
+    sendJson(response, allowed ? 202 : 400, {
+      brokerId,
+      status: allowed ? "dry_run_only" : "blocked",
+      serviceAction: requestedAction,
+      serviceStatus,
+      expectedOutput: allowed
+        ? "Broker returns audit ID, route target, blockers, and verification plan without changing service state."
+        : "Blocked request with audit record.",
+      blockers: [
+        "Mac fallback service-control endpoint is non-privileged.",
+        "Rabbit on-device broker is specified but not installed.",
+        "Creation may request service control but may not directly control privileged services.",
+      ],
+      hints: [
+        "Use status or refresh_routes before start/stop/restart.",
+        "Use on-device broker service controls only after a validated install path exists.",
+      ],
+      audit,
+      privilegedExecutionPerformed: false,
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/skills/upload") {
+    const body = await readBody(request);
+    const fileName = String(body.file?.name || body.fileName || "unknown");
+    const extension = fileName.includes(".")
+      ? `.${fileName.split(".").pop().toLowerCase()}`
+      : "";
+    const accepted = new Set([
+      ".txt",
+      ".md",
+      ".csv",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".xml",
+      ".pdf",
+      ".zip",
+    ]);
+    const allowed = accepted.has(extension);
+    const audit = await appendAudit(
+      "Custom skill upload",
+      allowed ? "dry_run_only" : "blocked",
+      allowed
+        ? `Custom skill upload ${fileName} recorded for dry-run parsing and broker approval.`
+        : `Custom skill upload ${fileName} blocked because extension ${extension || "none"} is unsupported.`,
+      body,
+    );
+    sendJson(response, allowed ? 202 : 400, {
+      brokerId,
+      status: allowed ? "dry_run_only" : "blocked",
+      fileName,
+      extension,
+      expectedOutput: "Normalized skill metadata, requested hooks, required permissions, blockers, audit ID, and rollback note.",
+      hookPolicy: {
+        mayUseAfterTemporarySuperuserEnabled: true,
+        automaticSystemHooking: false,
+        requiresBrokerApproval: true,
+        requiresAuditRecord: true,
+      },
+      blockers: [
+        "Mac fallback skill upload endpoint is non-privileged.",
+        "System hooks require validated temporary SU and broker approval.",
+        "Binary formats require broker-side parser before activation.",
+      ],
+      audit,
       privilegedExecutionPerformed: false,
     });
     return;

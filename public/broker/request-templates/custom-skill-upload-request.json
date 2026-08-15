@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "requestId": "req-template-custom-skill-upload",
+  "createdAt": "2026-08-15T00:00:00Z",
+  "source": {
+    "kind": "rabbit_creation",
+    "label": "Rabbit Custom Creations UI",
+    "executor": "rabbit_native_or_mac_fallback_broker"
+  },
+  "action": "prepare_custom_skill_upload_request",
+  "risk": "high",
+  "requiresApproval": true,
+  "requiresLiveDeviceCheck": true,
+  "dryRun": true,
+  "ttlSeconds": 600,
+  "persistenceExpected": false,
+  "skillUpload": {
+    "acceptedExtensions": [
+      ".txt",
+      ".md",
+      ".csv",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".xml",
+      ".pdf",
+      ".zip"
+    ],
+    "textParsedLocally": [
+      ".txt",
+      ".md",
+      ".csv",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".xml"
+    ],
+    "binaryRequiresBrokerParser": [
+      ".pdf",
+      ".zip"
+    ],
+    "normalizedSkillFields": [
+      "name",
+      "description",
+      "version",
+      "commands",
+      "hooks",
+      "permissions",
+      "offline_assets",
+      "rollback_note"
+    ],
+    "hookPolicy": {
+      "mayUseAfterTemporarySuperuserEnabled": true,
+      "automaticSystemHooking": false,
+      "requiresBrokerApproval": true,
+      "requiresAuditRecord": true,
+      "requiresRollbackNote": true
+    }
+  },
+  "rollbackPlan": "Dry run only. Approved skill import must record file name, size, type, hash, parser result, requested hooks, permissions, and rollback note. System hooks may only be activated after broker approval and a validated temporary SU session.",
+  "artifacts": [
+    {
+      "kind": "skill_upload",
+      "value": "custom_skill_file_import_and_hook_request"
+    }
+  ]
+}
