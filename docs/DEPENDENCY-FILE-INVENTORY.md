@@ -17,6 +17,9 @@
 - `npm run broker:validate` - validates broker/Creation package references
 - `npm run broker:export` - exports portable broker sync bundle
 - `npm run broker:mac` - starts safe local Mac broker scaffold
+- `npm run audit:status` - reports active audit record count and archive need
+- `npm run audit:archive` - archives the oldest 500 records when active records exceed 1,500
+- `npm run audit:query -- <term>` - searches active and archived audit JSONL records
 
 ## Direct Dependencies
 
@@ -47,6 +50,7 @@
 - `app/globals.css` - visual system and responsive layout.
 - `public/manifest.webmanifest` - installable PWA metadata.
 - `public/sw.js` - offline cache list and service worker.
+- `public/qr-launch-sheet.html` - GitHub-hosted QR launch/import page.
 - `.github/workflows/deploy-pages.yml` - GitHub Pages build/deploy pipeline.
 
 ## Broker and Creation Assets
@@ -73,6 +77,7 @@
 - `scripts/mac-local-broker.mjs`
 - `scripts/export-broker-sync.mjs`
 - `scripts/validate-superuser-package.mjs`
+- `scripts/manage-audit-log.mjs`
 - `tests/mac-broker-handshake.test.mjs`
 - `tests/package-readiness.test.mjs`
 - `tests/rendered-html.test.mjs`
@@ -96,4 +101,3 @@
 The handoff zip should include source, docs, public assets, scripts, tests,
 lockfile, workflow, generated production `dist/`, and an inventory. It should
 exclude `node_modules`, `.git`, secrets, environment files, and local caches.
-

@@ -66,7 +66,8 @@ flowchart TD
 - Confirm live GitHub Pages app loads on desktop and Rabbit-size viewport.
 - Confirm manifest and service worker assets load from production.
 - Confirm UI remains readable with touch-sized controls.
-- Generate real QR image assets for PWA launch and Creation import.
+- Use the GitHub-hosted QR launch sheet for PWA launch, Creation import, and
+  lease pairing.
 
 ### Phase 2 - Safe Broker Integration
 
@@ -77,6 +78,8 @@ flowchart TD
 - Confirm PWA broker detection using `/health`, `/bridge/route`, `/broker/service`, and `/adb/status`.
 - Keep endpoints dry-run only.
 - Expand audit archive rotation and query tooling for the 1,500 active record policy.
+- Use `npm run audit:status`, `npm run audit:archive`, and `npm run audit:query`
+  for active/archive audit maintenance.
 
 ### Phase 3 - Rabbit Import Test
 
@@ -99,7 +102,7 @@ flowchart TD
 
 ## Open Decisions
 
-- Whether generated QR images should be committed or generated during release packaging.
+- Whether generated QR PNG files should also be committed, beyond the hosted QR page.
 - Whether audit archives should remain static JSONL files or move to a small indexed bundle.
 - Which Rabbit runtime surface can reliably host the on-device broker scaffold.
 - Whether the final broker protocol should use JSON files only, HTTP endpoints only, or both.

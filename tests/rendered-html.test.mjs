@@ -138,6 +138,17 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 
+test("hosted QR launch sheet exposes GitHub-hosted scan targets", async () => {
+  const qrSheet = await readFile(new URL("../public/qr-launch-sheet.html", import.meta.url), "utf8");
+
+  assert.match(qrSheet, /Rabbit Superuser Management QR Sheet/);
+  assert.match(qrSheet, /api\.qrserver\.com/);
+  assert.match(qrSheet, /https:\/\/beaudown\.github\.io\/rabbit-custom-creations-ui\//);
+  assert.match(qrSheet, /creation-skill\/manifest\.json/);
+  assert.match(qrSheet, /broker\/lease-pairing\.json/);
+  assert.match(qrSheet, /do not contain root payloads/);
+});
+
 test("hosted app exposes installable PWA metadata and offline cache", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const manifest = JSON.parse(

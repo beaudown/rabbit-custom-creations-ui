@@ -5,6 +5,7 @@ const scopedPath = (path) => new URL(path, self.registration.scope).pathname;
 const STATIC_ASSETS = [
   scopedPath("./"),
   scopedPath("manifest.webmanifest"),
+  scopedPath("qr-launch-sheet.html"),
   scopedPath("favicon.svg"),
   scopedPath("creation-skill/manifest.json"),
   scopedPath("creation-skill/creation-launcher.json"),

@@ -26,6 +26,10 @@ Updated: 2026-08-14 20:05 PDT
 - Interactive first-run readiness and temporary SU enablement wizard.
 - Skill uploader UI and broker-side dry-run upload endpoint.
 - Audit handoff contract for Rabbit LLM, Hermes, OpenClaw, ChatGPT/Codex, Claude, Rabbit intern, and DLAM.
+- GitHub-hosted QR launch sheet at `/qr-launch-sheet.html` for PWA, Creation
+  manifest, and lease-pairing targets.
+- Audit archive/query tooling through `scripts/manage-audit-log.mjs` and npm
+  scripts `audit:status`, `audit:archive`, and `audit:query`.
 
 ## Validation Already Completed
 
@@ -76,12 +80,7 @@ open/import test if the user explicitly authorizes live device interaction.
 
 Recommended immediate sequence:
 
-1. Add or approve a QR-generation path from the GitHub-hosted URLs.
-2. Verify production layout and offline caching in real browser tooling.
-3. Verify live PWA can fetch the Creation manifest and broker static assets.
-4. Scan/open from the Rabbit only after explicit live device approval.
-5. Generate final QR images or scan sheet for:
-   - PWA launch URL
-   - Creation manifest URL
-   - Lease pairing URL
-6. Only after explicit live approval, scan/open on the Rabbit and confirm import/readiness without privileged actions.
+1. Verify production layout and offline caching in real browser tooling.
+2. Verify live PWA can fetch the Creation manifest and broker static assets.
+3. Scan/open from the Rabbit only after explicit live device approval.
+4. Only after explicit live approval, scan/open on the Rabbit and confirm import/readiness without privileged actions.

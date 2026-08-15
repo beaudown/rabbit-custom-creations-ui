@@ -20,9 +20,11 @@ leave one tool to manage the broker stack.
 - Search, add/import affordance, settings affordance, category reassignment,
   and explicit remove confirmation.
 - GitHub Pages QR panel for opening the hosted UI on Rabbit by scan.
+- GitHub-hosted QR launch sheet for PWA, Creation manifest, and lease-pairing targets.
 - Broker audit panel with append-only GitHub JSONL log design, 1,500 active
   record target, 1,200 record warning threshold, archive chunks, and no-secrets
   rule.
+- Audit status, archive, and query scripts for the 1,500 active record policy.
 - Importable Creation skill pack for Creation-side escalated privilege requests
   routed through the broker.
 - QR/link panel for importing `creation-skill/manifest.json` into a Rabbit
@@ -212,6 +214,14 @@ Validate the hosted Superuser Management package before publishing or QR use:
 
 ```bash
 npm run broker:validate
+```
+
+Audit maintenance:
+
+```bash
+npm run audit:status
+npm run audit:archive
+npm run audit:query -- dry_run
 ```
 
 The validator checks manifest references, hosted broker JSON, walkthrough
