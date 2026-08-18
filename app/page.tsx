@@ -113,6 +113,29 @@ type PromptGuide = {
   prompt: string;
 };
 
+type ApprovalPreview = {
+  status: string | number;
+  action?: string;
+  risk?: string;
+  stopReason: string;
+  expectedOutcome?: string;
+  warnings: string[];
+  blockers: string[];
+  checks?: Record<string, boolean>;
+  auditId?: string;
+  queued?: string;
+  github?: {
+    queue: string;
+    audit: string;
+    coordination: string;
+  };
+  execution?: {
+    privilegedExecutionPerformed?: boolean;
+    persistentChange?: boolean;
+    otaBreakingChange?: boolean;
+  };
+};
+
 const auditRecords = [
   {
     id: "audit-20260815-000003",
@@ -916,6 +939,9 @@ export default function Home() {
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
   const [serviceControlStatus, setServiceControlStatus] = useState("No service-control request sent");
   const [serviceControlPreview, setServiceControlPreview] = useState("Service state not checked");
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [approvalStatus, setApprovalStatus] = useState("Approval dialog not checked");
+  const [approvalPreview, setApprovalPreview] = useState<ApprovalPreview | null>(null);
   const [skillUploadStatus, setSkillUploadStatus] = useState("No skill file loaded");
   const [skillUploadPreview, setSkillUploadPreview] = useState("Upload .txt, .csv, .md, .json, .yaml, .pdf, or .zip skill files.");
   const [readinessStatus, setReadinessStatus] = useState("First-run check not started");
@@ -1127,6 +1153,90 @@ export default function Home() {
     } catch {
       setServiceControlStatus(`No broker service endpoint reachable at ${baseUrl}`);
       setServiceControlPreview("Service-control remains offline-only until a broker endpoint is reachable.");
+    }
+  }
+
+  async function openBrokerApprovalDialog() {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
+    setApprovalStatus("Opening broker approval dialog...");
+    setApprovalDialogOpen(true);
+    setApprovalPreview({
+      status: "checking",
+      stopReason: "Waiting for broker action review.",
+      warnings: ["Do not approve root, ADB, reboot, install, fastboot, recovery, or shell until the broker returns an audit ID."],
+      blockers: [],
+      github: {
+        queue: "broker/queue/inbox",
+        audit: "broker/audit-log.jsonl",
+        coordination: "broker/broker-coordination.json",
+      },
+    });
+
+    try {
+      const response = await fetch(`${baseUrl}/actions`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          schemaVersion: 1,
+          requestId: `rabbit-approval-temporary-superuser-${Date.now()}`,
+          action: "temporary_superuser",
+          execute: true,
+          explicitApproval: false,
+          liveDeviceVerified: false,
+          exactBuildValidated: false,
+          persistentChangeAllowed: false,
+          deviceActionAllowed: false,
+          source: "superuser_management_creation_approval_dialog",
+          githubStorage: {
+            auditLog: "broker/audit-log.jsonl",
+            queueInbox: "broker/queue/inbox",
+            coordination: "broker/broker-coordination.json",
+          },
+        }),
+      });
+      const body = await response.json();
+      const review = body.review ?? {};
+      setApprovalStatus(`${body.status ?? response.status}: ${body.audit?.id ?? review.stopReason ?? "reviewed"}`);
+      setApprovalPreview({
+        status: body.status ?? response.status,
+        action: review.label ?? review.action ?? "Temporary superuser",
+        risk: review.risk ?? "critical",
+        stopReason: review.stopReason ?? "No stop reason returned.",
+        expectedOutcome: review.expectedOutcome ?? "Broker did not return an expected outcome.",
+        warnings: review.warnings ?? [],
+        blockers: review.blockers ?? [],
+        checks: review.checks ?? {},
+        auditId: body.audit?.id ?? "none",
+        queued: body.queued?.queuePath ?? "not queued",
+        github: {
+          queue: body.queued?.queuePath ?? "broker/queue/inbox",
+          audit: "broker/audit-log.jsonl",
+          coordination: "broker/broker-coordination.json",
+        },
+        execution: {
+          privilegedExecutionPerformed: body.privilegedExecutionPerformed,
+          persistentChange: body.persistentChange,
+          otaBreakingChange: body.otaBreakingChange,
+        },
+      });
+    } catch {
+      setApprovalStatus(`No broker approval endpoint reachable at ${baseUrl}`);
+      setApprovalPreview({
+        status: "offline",
+        action: "Temporary superuser",
+        risk: "critical",
+        stopReason: "Broker approval endpoint is unreachable.",
+        expectedOutcome: "Use GitHub-hosted guides only until the broker is reachable.",
+        warnings: ["Do not continue with any device-affecting action while approval state is unknown."],
+        blockers: ["Broker endpoint unreachable."],
+        auditId: "none",
+        queued: "not queued",
+        github: {
+          queue: "broker/queue/inbox",
+          audit: "broker/audit-log.jsonl",
+          coordination: "broker/broker-coordination.json",
+        },
+      });
     }
   }
 
@@ -1400,6 +1510,9 @@ export default function Home() {
             >
               3 Service status
             </button>
+            <button className="primaryStartButton approvalButton" onClick={openBrokerApprovalDialog}>
+              4 Approval dialog
+            </button>
           </div>
           <div className="simpleStatus">
             <strong>Setup</strong>
@@ -1413,8 +1526,12 @@ export default function Home() {
             <strong>Service</strong>
             <span>{serviceControlStatus}</span>
           </div>
+          <div className="simpleStatus">
+            <strong>Approval</strong>
+            <span>{approvalStatus}</span>
+          </div>
           <p className="plainWarning">
-            After button 3, stop and send the three result lines above.
+            Use button 4 to view warnings, blockers, audit ID, and GitHub log path.
           </p>
         </section>
 
@@ -2388,6 +2505,60 @@ export default function Home() {
               <button onClick={() => setSettingsOpen(false)}>Close</button>
               <button className="solid" onClick={() => setSettingsOpen(false)}>
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {approvalDialogOpen ? (
+        <div className="modalScrim" role="dialog" aria-modal="true">
+          <div className="modal approvalModal">
+            <p className="eyebrow">Broker Approval</p>
+            <h2>{approvalPreview?.action ?? "Temporary superuser"}</h2>
+            <div className="approvalBanner">
+              <strong>{approvalPreview?.status ?? "Unknown"}</strong>
+              <span>{approvalPreview?.stopReason ?? "No broker response yet."}</span>
+            </div>
+            <div className="approvalGrid">
+              <div>
+                <span>Audit</span>
+                <strong>{approvalPreview?.auditId ?? "none"}</strong>
+              </div>
+              <div>
+                <span>Queue</span>
+                <strong>{approvalPreview?.queued ?? "not queued"}</strong>
+              </div>
+              <div>
+                <span>GitHub log</span>
+                <strong>{approvalPreview?.github?.audit ?? "broker/audit-log.jsonl"}</strong>
+              </div>
+            </div>
+            <section className="approvalSection">
+              <h3>Warnings</h3>
+              {(approvalPreview?.warnings?.length ? approvalPreview.warnings : ["No warnings returned."]).map((warning: string) => (
+                <p key={warning}>{warning}</p>
+              ))}
+            </section>
+            <section className="approvalSection">
+              <h3>Blockers</h3>
+              {(approvalPreview?.blockers?.length ? approvalPreview.blockers : ["No blockers returned."]).map((blocker: string) => (
+                <p key={blocker}>{blocker}</p>
+              ))}
+            </section>
+            <section className="approvalSection">
+              <h3>Execution</h3>
+              <p>{approvalPreview?.expectedOutcome ?? "Waiting for broker expected outcome."}</p>
+              <p>
+                Privileged: {String(approvalPreview?.execution?.privilegedExecutionPerformed ?? false)}
+                {" "} Persistent: {String(approvalPreview?.execution?.persistentChange ?? false)}
+                {" "} OTA break: {String(approvalPreview?.execution?.otaBreakingChange ?? false)}
+              </p>
+            </section>
+            <div className="modalActions">
+              <button onClick={() => setApprovalDialogOpen(false)}>Close</button>
+              <button className="solid" onClick={openBrokerApprovalDialog}>
+                Refresh
               </button>
             </div>
           </div>

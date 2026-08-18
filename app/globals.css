@@ -101,6 +101,11 @@ button {
   font-weight: 900;
 }
 
+.approvalButton {
+  background: #ffd166;
+  color: #130c00;
+}
+
 .simpleActions {
   display: grid;
   gap: 10px;
@@ -1377,6 +1382,69 @@ h3 {
 .promptModal {
   max-height: 84vh;
   overflow: auto;
+}
+
+.approvalModal {
+  display: grid;
+  gap: 12px;
+  max-height: min(86vh, 760px);
+  overflow-y: auto;
+}
+
+.approvalBanner {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(255, 209, 102, 0.48);
+  border-radius: 8px;
+  background: rgba(255, 209, 102, 0.1);
+  padding: 12px;
+}
+
+.approvalBanner strong {
+  color: #ffd166;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.approvalBanner span {
+  color: #fff6dc;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.approvalGrid,
+.approvalSection {
+  display: grid;
+  gap: 8px;
+}
+
+.approvalGrid > div,
+.approvalSection {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #070a0f;
+  padding: 10px;
+}
+
+.approvalGrid span,
+.approvalSection h3 {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.approvalGrid strong,
+.approvalSection p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.approvalSection p {
+  color: #e7f2ff;
+  font-size: 0.86rem;
+  line-height: 1.35;
 }
 
 .promptDetailList {

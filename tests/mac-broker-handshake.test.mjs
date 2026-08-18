@@ -89,6 +89,38 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(route.privilegedExecutionPerformed, false);
     assert.ok(route.blockers.includes("Mac fallback privileged execution is disabled."));
 
+    const catalogResponse = await fetch(`${baseUrl}/actions/catalog`);
+    assert.equal(catalogResponse.status, 200);
+    const catalog = await catalogResponse.json();
+    assert.equal(catalog.defaults.macFallbackIsControllerOfRecord, true);
+    assert.equal(catalog.defaults.macFallbackExecutesPrivilegedActions, false);
+    assert.equal(catalog.defaults.persistentOrOtaBreakingChangesBlockedByDefault, true);
+    assert.equal(catalog.actions.temporary_superuser.risk, "critical");
+
+    const actionResponse = await fetch(`${baseUrl}/actions`, {
+      method: "POST",
+      body: JSON.stringify({
+        requestId: "test-action-temp-su-001",
+        action: "temporary_superuser",
+        execute: true,
+        explicitApproval: true,
+        liveDeviceVerified: false,
+        exactBuildValidated: false,
+        persistentChangeAllowed: false,
+        deviceActionAllowed: true,
+      }),
+    });
+    assert.equal(actionResponse.status, 409);
+    const actionBody = await actionResponse.json();
+    assert.equal(actionBody.status, "blocked_before_execution");
+    assert.equal(actionBody.review.risk, "critical");
+    assert.equal(actionBody.review.execution.performed, false);
+    assert.equal(actionBody.privilegedExecutionPerformed, false);
+    assert.equal(actionBody.persistentChange, false);
+    assert.equal(actionBody.otaBreakingChange, false);
+    assert.ok(actionBody.review.blockers.includes("Exact-build RAM-only bootstrap compatibility has not been validated."));
+    assert.match(actionBody.review.warnings.join(" "), /Must not write boot/);
+
     const requestResponse = await fetch(`${baseUrl}/requests`, {
       method: "POST",
       body: JSON.stringify({

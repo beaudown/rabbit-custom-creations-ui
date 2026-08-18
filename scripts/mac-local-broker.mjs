@@ -33,6 +33,134 @@ const paths = {
   queueDeadLetter: join(root, "public/broker/queue/dead-letter"),
 };
 
+const actionCatalog = {
+  status: {
+    label: "Broker and device status",
+    risk: "low",
+    endpoint: "/status",
+    canRunOnMacFallback: true,
+    expectedOutcome: "Return current broker route, live-state gaps, and stop reason.",
+    warnings: ["Device state is memory-derived until a live Rabbit check runs."],
+  },
+  temporary_superuser: {
+    label: "Temporary superuser bootstrap",
+    risk: "critical",
+    endpoint: "/temporary-superuser",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Start a RAM-only Rabbit-side broker only after exact-build compatibility is proven.",
+    warnings: [
+      "Can destabilize the current boot if the payload is wrong.",
+      "Must not write boot, vbmeta, super, vendor, system, GPT, userdata, or slot metadata.",
+      "Must disappear after reboot unless persistent root is separately approved.",
+    ],
+  },
+  adb_usb: {
+    label: "Enable USB ADB",
+    risk: "high",
+    endpoint: "/adb/enable-usb",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Enable USB ADB for the allowlisted MacBook Pro key only.",
+    warnings: [
+      "Unknown ADB host keys must pause for approval.",
+      "ADB authorization or system settings may persist until cleanup or reboot.",
+    ],
+  },
+  adb_tcpip: {
+    label: "Enable ADB over TCP/IP",
+    risk: "critical",
+    endpoint: "/adb/tcpip",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Open a short ADB TCP/IP window only after USB ADB is authorized.",
+    warnings: [
+      "Network ADB broadens access and must be time-limited.",
+      "Disable TCP/IP during cleanup.",
+    ],
+  },
+  apk_canary: {
+    label: "Install no-permission ADB canary",
+    risk: "medium",
+    endpoint: "/apk/install",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Install and remove the canary before Rabbit Glide.",
+    warnings: ["Requires authorized ADB and exact target serial verification."],
+  },
+  rabbit_glide_install: {
+    label: "Install Rabbit Glide",
+    risk: "medium",
+    endpoint: "/apk/install",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Install the verified Rabbit Glide APK after canary passes.",
+    warnings: ["If rabbitOS removes or hides the APK, stop and log the exact error."],
+  },
+  ime_set: {
+    label: "Enable and select Rabbit Glide IME",
+    risk: "medium",
+    endpoint: "/ime/set",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Store the previous IME, enable Rabbit Glide, and select it.",
+    warnings: ["IME selection changes user input behavior and must have a revert path."],
+  },
+  ime_revert: {
+    label: "Revert previous IME",
+    risk: "medium",
+    endpoint: "/ime/revert",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Restore the previously recorded input method.",
+    warnings: ["Requires a recorded previous IME value."],
+  },
+  reboot_normal: {
+    label: "Normal reboot",
+    risk: "medium",
+    endpoint: "/device/reboot-mode",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Reboot normally and verify stock rabbitOS returns.",
+    warnings: ["Reboot clears temporary root and broker state."],
+  },
+  reboot_recovery: {
+    label: "Recovery reboot",
+    risk: "high",
+    endpoint: "/device/reboot-mode",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Enter recovery only with explicit action-time approval.",
+    warnings: ["Wrong recovery action can affect userdata or update state."],
+  },
+  reboot_fastboot: {
+    label: "Fastboot reboot",
+    risk: "high",
+    endpoint: "/device/reboot-mode",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Enter fastboot only with explicit action-time approval.",
+    warnings: ["Fastboot can alter partitions if later commands are misused."],
+  },
+  storage_export: {
+    label: "Storage export or capture",
+    risk: "high",
+    endpoint: "/storage/export",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Prefer read-only capture with manifest and hashes.",
+    warnings: ["Never expose or alter userdata without explicit scope and a storage plan."],
+  },
+  shell: {
+    label: "Explicit shell command",
+    risk: "critical",
+    endpoint: "/shell",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Run only the exact approved command and log output summary.",
+    warnings: [
+      "Arbitrary shell can break boot, OTA, data, or privacy.",
+      "Each command requires its own explicit approval and live-state check.",
+    ],
+  },
+  cleanup: {
+    label: "Cleanup temporary state",
+    risk: "medium",
+    endpoint: "/cleanup",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Disable temporary ADB/TCP state, stop broker, remove staging files, and prepare stock reboot verification.",
+    warnings: ["Cleanup must log what changed and what remains unknown."],
+  },
+};
+
 function sendJson(response, statusCode, body) {
   response.writeHead(statusCode, {
     "access-control-allow-headers": "content-type",
@@ -41,6 +169,111 @@ function sendJson(response, statusCode, body) {
     "content-type": "application/json",
   });
   response.end(JSON.stringify(body, null, 2));
+}
+
+function normalizeActionName(value) {
+  return String(value || "status")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function buildActionReview(request, route) {
+  const action = normalizeActionName(request.action || request.type || request.serviceAction);
+  const catalogEntry = actionCatalog[action] || {
+    label: action || "Unknown action",
+    risk: "critical",
+    endpoint: "/manual-review",
+    canRunOnMacFallback: false,
+    expectedOutcome: "Unknown actions stop for manual broker review.",
+    warnings: [
+      "This action is not in the broker allowlist.",
+      "Do not execute unknown commands through the Mac fallback broker.",
+    ],
+  };
+  const requestedExecution = request.execute === true || request.mode === "execute";
+  const persistentAllowed = request.persistentChangeAllowed === true;
+  const deviceActionAllowed = request.deviceActionAllowed === true;
+  const exactBuildValidated = request.exactBuildValidated === true;
+  const liveDeviceVerified = request.liveDeviceVerified === true;
+  const explicitApproval = request.explicitApproval === true;
+  const rabbitExecutorReady =
+    route.eligibleRoutes.some(
+      (candidate) =>
+        candidate.id === "rabbit_native_broker" &&
+        candidate.reachable === true &&
+        candidate.canExecutePrivilegedActions === true,
+    );
+  const risk = catalogEntry.risk;
+  const warnings = [
+    ...catalogEntry.warnings,
+    "Mac fallback broker is controller-of-record only until Rabbit-native broker is validated.",
+  ];
+  const blockers = [];
+
+  if (!actionCatalog[action]) {
+    blockers.push("Action is not allowlisted.");
+  }
+  if (!catalogEntry.canRunOnMacFallback && !rabbitExecutorReady) {
+    blockers.push("Rabbit-native privileged broker is not installed, reachable, and execution-capable.");
+  }
+  if (risk !== "low" && !liveDeviceVerified) {
+    blockers.push("Live Rabbit screen, USB, serial, slot, and build state have not been verified for this action.");
+  }
+  if (risk === "critical" && !exactBuildValidated) {
+    blockers.push("Exact-build RAM-only bootstrap compatibility has not been validated.");
+  }
+  if (risk !== "low" && !explicitApproval) {
+    blockers.push("Separate action-time approval is missing.");
+  }
+  if (persistentAllowed) {
+    blockers.push("Persistent or OTA-affecting changes are blocked by default.");
+  }
+  if (requestedExecution && !deviceActionAllowed) {
+    blockers.push("Request asked for execution but did not explicitly allow a device action.");
+  }
+
+  const canExecute =
+    requestedExecution &&
+    blockers.length === 0 &&
+    (catalogEntry.canRunOnMacFallback || rabbitExecutorReady) &&
+    persistentAllowed === false;
+  const status = canExecute ? "execution_ready" : requestedExecution ? "blocked_before_execution" : "review_recorded";
+  const stopReason = canExecute
+    ? "ready_to_route_to_validated_executor"
+    : blockers[0] || "recorded_for_review_without_execution_request";
+
+  return {
+    schemaVersion: 1,
+    action,
+    label: catalogEntry.label,
+    risk,
+    status,
+    stopReason,
+    routeTarget: canExecute && rabbitExecutorReady ? "rabbit_native_broker" : route.routeTarget,
+    expectedOutcome: catalogEntry.expectedOutcome,
+    endpoint: catalogEntry.endpoint,
+    warnings,
+    blockers,
+    checks: {
+      requestedExecution,
+      explicitApproval,
+      liveDeviceVerified,
+      exactBuildValidated,
+      rabbitExecutorReady,
+      persistentChangeAllowed: persistentAllowed,
+      deviceActionAllowed,
+    },
+    execution: {
+      performed: false,
+      reason: canExecute
+        ? "Executor routing is ready, but this Mac broker build still records only. Rabbit-native executor dispatch must be implemented and approved separately."
+        : stopReason,
+      persistentChange: false,
+      otaBreakingChange: false,
+    },
+  };
 }
 
 async function readJson(path) {
@@ -555,6 +788,22 @@ async function handleRequest(request, response) {
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/actions/catalog") {
+    sendJson(response, 200, {
+      schemaVersion: 1,
+      brokerId,
+      purpose: "Mac broker action catalog with risk warnings and execution blockers.",
+      actions: actionCatalog,
+      defaults: {
+        macFallbackIsControllerOfRecord: true,
+        macFallbackExecutesPrivilegedActions: false,
+        persistentOrOtaBreakingChangesBlockedByDefault: true,
+        actionLogRequired: true,
+      },
+    });
+    return;
+  }
+
   if (request.method === "POST" && url.pathname === "/lease") {
     const body = await readBody(request);
     const coordination = await acquireLease(body.reason || "manual lease request");
@@ -581,6 +830,45 @@ async function handleRequest(request, response) {
       queued,
       privilegedExecutionPerformed: false,
       nextStep: "Use explicit live authorization before any device-side privileged execution.",
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/actions") {
+    const body = await readBody(request);
+    const route = await buildBridgeRoute();
+    const review = buildActionReview(body, route);
+    const audit = await appendAudit(
+      `Action control: ${review.action}`,
+      review.status,
+      `Stopped at ${review.stopReason}. No privileged execution was performed.`,
+      body,
+    );
+    const queued =
+      review.status === "review_recorded" || review.status === "blocked_before_execution"
+        ? await writeQueueRequest(
+            {
+              ...body,
+              requestId: requestIdFor(body),
+              action: review.action,
+              risk: review.risk,
+              brokerReview: review,
+            },
+            audit,
+          ).catch((error) => ({
+            error: "queue_write_failed",
+            message: error.message,
+          }))
+        : null;
+    sendJson(response, review.status === "blocked_before_execution" ? 409 : 202, {
+      brokerId,
+      status: review.status,
+      review,
+      audit,
+      queued,
+      privilegedExecutionPerformed: false,
+      persistentChange: false,
+      otaBreakingChange: false,
     });
     return;
   }

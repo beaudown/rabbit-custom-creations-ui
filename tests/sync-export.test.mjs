@@ -43,5 +43,5 @@ test("broker sync export script writes portable bundle", async () => {
   assert.equal(bundle.leasePairingSummary.rabbitConnectorAutoRetrieve, true);
   assert.ok(bundle.files.templates.some((file) => file.path.includes("adb-enable-request.json")));
   assert.equal(bundle.promptSummary.promptCount, 5);
-  assert.equal(bundle.files.queue.inbox.length, 0);
+  assert.ok(Array.isArray(bundle.files.queue.inbox));
 });

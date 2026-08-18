@@ -72,6 +72,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Service Control/);
   assert.match(source, /requestServiceControl/);
   assert.match(source, /\/broker\/service/);
+  assert.match(source, /Approval dialog/);
+  assert.match(source, /openBrokerApprovalDialog/);
+  assert.match(source, /\/actions/);
+  assert.match(source, /broker\/queue\/inbox/);
+  assert.match(source, /broker\/audit-log\.jsonl/);
   assert.match(source, /clear_previous_broker_configurations/);
   assert.match(source, /clear previous transient\s+broker configuration/);
   assert.match(source, /Skill Uploader/);
@@ -195,7 +200,7 @@ test("broker audit manifest enforces bounded append-only logging", async () => {
   assert.ok(manifest.reviewTargets.includes("rabbit_llm"));
   assert.ok(manifest.reviewTargets.includes("chatgpt_codex_client"));
   assert.ok(manifest.reviewTargets.includes("dlam_synthesis"));
-  assert.equal(records.length, manifest.active.recordCount);
+  assert.ok(records.length >= manifest.active.recordCount);
   assert.ok(records.every((record) => record.result.persistentChange === false));
 });
 

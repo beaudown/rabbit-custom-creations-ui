@@ -18,6 +18,8 @@ runtime.
   accepting a request.
 - Write accepted requests to `public/broker/queue/inbox/{requestId}.json`.
 - Serve `GET /sync/manifest` and `GET /sync/export` for queue-aware clients.
+- Serve `GET /actions/catalog` and `POST /actions` as the single control and
+  warning surface for risky broker workflows.
 - Serve lease manager actions: `POST /lease/refresh`, `POST /lease/renew`, and
   `POST /lease/release`.
 - On every new broker startup, close or yield the previous broker route and
@@ -37,6 +39,14 @@ The Mac broker can be the initial authority that helps approve and coordinate a
 Rabbit-native broker install path, APK canary, or temporary privilege request.
 It still records those actions as requests until there is a separate live device
 authorization and a validated execution mechanism.
+
+`POST /actions` is the controller-of-record for high-risk requests. It classifies
+the requested action, returns expected outcomes, warnings, blockers, route
+target, and stop reason, then writes an audit record and queue file. Current Mac
+fallback builds do not execute privileged actions from this endpoint. They stop
+before execution unless a Rabbit-native broker is installed, reachable,
+execution-capable, exact-build validated, live-device verified, and separately
+approved for the exact action.
 
 For temporary superuser/root workflows, the intended lifetime is until the next
 Rabbit restart. The Mac fallback broker may coordinate the initial restart-time
