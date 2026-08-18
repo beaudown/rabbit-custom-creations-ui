@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 
 const root = process.cwd();
 const port = Number.parseInt(process.env.MAC_BROKER_PORT || "8792", 10);
+const host = process.env.MAC_BROKER_HOST || "127.0.0.1";
 const brokerId = process.env.MAC_BROKER_ID || `mac-local-${hostname()}`;
 const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "259200", 10);
 const brokerStartedAt = new Date().toISOString();
@@ -248,7 +249,7 @@ async function buildServiceStatus() {
       macFallbackBroker: {
         status: "running",
         privilegedExecutionEnabled: false,
-        endpoint: `http://127.0.0.1:${port}`,
+        endpoint: `http://${host}:${port}`,
       },
       rabbitOnDeviceBroker: {
         status: "specified_not_installed",
@@ -764,9 +765,9 @@ const server = createServer((request, response) => {
   });
 });
 
-server.listen(port, "127.0.0.1", async () => {
+server.listen(port, host, async () => {
   await clearPreviousBrokerConfigurations("broker startup").catch(() => {});
   await acquireLease("broker startup").catch(() => {});
-  console.log(`Mac fallback broker listening on http://127.0.0.1:${port}`);
+  console.log(`Mac fallback broker listening on http://${host}:${port}`);
   console.log("Privileged execution is disabled; this service coordinates requests and audit records only.");
 });

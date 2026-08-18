@@ -885,6 +885,15 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T12:00:00`));
 }
 
+const defaultBrokerEndpoint = "http://100.80.216.88:8792";
+
+function initialBrokerEndpoint() {
+  if (typeof window === "undefined") {
+    return defaultBrokerEndpoint;
+  }
+  return new URLSearchParams(window.location.search).get("broker") || defaultBrokerEndpoint;
+}
+
 export default function Home() {
   const [view, setView] = useState<"folders" | "list">("folders");
   const [sortMode, setSortMode] = useState<SortMode>("category");
@@ -902,7 +911,7 @@ export default function Home() {
   const [queueStatus, setQueueStatus] = useState("Not queued");
   const [leaseActionStatus, setLeaseActionStatus] = useState("Lease manager idle");
   const [auditHandoffStatus, setAuditHandoffStatus] = useState("No audit handoff exported");
-  const [brokerEndpoint, setBrokerEndpoint] = useState("http://127.0.0.1:8792");
+  const [brokerEndpoint, setBrokerEndpoint] = useState(initialBrokerEndpoint);
   const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
   const [serviceControlStatus, setServiceControlStatus] = useState("No service-control request sent");
@@ -1374,6 +1383,10 @@ export default function Home() {
             Use only this box for now. These checks do not run root, ADB,
             reboot, install, fastboot, recovery, or broker start actions.
           </p>
+          <div className="simpleStatus">
+            <strong>Broker URL</strong>
+            <span>{brokerEndpoint}</span>
+          </div>
           <div className="simpleActions" aria-label="Safe setup checks">
             <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
               1 Check setup
