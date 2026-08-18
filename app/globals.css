@@ -97,20 +97,35 @@ button {
   border-radius: 10px;
   background: var(--accent-2);
   color: #071006;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 900;
+}
+
+.simpleActions {
+  display: grid;
+  gap: 10px;
 }
 
 .simpleStatus {
   min-height: 52px;
   display: grid;
-  align-items: center;
+  gap: 4px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #070a0f;
   color: #ffffff;
   padding: 12px;
   font-weight: 800;
+}
+
+.simpleStatus strong {
+  color: var(--accent);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.simpleStatus span {
+  overflow-wrap: anywhere;
 }
 
 .rabbitStart .plainWarning {

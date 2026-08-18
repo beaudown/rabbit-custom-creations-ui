@@ -1371,16 +1371,37 @@ export default function Home() {
           <p className="eyebrow">Start Here</p>
           <h1>Superuser Management</h1>
           <p>
-            This card is installed. Tap the button below once. It only checks
-            the hosted files and offline support.
+            Use only this box for now. These checks do not run root, ADB,
+            reboot, install, fastboot, recovery, or broker start actions.
           </p>
-          <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
-            Check setup
-          </button>
-          <div className="simpleStatus">{readinessStatus}</div>
+          <div className="simpleActions" aria-label="Safe setup checks">
+            <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
+              1 Check setup
+            </button>
+            <button className="primaryStartButton" onClick={detectBrokerBridge}>
+              2 Detect route
+            </button>
+            <button
+              className="primaryStartButton"
+              onClick={() => requestServiceControl("status")}
+            >
+              3 Service status
+            </button>
+          </div>
+          <div className="simpleStatus">
+            <strong>Setup</strong>
+            <span>{readinessStatus}</span>
+          </div>
+          <div className="simpleStatus">
+            <strong>Route</strong>
+            <span>{bridgeProbeStatus}</span>
+          </div>
+          <div className="simpleStatus">
+            <strong>Service</strong>
+            <span>{serviceControlStatus}</span>
+          </div>
           <p className="plainWarning">
-            Stop after this check. Do not use ADB, root, reboot, fastboot,
-            recovery, install, or broker actions yet.
+            After button 3, stop and send the three result lines above.
           </p>
         </section>
 
