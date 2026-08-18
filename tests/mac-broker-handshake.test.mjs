@@ -121,6 +121,28 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.ok(actionBody.review.blockers.includes("Exact-build RAM-only bootstrap compatibility has not been validated."));
     assert.match(actionBody.review.warnings.join(" "), /Must not write boot/);
 
+    const relayProbeResponse = await fetch(`${baseUrl}/gateway/relay/probe`, {
+      method: "POST",
+      body: JSON.stringify({
+        source: "test",
+        callerOrigin: "https://beaudown.github.io",
+        brokerEndpoint: baseUrl,
+        authenticated: false,
+      }),
+    });
+    assert.equal(relayProbeResponse.status, 409);
+    const relayProbe = await relayProbeResponse.json();
+    assert.equal(relayProbe.status, "relay_not_ready");
+    assert.equal(relayProbe.relayCandidate.privilegedExecutionEnabled, false);
+    assert.equal(relayProbe.relayCandidate.exposesGatewaySecrets, false);
+    assert.ok(relayProbe.relayCandidate.allowlist.includes("POST /rabbit-broker/actions"));
+    assert.equal(relayProbe.gateways.openclaw.usableAsDropInBrokerRelay, false);
+    assert.equal(relayProbe.gateways.hermes.usableAsDropInBrokerRelay, false);
+    assert.equal(relayProbe.privilegedExecutionPerformed, false);
+    assert.equal(relayProbe.persistentChange, false);
+    assert.equal(relayProbe.otaBreakingChange, false);
+    assert.match(relayProbe.stopConditions.join(" "), /No HTTPS route/);
+
     const requestResponse = await fetch(`${baseUrl}/requests`, {
       method: "POST",
       body: JSON.stringify({

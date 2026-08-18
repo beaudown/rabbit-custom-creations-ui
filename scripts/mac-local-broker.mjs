@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { hostname } from "node:os";
+import { hostname, homedir } from "node:os";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -11,6 +11,9 @@ const host = process.env.MAC_BROKER_HOST || "127.0.0.1";
 const brokerId = process.env.MAC_BROKER_ID || `mac-local-${hostname()}`;
 const leaseTtlSeconds = Number.parseInt(process.env.MAC_BROKER_LEASE_TTL || "259200", 10);
 const brokerStartedAt = new Date().toISOString();
+const openClawGatewayUrl = process.env.OPENCLAW_GATEWAY_URL || "http://127.0.0.1:18789";
+const hermesGatewayUrl = process.env.HERMES_GATEWAY_URL || null;
+const publicRelayUrl = process.env.RABBIT_GATEWAY_RELAY_URL || null;
 let startupCleanup = {
   performed: false,
   performedAt: null,
@@ -32,6 +35,46 @@ const paths = {
   queueProcessed: join(root, "public/broker/queue/processed"),
   queueDeadLetter: join(root, "public/broker/queue/dead-letter"),
 };
+
+const gatewayRelayAllowlist = [
+  "GET /rabbit-broker/health",
+  "GET /rabbit-broker/actions/catalog",
+  "POST /rabbit-broker/actions",
+  "GET /rabbit-broker/audit/:auditId",
+];
+
+const gatewayRelayFailurePoints = [
+  {
+    id: "rabbit_to_mac_route",
+    label: "Rabbit can reach relay URL",
+    blocker: "Rabbit cannot route to Mac-only 100.x or 127.x addresses unless it is on that network.",
+  },
+  {
+    id: "https_required",
+    label: "Hosted Creation can call endpoint",
+    blocker: "A GitHub Pages HTTPS app may block plain HTTP private endpoints as mixed content.",
+  },
+  {
+    id: "gateway_protocol",
+    label: "Gateway exposes broker API",
+    blocker: "OpenClaw Control UI and Rabbit ws pairing are not the same as an allowlisted HTTP broker relay.",
+  },
+  {
+    id: "auth_boundary",
+    label: "No raw gateway token in Creation",
+    blocker: "Token-bearing OpenClaw/Rabbit connector payloads must not be published or copied into the PWA.",
+  },
+  {
+    id: "executor_boundary",
+    label: "Relay does not execute privileged actions",
+    blocker: "Relay may queue, review, and log only; execution still requires a validated Rabbit-native broker.",
+  },
+  {
+    id: "audit_boundary",
+    label: "Every relay decision has an audit ID",
+    blocker: "If the relay cannot write an audit record, the action stops.",
+  },
+];
 
 const actionCatalog = {
   status: {
@@ -280,6 +323,14 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
+async function readOptionalJson(path) {
+  try {
+    return JSON.parse(await readFile(path, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
 async function listJsonNames(path) {
   const entries = await readdir(path, { withFileTypes: true });
   return entries
@@ -493,6 +544,70 @@ async function buildServiceStatus() {
     startupCleanup,
     route,
     privilegedExecutionPerformed: false,
+  };
+}
+
+async function buildGatewayRelayProbe(requestContext = {}) {
+  const openClawConfig = await readOptionalJson(join(homedir(), ".openclaw/openclaw.json"));
+  const hermesState = await readOptionalJson(join(homedir(), ".hermes/gateway_state.json"));
+  const requestedRelayUrl = requestContext.relayUrl || publicRelayUrl;
+  const relayUsesHttps = typeof requestedRelayUrl === "string" && requestedRelayUrl.startsWith("https://");
+  const relayHasAuth =
+    requestContext.authenticated === true ||
+    Boolean(process.env.RABBIT_GATEWAY_RELAY_AUTH_REQUIRED === "true");
+  const openClawConfigured = Boolean(openClawConfig?.gateway);
+  const hermesRunning = hermesState?.gateway_state === "running";
+  const hermesApiUsable = hermesState?.platforms?.api_server?.state === "connected";
+  const safeRelayReady = Boolean(requestedRelayUrl && relayUsesHttps && relayHasAuth);
+
+  return {
+    schemaVersion: 1,
+    brokerId,
+    status: safeRelayReady ? "relay_candidate_ready_for_external_reachability_test" : "relay_not_ready",
+    purpose: "Probe whether OpenClaw or Hermes can safely front the broker with an authenticated, allowlisted relay.",
+    relayCandidate: {
+      requestedRelayUrl: requestedRelayUrl || "not_configured",
+      requiresHttps: true,
+      relayUsesHttps,
+      authRequired: true,
+      relayHasAuth,
+      allowlist: gatewayRelayAllowlist,
+      privilegedExecutionEnabled: false,
+      exposesGatewaySecrets: false,
+      forwardsToMacBroker: `http://${host}:${port}`,
+    },
+    gateways: {
+      openclaw: {
+        configured: openClawConfigured,
+        url: openClawGatewayUrl,
+        bind: openClawConfig?.gateway?.bind || "unknown",
+        mode: openClawConfig?.gateway?.mode || "unknown",
+        port: openClawConfig?.gateway?.port || "unknown",
+        authMode: openClawConfig?.gateway?.auth?.mode || "unknown",
+        tailscaleMode: openClawConfig?.gateway?.tailscale?.mode || "unknown",
+        usableAsDropInBrokerRelay: false,
+      },
+      hermes: {
+        running: hermesRunning,
+        url: hermesGatewayUrl || "not_configured",
+        apiServerState: hermesState?.platforms?.api_server?.state || "unknown",
+        apiServerUsable: hermesApiUsable,
+        usableAsDropInBrokerRelay: false,
+      },
+    },
+    failurePoints: gatewayRelayFailurePoints,
+    nextImplementationStep:
+      "Create an OpenClaw or Hermes assistant tool/skill that exposes only the relay allowlist, requires auth, forwards to the Mac broker, and returns this same audit-first response shape.",
+    stopConditions: [
+      "No HTTPS route reachable from Rabbit.",
+      "No auth on a public route.",
+      "Relay would expose OpenClaw or Rabbit connector tokens.",
+      "Relay attempts root, ADB, reboot, install, fastboot, recovery, shell, or flash directly.",
+      "Relay cannot write an audit record.",
+    ],
+    privilegedExecutionPerformed: false,
+    persistentChange: false,
+    otaBreakingChange: false,
   };
 }
 
@@ -800,6 +915,27 @@ async function handleRequest(request, response) {
         persistentOrOtaBreakingChangesBlockedByDefault: true,
         actionLogRequired: true,
       },
+    });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/gateway/relay/probe") {
+    sendJson(response, 200, await buildGatewayRelayProbe());
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/gateway/relay/probe") {
+    const body = await readBody(request);
+    const probe = await buildGatewayRelayProbe(body);
+    const audit = await appendAudit(
+      "Gateway relay probe",
+      probe.status,
+      "Checked OpenClaw/Hermes relay prerequisites and stopped before any privileged execution.",
+      body,
+    );
+    sendJson(response, probe.status === "relay_not_ready" ? 409 : 202, {
+      ...probe,
+      audit,
     });
     return;
   }

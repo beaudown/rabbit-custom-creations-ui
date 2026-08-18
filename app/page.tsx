@@ -942,6 +942,8 @@ export default function Home() {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalStatus, setApprovalStatus] = useState("Approval dialog not checked");
   const [approvalPreview, setApprovalPreview] = useState<ApprovalPreview | null>(null);
+  const [gatewayRelayStatus, setGatewayRelayStatus] = useState("Gateway relay not checked");
+  const [gatewayRelayPreview, setGatewayRelayPreview] = useState("Use this before another QR. It checks OpenClaw/Hermes relay readiness, HTTPS, auth, broker forwarding, and stop conditions.");
   const [skillUploadStatus, setSkillUploadStatus] = useState("No skill file loaded");
   const [skillUploadPreview, setSkillUploadPreview] = useState("Upload .txt, .csv, .md, .json, .yaml, .pdf, or .zip skill files.");
   const [readinessStatus, setReadinessStatus] = useState("First-run check not started");
@@ -1240,6 +1242,61 @@ export default function Home() {
     }
   }
 
+  async function probeGatewayRelay() {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
+    setGatewayRelayStatus("Checking OpenClaw/Hermes relay path...");
+    try {
+      const response = await fetch(`${baseUrl}/gateway/relay/probe`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          schemaVersion: 1,
+          source: "superuser_management_creation_gateway_relay_probe",
+          callerOrigin: typeof window !== "undefined" ? window.location.origin : "unknown",
+          brokerEndpoint: baseUrl,
+          requestedMode: "dry_run_probe_only",
+          authenticated: false,
+        }),
+      });
+      const body = await response.json();
+      setGatewayRelayStatus(`${body.status ?? response.status}: ${body.audit?.id ?? "no audit"}`);
+      setGatewayRelayPreview(
+        JSON.stringify(
+          {
+            relayCandidate: body.relayCandidate,
+            openclaw: body.gateways?.openclaw,
+            hermes: body.gateways?.hermes,
+            failurePoints: body.failurePoints,
+            stopConditions: body.stopConditions,
+            nextImplementationStep: body.nextImplementationStep,
+            privilegedExecutionPerformed: body.privilegedExecutionPerformed,
+          },
+          null,
+          2,
+        ),
+      );
+    } catch {
+      setGatewayRelayStatus(`No gateway relay probe reachable at ${baseUrl}`);
+      setGatewayRelayPreview(
+        JSON.stringify(
+          {
+            status: "offline",
+            brokerEndpoint: baseUrl,
+            likelyBlockers: [
+              "Rabbit cannot reach the Mac broker route.",
+              "Hosted HTTPS page cannot call this HTTP endpoint.",
+              "OpenClaw/Hermes relay endpoint has not been installed yet.",
+            ],
+            nextStep: "Create the OpenClaw/Hermes relay tool before generating another QR.",
+            privilegedExecutionPerformed: false,
+          },
+          null,
+          2,
+        ),
+      );
+    }
+  }
+
   async function runCreationReadinessCheck() {
     const baseBrokerUrl = brokerEndpoint.replace(/\/$/, "");
     setReadinessStatus("Checking Creation readiness...");
@@ -1273,6 +1330,7 @@ export default function Home() {
         ["bridgeRoute", "/bridge/route"],
         ["serviceControl", "/broker/service"],
         ["adbStatus", "/adb/status"],
+        ["gatewayRelay", "/gateway/relay/probe"],
       ].map(async ([label, path]) => {
         try {
           const response = await fetch(`${baseBrokerUrl}${path}`);
@@ -1313,6 +1371,9 @@ export default function Home() {
         endpointsReady
           ? "Broker MVP endpoints are reachable."
           : "Use offline guides until a Mac or Rabbit broker endpoint is reachable.",
+        endpointResults.some((result) => result.label === "gatewayRelay" && result.ok)
+          ? "Gateway relay probe is available."
+          : "Add OpenClaw/Hermes relay before trying another remote QR path.",
         "Keep service-control and skill-hook actions as broker-approved dry runs until live authorization exists.",
       ],
     };
@@ -1513,6 +1574,9 @@ export default function Home() {
             <button className="primaryStartButton approvalButton" onClick={openBrokerApprovalDialog}>
               4 Approval dialog
             </button>
+            <button className="primaryStartButton gatewayButton" onClick={probeGatewayRelay}>
+              5 Gateway relay
+            </button>
           </div>
           <div className="simpleStatus">
             <strong>Setup</strong>
@@ -1530,8 +1594,12 @@ export default function Home() {
             <strong>Approval</strong>
             <span>{approvalStatus}</span>
           </div>
+          <div className="simpleStatus">
+            <strong>Gateway</strong>
+            <span>{gatewayRelayStatus}</span>
+          </div>
           <p className="plainWarning">
-            Use button 4 to view warnings, blockers, audit ID, and GitHub log path.
+            Use button 5 before a new QR. It shows relay blockers without running device actions.
           </p>
         </section>
 
@@ -2105,6 +2173,26 @@ export default function Home() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="bridgePanel" aria-label="OpenClaw Hermes relay readiness">
+          <div className="promptHeader">
+            <div>
+              <p className="eyebrow">Gateway Relay</p>
+              <h2>OpenClaw / Hermes</h2>
+            </div>
+            <span>Probe only</span>
+          </div>
+          <p>
+            This checks whether a future OpenClaw or Hermes tool can front the
+            broker through one authenticated relay. It does not expose tokens or
+            run root, ADB, reboot, install, fastboot, recovery, shell, or flash.
+          </p>
+          <button className="wideButton" onClick={probeGatewayRelay}>
+            Probe gateway relay
+          </button>
+          <div className="queueStatus">{gatewayRelayStatus}</div>
+          <pre className="requestPreview">{gatewayRelayPreview}</pre>
         </section>
 
         <section className="bridgePanel" aria-label="Bridge routing policy">

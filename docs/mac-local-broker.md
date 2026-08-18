@@ -20,6 +20,9 @@ runtime.
 - Serve `GET /sync/manifest` and `GET /sync/export` for queue-aware clients.
 - Serve `GET /actions/catalog` and `POST /actions` as the single control and
   warning surface for risky broker workflows.
+- Serve `GET /gateway/relay/probe` and `POST /gateway/relay/probe` to check
+  whether an OpenClaw or Hermes authenticated relay is safe to use before a new
+  QR is generated.
 - Serve lease manager actions: `POST /lease/refresh`, `POST /lease/renew`, and
   `POST /lease/release`.
 - On every new broker startup, close or yield the previous broker route and
@@ -47,6 +50,17 @@ fallback builds do not execute privileged actions from this endpoint. They stop
 before execution unless a Rabbit-native broker is installed, reachable,
 execution-capable, exact-build validated, live-device verified, and separately
 approved for the exact action.
+
+`POST /gateway/relay/probe` is a non-executing compatibility check for
+OpenClaw/Hermes. It reports HTTPS, auth, token-exposure, protocol, audit, and
+executor-boundary blockers. A future OpenClaw or Hermes skill/tool should
+expose only the relay allowlist and forward to the broker's existing safe
+endpoints:
+
+- `GET /rabbit-broker/health`
+- `GET /rabbit-broker/actions/catalog`
+- `POST /rabbit-broker/actions`
+- `GET /rabbit-broker/audit/:auditId`
 
 For temporary superuser/root workflows, the intended lifetime is until the next
 Rabbit restart. The Mac fallback broker may coordinate the initial restart-time

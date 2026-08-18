@@ -127,6 +127,7 @@
   "routes": [
     "creation_ui -> rabbit_bridge -> rabbit_native_broker",
     "creation_ui -> rabbit_gateway_connector -> github_storage",
+    "creation_ui -> openclaw_or_hermes_authenticated_relay -> mac_local_fallback_broker",
     "rabbit_native_broker -> github_storage",
     "mac_local_fallback_broker -> github_storage",
     "openclaw_gateway -> github_storage",
@@ -155,5 +156,28 @@
     "gatewayClaimsRequireEvidence": true,
     "privilegedExecutionRequiresValidatedRabbitExecutor": true,
     "noDeviceCommandFromGatewayTopology": true
+  },
+  "relayProbe": {
+    "endpoint": "/gateway/relay/probe",
+    "purpose": "Check whether OpenClaw or Hermes can safely front the broker before a new Rabbit QR is generated.",
+    "statusDefault": "relay_not_ready",
+    "allowlist": [
+      "GET /rabbit-broker/health",
+      "GET /rabbit-broker/actions/catalog",
+      "POST /rabbit-broker/actions",
+      "GET /rabbit-broker/audit/:auditId"
+    ],
+    "requiresHttps": true,
+    "requiresAuth": true,
+    "exposesGatewaySecrets": false,
+    "mayExecutePrivilegedActions": false,
+    "stopConditions": [
+      "No HTTPS route reachable from Rabbit.",
+      "No auth on a public route.",
+      "Relay would expose OpenClaw or Rabbit connector tokens.",
+      "Relay attempts root, ADB, reboot, install, fastboot, recovery, shell, or flash directly.",
+      "Relay cannot write an audit record."
+    ],
+    "futureSkillShape": "OpenClaw or Hermes assistant tool exposes the allowlist, forwards to active broker, returns warnings, blockers, audit ID, and privilegedExecutionPerformed=false unless a validated Rabbit-native broker later executes."
   }
 }

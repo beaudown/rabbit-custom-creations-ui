@@ -44,6 +44,8 @@ GitHub Pages cannot run an always-on HTTP broker or execute device actions.
      and assistant-to-assistant coordination.
    - Must not be treated as proof of device state or privileged execution unless
      backed by current tool evidence or the shared handoff.
+   - May front the broker only through an authenticated relay that exposes an
+     explicit allowlist and writes an audit record before any decision.
 
 ## Recommended Split
 
@@ -51,6 +53,7 @@ GitHub Pages cannot run an always-on HTTP broker or execute device actions.
 Superuser Management Creation
   -> Rabbit bridge to on-device broker API
   -> Rabbit gateway connector for hosted manifests and lease pairing
+  -> OpenClaw/Hermes authenticated relay probe when configured
   -> GitHub Pages UI and import pack
   -> Remote broker intake API when enabled
   -> OpenClaw and Hermes gateway context
@@ -64,6 +67,30 @@ Superuser Management Creation
 The remote broker may validate, queue, approve, deny, and log requests. It
 should not claim a root/ADB/reboot/storage action succeeded until a live
 Rabbit-side or device-adjacent executor confirms the result.
+
+## Gateway Relay Probe
+
+The Mac broker exposes `GET /gateway/relay/probe` and
+`POST /gateway/relay/probe`. The probe is intentionally non-executing. It exists
+to keep all expected failure points visible before another QR is generated.
+
+The relay candidate is ready only when all of these are true:
+
+- Rabbit can reach a public or otherwise routable HTTPS endpoint.
+- The route requires authentication and does not expose OpenClaw, Hermes, or
+  Rabbit connector tokens.
+- The relay exposes only:
+  - `GET /rabbit-broker/health`
+  - `GET /rabbit-broker/actions/catalog`
+  - `POST /rabbit-broker/actions`
+  - `GET /rabbit-broker/audit/:auditId`
+- The relay forwards to the active broker and returns the same warning,
+  blocker, audit, and execution-boundary response shape.
+- Privileged execution remains disabled unless a validated Rabbit-native broker
+  is reachable and live action-time approval exists.
+
+Future OpenClaw or Hermes skill/tool work should implement this exact relay
+shape instead of creating a second broker policy.
 
 ## Coordination Boundary
 
