@@ -136,6 +136,12 @@ type ApprovalPreview = {
   };
 };
 
+type ExpandablePreviewProps = {
+  title: string;
+  summary: string;
+  value: string;
+};
+
 const auditRecords = [
   {
     id: "audit-20260815-000003",
@@ -917,6 +923,18 @@ function initialBrokerEndpoint() {
   return new URLSearchParams(window.location.search).get("broker") || defaultBrokerEndpoint;
 }
 
+function ExpandablePreview({ title, summary, value }: ExpandablePreviewProps) {
+  return (
+    <details className="expandBox">
+      <summary>
+        <span>{title}</span>
+        <strong>{summary}</strong>
+      </summary>
+      <pre className="requestPreview">{value}</pre>
+    </details>
+  );
+}
+
 export default function Home() {
   const [view, setView] = useState<"folders" | "list">("folders");
   const [sortMode, setSortMode] = useState<SortMode>("category");
@@ -953,6 +971,7 @@ export default function Home() {
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -1546,7 +1565,7 @@ export default function Home() {
 
   return (
     <main className="shell">
-      <section className="device">
+      <section className={`device ${orientation === "landscape" ? "landscapeDevice" : ""}`}>
         <section className="rabbitStart" aria-label="Simple Rabbit setup">
           <p className="eyebrow">Start Here</p>
           <h1>Superuser Management</h1>
@@ -1576,6 +1595,14 @@ export default function Home() {
             </button>
             <button className="primaryStartButton gatewayButton" onClick={probeGatewayRelay}>
               5 Gateway relay
+            </button>
+            <button
+              className="primaryStartButton rotateButton"
+              onClick={() =>
+                setOrientation((current) => (current === "portrait" ? "landscape" : "portrait"))
+              }
+            >
+              Rotate view
             </button>
           </div>
           <div className="simpleStatus">
@@ -1817,7 +1844,7 @@ export default function Home() {
             Run first-run check
           </button>
           <div className="queueStatus">{readinessStatus}</div>
-          <pre className="requestPreview">{readinessPreview}</pre>
+          <ExpandablePreview title="Readiness details" summary="Tap to expand" value={readinessPreview} />
         </section>
 
         <section className="pwaPanel" aria-label="Temporary SU enablement wizard">
@@ -1914,7 +1941,11 @@ export default function Home() {
               Blockers reviewed
             </label>
           </div>
-          <pre className="requestPreview">{JSON.stringify(wizardRequest, null, 2)}</pre>
+          <ExpandablePreview
+            title="Wizard request"
+            summary="Tap to expand"
+            value={JSON.stringify(wizardRequest, null, 2)}
+          />
           <div className="composerActions">
             <button
               onClick={() => setWizardStep((step) => Math.max(0, step - 1))}
@@ -2118,7 +2149,7 @@ export default function Home() {
                 ? `Missing required values: ${missingVariables.map((item) => item.name).join(", ")}`
                 : "All required values are present."}
             </div>
-            <pre className="requestPreview">{requestPreview}</pre>
+            <ExpandablePreview title="Request JSON" summary="Tap to expand" value={requestPreview} />
             <div className="composerActions">
               <button onClick={() => setPromptDetailsOpen(true)}>View all prompt details</button>
               <button className="solid" onClick={queueToMacBroker}>
@@ -2192,7 +2223,7 @@ export default function Home() {
             Probe gateway relay
           </button>
           <div className="queueStatus">{gatewayRelayStatus}</div>
-          <pre className="requestPreview">{gatewayRelayPreview}</pre>
+          <ExpandablePreview title="Relay details" summary="Tap to expand" value={gatewayRelayPreview} />
         </section>
 
         <section className="bridgePanel" aria-label="Bridge routing policy">
@@ -2221,7 +2252,7 @@ export default function Home() {
             Detect broker bridge
           </button>
           <div className="queueStatus">{bridgeProbeStatus}</div>
-          <pre className="requestPreview">{bridgeRoutePreview}</pre>
+          <ExpandablePreview title="Route details" summary="Tap to expand" value={bridgeRoutePreview} />
           <div className="routeList">
             {bridgeRoutes.map((item) => (
               <article className="routeItem" key={item.label}>
@@ -2255,7 +2286,7 @@ export default function Home() {
             ))}
           </div>
           <div className="queueStatus">{serviceControlStatus}</div>
-          <pre className="requestPreview">{serviceControlPreview}</pre>
+          <ExpandablePreview title="Service details" summary="Tap to expand" value={serviceControlPreview} />
         </section>
 
         <section className="bridgePanel" aria-label="Custom skill uploader">
@@ -2290,7 +2321,7 @@ export default function Home() {
             Queue skill upload dry run
           </button>
           <div className="queueStatus">{skillUploadStatus}</div>
-          <pre className="requestPreview">{skillUploadPreview}</pre>
+          <ExpandablePreview title="Skill details" summary="Tap to expand" value={skillUploadPreview} />
         </section>
 
         <section className="publishPanel" aria-label="Lease pairing QR">

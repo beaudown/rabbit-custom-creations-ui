@@ -20,6 +20,7 @@
 
 * {
   box-sizing: border-box;
+  min-width: 0;
 }
 
 html {
@@ -43,12 +44,30 @@ button,
 input,
 select {
   font: inherit;
+  max-width: 100%;
 }
 
 button {
   min-height: 44px;
   border: 0;
   cursor: pointer;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+p,
+span,
+strong,
+small,
+dd,
+dt,
+h1,
+h2,
+h3,
+label,
+input,
+select {
+  overflow-wrap: anywhere;
 }
 
 .shell {
@@ -62,12 +81,20 @@ button {
   width: min(100%, 430px);
   min-height: 760px;
   max-height: 940px;
+  max-width: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 28px;
   background: linear-gradient(180deg, rgba(18, 22, 30, 0.98), rgba(8, 10, 15, 0.99));
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
   padding: 22px;
+}
+
+.landscapeDevice {
+  width: min(100%, 760px);
+  min-height: 430px;
+  max-height: 560px;
 }
 
 .rabbitStart {
@@ -111,9 +138,37 @@ button {
   color: #061115;
 }
 
+.rotateButton {
+  background: #e9edff;
+  color: #070a12;
+}
+
 .simpleActions {
   display: grid;
   gap: 10px;
+}
+
+.landscapeDevice .simpleActions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.landscapeDevice .folderGrid,
+.landscapeDevice .statusGrid,
+.landscapeDevice .leaseGrid,
+.landscapeDevice .syncGrid,
+.landscapeDevice .rootGrid,
+.landscapeDevice .composerActions,
+.landscapeDevice .settingsGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.landscapeDevice .gatewayList,
+.landscapeDevice .routeList,
+.landscapeDevice .playbookList,
+.landscapeDevice .checklistList,
+.landscapeDevice .promptList,
+.landscapeDevice .actionPlanList {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .simpleStatus {
@@ -126,6 +181,7 @@ button {
   color: #ffffff;
   padding: 12px;
   font-weight: 800;
+  overflow: hidden;
 }
 
 .simpleStatus strong {
@@ -135,7 +191,12 @@ button {
 }
 
 .simpleStatus span {
+  display: -webkit-box;
+  max-height: 4.1em;
+  overflow: hidden;
   overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .rabbitStart .plainWarning {
@@ -282,6 +343,7 @@ h3 {
 
 .folderCard {
   position: relative;
+  min-width: 0;
   min-height: 102px;
   display: grid;
   align-content: end;
@@ -351,7 +413,7 @@ h3 {
 
 .creationCard {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -397,6 +459,25 @@ h3 {
   min-width: 0;
 }
 
+.creationTitle,
+.promptHeader,
+.promptTitle,
+.checklistTitle,
+.gatewayItem > div,
+.handoffItem > div {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.creationTitle > *,
+.promptHeader > *,
+.promptTitle > *,
+.checklistTitle > *,
+.gatewayItem > div > *,
+.handoffItem > div > * {
+  min-width: 0;
+}
+
 .creationTitle span {
   border: 1px solid var(--line);
   border-radius: 999px;
@@ -424,6 +505,7 @@ h3 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+  min-width: 0;
 }
 
 .actions button {
@@ -460,6 +542,8 @@ h3 {
 .adbPanel,
 .offlinePanel,
 .auditPanel {
+  max-width: 100%;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 12px;
   background:
@@ -876,6 +960,7 @@ h3 {
 
 .missingStrip,
 .queueStatus {
+  max-width: 100%;
   border: 1px solid rgba(255, 209, 102, 0.24);
   border-radius: 8px;
   background: rgba(255, 209, 102, 0.08);
@@ -884,20 +969,78 @@ h3 {
   font-size: 0.76rem;
   font-weight: 850;
   line-height: 1.35;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.expandBox {
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(5, 9, 20, 0.9);
+  overflow: hidden;
+}
+
+.expandBox summary {
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  color: var(--foreground);
+  cursor: pointer;
+  list-style: none;
+}
+
+.expandBox summary::-webkit-details-marker {
+  display: none;
+}
+
+.expandBox summary::after {
+  content: "+";
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #061115;
+  font-weight: 950;
+}
+
+.expandBox[open] summary::after {
+  content: "-";
+}
+
+.expandBox summary span {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.expandBox summary strong {
+  color: #e9edff;
+  font-size: 0.74rem;
+  text-align: right;
 }
 
 .requestPreview {
   max-height: 260px;
+  max-width: 100%;
   overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
   background: #050914;
   color: #d7f9ff;
   padding: 12px;
   font-size: 0.72rem;
   line-height: 1.42;
   white-space: pre-wrap;
-  word-break: break-word;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 .composerActions {
@@ -1551,11 +1694,25 @@ h3 {
   .device {
     width: 100%;
     min-height: 100vh;
+    max-height: none;
     border: 0;
     border-radius: 0;
   }
 
-  .folderGrid {
+  .landscapeDevice {
+    width: 100%;
+    min-height: 100vh;
+    max-height: none;
+  }
+
+  .folderGrid,
+  .landscapeDevice .folderGrid,
+  .landscapeDevice .gatewayList,
+  .landscapeDevice .routeList,
+  .landscapeDevice .playbookList,
+  .landscapeDevice .checklistList,
+  .landscapeDevice .promptList,
+  .landscapeDevice .actionPlanList {
     grid-template-columns: 1fr;
   }
 
@@ -1571,7 +1728,13 @@ h3 {
   .leaseActions,
   .syncGrid,
   .composerActions,
-  .settingsGrid {
+  .settingsGrid,
+  .landscapeDevice .rootGrid,
+  .landscapeDevice .statusGrid,
+  .landscapeDevice .leaseGrid,
+  .landscapeDevice .syncGrid,
+  .landscapeDevice .composerActions,
+  .landscapeDevice .settingsGrid {
     grid-template-columns: 1fr;
   }
 

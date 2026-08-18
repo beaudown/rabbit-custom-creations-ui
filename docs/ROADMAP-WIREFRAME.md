@@ -10,6 +10,19 @@ The PWA does not directly root the device. It validates intent, shows expected
 outputs and blockers, queues dry-run requests, and routes approved requests to
 the active broker.
 
+## Rabbit UI Standard
+
+- Keep every status line, URL, JSON block, and long description inside its
+  parent boundary.
+- Show short summaries first. Put long diagnostics behind tap-to-expand detail
+  blocks.
+- Every Rabbit-facing tool should include a manual on-screen Rotate control
+  when automatic rotation is unavailable or unreliable.
+- Portrait remains the default. Landscape may use two-column card grids, but it
+  must collapse back to one column on narrow screens.
+- Do not let cards, buttons, previews, or labels resize the page wider than the
+  Rabbit viewport.
+
 ## Target Architecture
 
 ```mermaid
@@ -33,6 +46,7 @@ flowchart TD
 +--------------------------------------------------+
 | Superuser Management                             |
 | Status chips: PWA cached | Broker route | Lease  |
+| [Check setup] [Detect route] [Approval] [Rotate] |
 +----------------------+---------------------------+
 | Creation Folders     | First Run / Readiness     |
 | - Media Tools        | - Asset checks            |

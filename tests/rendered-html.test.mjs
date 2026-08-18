@@ -81,6 +81,10 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /OpenClaw \/ Hermes/);
   assert.match(source, /future OpenClaw or Hermes tool/);
   assert.match(source, /Use button 5 before a new QR/);
+  assert.match(source, /ExpandablePreview/);
+  assert.match(source, /Tap to expand/);
+  assert.match(source, /Rotate view/);
+  assert.match(source, /landscapeDevice/);
   assert.match(source, /broker\/queue\/inbox/);
   assert.match(source, /broker\/audit-log\.jsonl/);
   assert.match(source, /clear_previous_broker_configurations/);
