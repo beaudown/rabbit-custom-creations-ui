@@ -50,6 +50,7 @@ const [
   executionChecklist,
   promptLibrary,
   auditManifest,
+  releaseGate,
 ] = await Promise.all([
   readJson(creationManifestPath),
   readJson(syncManifestPath),
@@ -58,6 +59,7 @@ const [
   readJson(join(brokerRoot, "execution-checklist.json")),
   readJson(join(brokerRoot, "prompt-library.json")),
   readJson(join(brokerRoot, "audit-manifest.json")),
+  readJson(join(brokerRoot, "release-gate.json")),
 ]);
 
 if (creationManifest) {
@@ -86,6 +88,7 @@ if (creationManifest) {
     ["macLocalFallbackBrokerConfig", creationManifest.macLocalFallbackBrokerConfig],
     ["brokerCoordination", creationManifest.brokerCoordination],
     ["gatewayTopology", creationManifest.gatewayTopology],
+    ["releaseGate", creationManifest.releaseGate],
     ["walkthroughGuideData", creationManifest.walkthroughGuideData],
     ["executionChecklistData", creationManifest.executionChecklistData],
     ["leasePairing", creationManifest.leasePairing],
@@ -111,6 +114,14 @@ if (creationManifest) {
   assert(
     creationManifest.rules?.noSecretsInGitHub === true,
     "Creation manifest must forbid secrets in GitHub.",
+  );
+  assert(
+    creationManifest.rules?.releaseQrRequiresPassingBrokerRoute === true,
+    "Creation manifest must block release QR until broker route passes.",
+  );
+  assert(
+    creationManifest.rules?.testingQrMustBeLabeled === true,
+    "Creation manifest must require testing QR labels.",
   );
 
   const templates = creationManifest.requestTemplates ?? [];
@@ -212,6 +223,31 @@ if (promptLibrary) {
 if (auditManifest) {
   assert(auditManifest.retention?.activeRecordTarget === 1500, "Audit active target must be 1500.");
   assert(auditManifest.rules?.noSecrets === true, "Audit manifest must forbid secrets.");
+}
+
+if (releaseGate) {
+  assert(
+    releaseGate.status === "testing_only",
+    "Release gate must remain testing_only until broker route is fixed.",
+  );
+  assert(
+    releaseGate.releaseQrAllowed === false,
+    "Release gate must block release QR while broker route is unreachable.",
+  );
+  assert(
+    releaseGate.testingQrAllowed === true,
+    "Release gate must allow explicitly labeled testing QR.",
+  );
+  assert(
+    releaseGate.currentBlocker?.id === "broker_route_unreachable_from_rabbit",
+    "Release gate must name the Rabbit broker-route blocker.",
+  );
+  assert(
+    releaseGate.releaseRequirements?.some((requirement) =>
+      requirement.includes("HTTPS"),
+    ),
+    "Release gate must require HTTPS or validated local broker route.",
+  );
 }
 
 const requestTemplateFiles = await readdir(join(brokerRoot, "request-templates"));

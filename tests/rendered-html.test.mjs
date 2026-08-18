@@ -31,6 +31,7 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Readiness check/);
   assert.match(source, /runCreationReadinessCheck/);
   assert.match(source, /readinessAssets/);
+  assert.match(source, /broker\/release-gate\.json/);
   assert.match(source, /first-run check/);
   assert.match(source, /Enablement Wizard/);
   assert.match(source, /Temporary SU/);
@@ -157,6 +158,9 @@ test("hosted QR launch sheet exposes GitHub-hosted scan targets", async () => {
   const qrSheet = await readFile(new URL("../public/qr-launch-sheet.html", import.meta.url), "utf8");
 
   assert.match(qrSheet, /Rabbit Superuser Management QR Sheet/);
+  assert.match(qrSheet, /Testing-only QR sheet/);
+  assert.match(qrSheet, /Release QR is blocked/);
+  assert.match(qrSheet, /PWA launch - testing only/);
   assert.match(qrSheet, /api\.qrserver\.com/);
   assert.match(qrSheet, /https:\/\/beaudown\.github\.io\/rabbit-custom-creations-ui\//);
   assert.match(qrSheet, /creation-skill\/manifest\.json/);
@@ -228,6 +232,9 @@ test("creation skill exposes broker request templates", async () => {
 
   assert.equal(manifest.rules.creationMayRequestEscalatedPrivileges, true);
   assert.equal(manifest.rules.brokerExecutesEscalatedPrivileges, true);
+  assert.equal(manifest.rules.releaseQrRequiresPassingBrokerRoute, true);
+  assert.equal(manifest.rules.testingQrMustBeLabeled, true);
+  assert.equal(manifest.releaseGate, "../broker/release-gate.json");
   assert.equal(manifest.rules.singleCreationEntrypoint, true);
   assert.equal(manifest.rules.creationMayUploadCustomSkills, true);
   assert.equal(manifest.rules.customSkillHooksRequireBrokerApproval, true);
@@ -315,6 +322,31 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(checklist, /Hosted Manifest Ready/);
   assert.match(checklist, /Live Device Gate Ready/);
   assert.match(checklist, /Blocks if missing/);
+});
+
+test("release gate blocks release QR until broker route is fixed", async () => {
+  const gate = JSON.parse(
+    await readFile(
+      new URL("../public/broker/release-gate.json", import.meta.url),
+      "utf8",
+    ),
+  );
+
+  assert.equal(gate.status, "testing_only");
+  assert.equal(gate.releaseQrAllowed, false);
+  assert.equal(gate.testingQrAllowed, true);
+  assert.equal(gate.currentBlocker.id, "broker_route_unreachable_from_rabbit");
+  assert.ok(gate.currentBlocker.affectedChecks.includes("3 Service status"));
+  assert.ok(
+    gate.releaseRequirements.some((requirement) =>
+      requirement.includes("HTTPS"),
+    ),
+  );
+  assert.ok(
+    gate.testingRules.some((rule) =>
+      rule.includes("Testing QR codes must not be presented as deployment-ready"),
+    ),
+  );
 });
 
 test("sync manifest defines shared GitHub queue contract", async () => {

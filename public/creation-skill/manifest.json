@@ -18,6 +18,7 @@
   "macLocalFallbackBrokerConfig": "../broker/mac-local-broker-config.json",
   "brokerCoordination": "../broker/broker-coordination.json",
   "gatewayTopology": "../broker/gateway-topology.json",
+  "releaseGate": "../broker/release-gate.json",
   "walkthroughGuideData": "../broker/walkthrough-guide.json",
   "executionChecklistData": "../broker/execution-checklist.json",
   "leasePairing": "../broker/lease-pairing.json",
@@ -48,6 +49,8 @@
     "customSkillHooksRequireBrokerApproval": true,
     "creationMayNotDirectlyControlPrivilegedServices": true,
     "defaultPersistenceExpected": false,
-    "noSecretsInGitHub": true
+    "noSecretsInGitHub": true,
+    "releaseQrRequiresPassingBrokerRoute": true,
+    "testingQrMustBeLabeled": true
   }
 }

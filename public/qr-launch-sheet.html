@@ -111,13 +111,19 @@
     <main>
       <h1>Rabbit Superuser Management QR Sheet</h1>
       <p>
-        These QR codes target GitHub-hosted resources from the published repo.
-        They do not contain root payloads, secrets, or privileged commands.
+        Testing-only QR sheet. These codes target GitHub-hosted resources from
+        the published repo. They do not contain root payloads, secrets, or
+        privileged commands.
+      </p>
+      <p>
+        Release QR is blocked until the Rabbit can reach a broker endpoint over
+        HTTPS or through a validated Rabbit-native route. If setup passes but
+        route fails, stop there.
       </p>
 
       <div class="grid">
         <section>
-          <h2>PWA launch</h2>
+          <h2>PWA launch - testing only</h2>
           <img
             alt="QR code for Rabbit Superuser Management PWA"
             src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2F"
@@ -128,7 +134,7 @@
         </section>
 
         <section>
-          <h2>Creation manifest</h2>
+          <h2>Creation manifest - testing only</h2>
           <img
             alt="QR code for Rabbit Custom Creation manifest"
             src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Fcreation-skill%2Fmanifest.json"
@@ -139,7 +145,7 @@
         </section>
 
         <section>
-          <h2>Lease pairing</h2>
+          <h2>Lease pairing - testing only</h2>
           <img
             alt="QR code for broker lease pairing metadata"
             src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Fbroker%2Flease-pairing.json"
@@ -154,6 +160,7 @@
         <h2>Safe first run</h2>
         <ol>
           <li>Open the PWA QR first and confirm the UI loads.</li>
+          <li>Run setup. If broker is unreachable, stop testing later buttons.</li>
           <li>Use the Creation manifest QR only for the single management Creation.</li>
           <li>Use the lease pairing QR only for broker ownership metadata.</li>
           <li>Stop before ADB, fastboot, root, reboot modes, or device changes unless separately authorized live.</li>
@@ -162,4 +169,3 @@
     </main>
   </body>
 </html>
-

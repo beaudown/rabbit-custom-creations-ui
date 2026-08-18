@@ -414,6 +414,7 @@ const readinessAssets = [
   "creation-skill/custom-skill-uploader.md",
   "broker/rabbit-native-broker-spec.json",
   "broker/gateway-topology.json",
+  "broker/release-gate.json",
   "broker/prompt-library.json",
   "broker/request-templates/custom-skill-upload-request.json",
   "broker/request-templates/broker-service-control-request.json",
