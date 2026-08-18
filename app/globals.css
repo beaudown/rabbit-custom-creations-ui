@@ -70,6 +70,54 @@ button {
   padding: 22px;
 }
 
+.rabbitStart {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  background: #0d1219;
+}
+
+.rabbitStart h1 {
+  font-size: 1.7rem;
+  line-height: 1.05;
+}
+
+.rabbitStart p {
+  margin: 0;
+  color: #e7f2ff;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.primaryStartButton {
+  min-height: 64px;
+  border-radius: 10px;
+  background: var(--accent-2);
+  color: #071006;
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.simpleStatus {
+  min-height: 52px;
+  display: grid;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #070a0f;
+  color: #ffffff;
+  padding: 12px;
+  font-weight: 800;
+}
+
+.rabbitStart .plainWarning {
+  color: #ffd6de;
+  font-weight: 800;
+}
+
 .topbar,
 .searchRow,
 .contentHeader,

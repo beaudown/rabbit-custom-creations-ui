@@ -1367,6 +1367,23 @@ export default function Home() {
   return (
     <main className="shell">
       <section className="device">
+        <section className="rabbitStart" aria-label="Simple Rabbit setup">
+          <p className="eyebrow">Start Here</p>
+          <h1>Superuser Management</h1>
+          <p>
+            This card is installed. Tap the button below once. It only checks
+            the hosted files and offline support.
+          </p>
+          <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
+            Check setup
+          </button>
+          <div className="simpleStatus">{readinessStatus}</div>
+          <p className="plainWarning">
+            Stop after this check. Do not use ADB, root, reboot, fastboot,
+            recovery, install, or broker actions yet.
+          </p>
+        </section>
+
         <header className="topbar" aria-label="Creation manager controls">
           <div>
             <p className="eyebrow">Rabbit R1</p>
