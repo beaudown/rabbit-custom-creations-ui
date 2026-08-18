@@ -971,7 +971,6 @@ export default function Home() {
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
-  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -1133,8 +1132,20 @@ export default function Home() {
         ),
       );
     } catch {
-      setBridgeProbeStatus(`No broker bridge reachable at ${baseUrl}`);
-      setBridgeRoutePreview("The PWA remains usable offline for guides, templates, and audit handoff exports.");
+      setBridgeProbeStatus("Broker unreachable. Stop here.");
+      setBridgeRoutePreview(
+        JSON.stringify(
+          {
+            status: "blocked",
+            brokerEndpoint: baseUrl,
+            sameBlockerFor: ["service status", "approval dialog", "gateway relay"],
+            likelyCause: "Rabbit cannot reach the Mac broker endpoint from this Creation.",
+            nextStep: "Do not keep pressing later buttons. We need an HTTPS OpenClaw/Hermes relay or Rabbit-native broker route first.",
+          },
+          null,
+          2,
+        ),
+      );
     }
   }
 
@@ -1172,8 +1183,20 @@ export default function Home() {
         ),
       );
     } catch {
-      setServiceControlStatus(`No broker service endpoint reachable at ${baseUrl}`);
-      setServiceControlPreview("Service-control remains offline-only until a broker endpoint is reachable.");
+      setServiceControlStatus("Blocked: broker unreachable");
+      setServiceControlPreview(
+        JSON.stringify(
+          {
+            status: "blocked",
+            brokerEndpoint: baseUrl,
+            reason: "Service status uses the same broker route as Detect route.",
+            nextStep: "Stop testing service/approval/gateway until the broker route is reachable.",
+            deviceActionPerformed: false,
+          },
+          null,
+          2,
+        ),
+      );
     }
   }
 
@@ -1241,13 +1264,13 @@ export default function Home() {
         },
       });
     } catch {
-      setApprovalStatus(`No broker approval endpoint reachable at ${baseUrl}`);
+      setApprovalStatus("Blocked: broker unreachable");
       setApprovalPreview({
         status: "offline",
         action: "Temporary superuser",
         risk: "critical",
-        stopReason: "Broker approval endpoint is unreachable.",
-        expectedOutcome: "Use GitHub-hosted guides only until the broker is reachable.",
+        stopReason: "Broker approval endpoint uses the same unreachable broker route.",
+        expectedOutcome: "Stop here until an HTTPS OpenClaw/Hermes relay or Rabbit-native broker route exists.",
         warnings: ["Do not continue with any device-affecting action while approval state is unknown."],
         blockers: ["Broker endpoint unreachable."],
         auditId: "none",
@@ -1295,18 +1318,18 @@ export default function Home() {
         ),
       );
     } catch {
-      setGatewayRelayStatus(`No gateway relay probe reachable at ${baseUrl}`);
+      setGatewayRelayStatus("Blocked: broker unreachable");
       setGatewayRelayPreview(
         JSON.stringify(
           {
-            status: "offline",
+            status: "blocked",
             brokerEndpoint: baseUrl,
             likelyBlockers: [
-              "Rabbit cannot reach the Mac broker route.",
-              "Hosted HTTPS page cannot call this HTTP endpoint.",
-              "OpenClaw/Hermes relay endpoint has not been installed yet.",
+              "Rabbit cannot reach the current broker route.",
+              "The OpenClaw/Hermes relay endpoint is not installed yet.",
+              "A hosted HTTPS Creation should use an HTTPS relay, not a Mac-only HTTP route.",
             ],
-            nextStep: "Create the OpenClaw/Hermes relay tool before generating another QR.",
+            nextStep: "Create the HTTPS OpenClaw/Hermes relay tool before another QR test.",
             privilegedExecutionPerformed: false,
           },
           null,
@@ -1373,7 +1396,12 @@ export default function Home() {
     const offlineReady = serviceWorkerReady && cacheApiReady;
     const summary = {
       schemaVersion: 1,
-      status: requiredAssetsReady && offlineReady ? "ready_for_single_creation_use" : "partial",
+      status:
+        requiredAssetsReady && offlineReady && endpointsReady
+          ? "ready_for_single_creation_use"
+          : requiredAssetsReady && offlineReady
+            ? "assets_ready_broker_unreachable"
+            : "partial",
       requiredAssetsReady,
       offlineReady,
       serviceWorkerReady,
@@ -1389,7 +1417,7 @@ export default function Home() {
           : "Reload once after first online load so the service worker can control the page.",
         endpointsReady
           ? "Broker MVP endpoints are reachable."
-          : "Use offline guides until a Mac or Rabbit broker endpoint is reachable.",
+          : "Stop after setup. Route, service, approval, and gateway all need a reachable broker endpoint.",
         endpointResults.some((result) => result.label === "gatewayRelay" && result.ok)
           ? "Gateway relay probe is available."
           : "Add OpenClaw/Hermes relay before trying another remote QR path.",
@@ -1398,7 +1426,7 @@ export default function Home() {
     };
 
     setReadinessStatus(
-      `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, broker ${endpointsReady ? "reachable" : "offline"}`,
+      `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, broker ${endpointsReady ? "reachable" : "unreachable"}`,
     );
     setReadinessPreview(JSON.stringify(summary, null, 2));
   }
@@ -1565,7 +1593,7 @@ export default function Home() {
 
   return (
     <main className="shell">
-      <section className={`device ${orientation === "landscape" ? "landscapeDevice" : ""}`}>
+      <section className="device">
         <section className="rabbitStart" aria-label="Simple Rabbit setup">
           <p className="eyebrow">Start Here</p>
           <h1>Superuser Management</h1>
@@ -1595,14 +1623,6 @@ export default function Home() {
             </button>
             <button className="primaryStartButton gatewayButton" onClick={probeGatewayRelay}>
               5 Gateway relay
-            </button>
-            <button
-              className="primaryStartButton rotateButton"
-              onClick={() =>
-                setOrientation((current) => (current === "portrait" ? "landscape" : "portrait"))
-              }
-            >
-              Rotate view
             </button>
           </div>
           <div className="simpleStatus">

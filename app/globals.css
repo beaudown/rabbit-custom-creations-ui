@@ -91,12 +91,6 @@ select {
   padding: 22px;
 }
 
-.landscapeDevice {
-  width: min(100%, 760px);
-  min-height: 430px;
-  max-height: 560px;
-}
-
 .rabbitStart {
   display: grid;
   gap: 12px;
@@ -138,37 +132,9 @@ select {
   color: #061115;
 }
 
-.rotateButton {
-  background: #e9edff;
-  color: #070a12;
-}
-
 .simpleActions {
   display: grid;
   gap: 10px;
-}
-
-.landscapeDevice .simpleActions {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.landscapeDevice .folderGrid,
-.landscapeDevice .statusGrid,
-.landscapeDevice .leaseGrid,
-.landscapeDevice .syncGrid,
-.landscapeDevice .rootGrid,
-.landscapeDevice .composerActions,
-.landscapeDevice .settingsGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.landscapeDevice .gatewayList,
-.landscapeDevice .routeList,
-.landscapeDevice .playbookList,
-.landscapeDevice .checklistList,
-.landscapeDevice .promptList,
-.landscapeDevice .actionPlanList {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .simpleStatus {
@@ -1699,20 +1665,7 @@ h3 {
     border-radius: 0;
   }
 
-  .landscapeDevice {
-    width: 100%;
-    min-height: 100vh;
-    max-height: none;
-  }
-
-  .folderGrid,
-  .landscapeDevice .folderGrid,
-  .landscapeDevice .gatewayList,
-  .landscapeDevice .routeList,
-  .landscapeDevice .playbookList,
-  .landscapeDevice .checklistList,
-  .landscapeDevice .promptList,
-  .landscapeDevice .actionPlanList {
+  .folderGrid {
     grid-template-columns: 1fr;
   }
 
@@ -1728,13 +1681,7 @@ h3 {
   .leaseActions,
   .syncGrid,
   .composerActions,
-  .settingsGrid,
-  .landscapeDevice .rootGrid,
-  .landscapeDevice .statusGrid,
-  .landscapeDevice .leaseGrid,
-  .landscapeDevice .syncGrid,
-  .landscapeDevice .composerActions,
-  .landscapeDevice .settingsGrid {
+  .settingsGrid {
     grid-template-columns: 1fr;
   }
 
