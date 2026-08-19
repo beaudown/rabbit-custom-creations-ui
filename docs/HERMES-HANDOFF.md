@@ -1,10 +1,16 @@
 # Hermes Handoff - Rabbit Superuser Management PWA
 
-Updated: 2026-08-19 03:31 PDT
+Updated: 2026-08-19 03:44 PDT
 
 ## Current Override - HTTPS Relay Test
 
 This section supersedes older August 14 acceptance notes in this file.
+
+Current Hermes local fast path:
+`/Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md`.
+Hermes should read that compact context first, then this handoff, and only load
+the full federation for conflicts, older decisions, checksums, or formal
+handoffs.
 
 Current route-state commit: `b91bee7 Record HTTPS relay test state`.
 Hermes handoff update: use the current `main` version of this file; the
@@ -131,13 +137,14 @@ Hosted release gate and remote broker config were verified after the final push.
 
 Read these before making claims about current Rabbit state:
 
-1. `/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md`
-2. `/Users/z3k3z/Documents/AgentSharedMemory/shared/session-index.json`
-3. Latest relevant snapshot under:
-   `/Users/z3k3z/Documents/AgentSharedMemory/shared/snapshots/`
-4. This file:
+1. `/Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md`
+2. This file:
    `/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md`
-5. Current project status log:
+3. `/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md`
+4. `/Users/z3k3z/Documents/AgentSharedMemory/shared/session-index.json`
+5. Latest relevant snapshot under:
+   `/Users/z3k3z/Documents/AgentSharedMemory/shared/snapshots/`
+6. Current project status log:
    `/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/CURRENT-STATUS-LOG.md`
 
 ## Safety Boundary
@@ -330,6 +337,8 @@ Passed:
 - GitHub Pages deployment run `32243263171`
 - Hosted release gate shows HTTPS configured but Rabbit reachability unverified
 - Public HTTPS relay health and authenticated broker forwarding verified
+- Hermes context fast-path sync passed local write verification and the Rabbit
+  federation validator returned `status=ok`
 
 Local repo status at handoff:
 

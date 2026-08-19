@@ -1,0 +1,152 @@
+import fs from 'node:fs';
+
+const now = new Date();
+const isoNow = now.toISOString();
+const displayNow = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+  timeZoneName: 'short',
+})
+  .format(now)
+  .replace(',', '');
+
+const paths = {
+  hermesContext: '/Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md',
+  hermesMemory: '/Users/z3k3z/.hermes/memories/MEMORY.md',
+  hermesSnapshot: '/Users/z3k3z/.hermes/memories/FEDERATED-SESSION-SNAPSHOT.md',
+  hermesRecord: '/Users/z3k3z/Documents/AgentSharedMemory/hermes/memory.json',
+  codexInbox: '/Users/z3k3z/Documents/AgentSharedMemory/shared/inbox/codex-chatgpt.md',
+};
+
+const currentContext = `# Rabbit Current Context - Hermes Fast Path
+
+Updated: ${displayNow}
+
+Purpose: compact first-read context for Hermes so Rabbit work starts from the current verified state without loading the full federation unless needed.
+
+## Read This First
+
+1. This file: \`${paths.hermesContext}\`
+2. If project details are needed: \`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md\`
+3. If there is any conflict: \`/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md\`, then \`shared/session-index.json\`
+4. Only for deeper history: \`/Users/z3k3z/.hermes/memories/FEDERATED-MEMORY.md\`
+
+## Current Workstream
+
+Rabbit Superuser Management hosted PWA and single Custom Creation package.
+
+- Repo: \`https://github.com/beaudown/rabbit-custom-creations-ui\`
+- Local repo: \`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui\`
+- GitHub Pages: \`https://beaudown.github.io/rabbit-custom-creations-ui/\`
+- QR launch sheet: \`https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html\`
+- Latest pushed handoff commit: \`10a5099 Remove stale commit claims from Hermes handoff\`
+- Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`
+
+## Current Route State
+
+- HTTPS relay test route: \`https://michaels-macbook-pro.tailcfaeac.ts.net\`
+- Relay forwards allowlisted calls to the Mac broker at \`http://100.80.216.88:8792\` through local relay \`127.0.0.1:8794\`.
+- Release QR is still blocked.
+- Rabbit external reachability is unverified until the user completes the Rabbit-side test.
+- Relay token path: \`/private/tmp/rabbit-https-relay-token.txt\`
+- Do not store the relay token value in GitHub, QR codes, shared memory, screenshots, or chat logs.
+
+## Next Safe Action
+
+User-operated Rabbit testing only:
+
+1. Scan the testing QR.
+2. Confirm Broker endpoint is \`https://michaels-macbook-pro.tailcfaeac.ts.net\`.
+3. Enter the relay token manually from the local token file.
+4. Run Step 1 and Step 2 only.
+5. Stop and report exact Step 2 output.
+
+## Hard Stops
+
+Do not run Rabbit device commands, ADB, fastboot, recovery, reboot, install, WebUSB/WebSerial, DA/Preloader, flashing, root/SU, on-device broker install, OpenClaw auth changes, Hermes lifecycle changes, or privileged execution unless the user gives separate explicit live authorization and current safety gates are rechecked.
+
+## Efficiency Rule For Hermes
+
+Use this file for the current answer path. Load the full federation only when resolving conflicts, checking older decisions, verifying checksums, or preparing a formal handoff. Prefer concise status plus exact next action over broad history scans.
+`;
+
+function writeFile(path, contents) {
+  fs.writeFileSync(path, contents, { mode: 0o600 });
+}
+
+writeFile(paths.hermesContext, currentContext);
+writeFile(
+  paths.hermesSnapshot,
+  currentContext.replace(
+    '# Rabbit Current Context - Hermes Fast Path',
+    '# Federated Session Snapshot - Rabbit Current Context',
+  ),
+);
+
+let hermesMemory = fs.readFileSync(paths.hermesMemory, 'utf8');
+if (!hermesMemory.includes('## Rabbit Current Context Fast Path')) {
+  hermesMemory = hermesMemory.replace(
+    'Project focus:',
+    `## Rabbit Current Context Fast Path
+
+For Rabbit R1, Rabbit Superuser Management PWA, broker, OpenClaw, Hermes, or deployment-status work, read this compact current context first:
+\`${paths.hermesContext}\`.
+
+Only load the full federation or older handoffs if there is a conflict, missing detail, or a request for history. The relay token value must never be stored in memory, GitHub, QR codes, screenshots, or chat logs.
+
+Project focus:`,
+  );
+}
+hermesMemory = hermesMemory.replace(
+  'current handoff commit `a18c191`',
+  'current handoff commit `10a5099`; route-state evidence commit `b91bee7`; older commit `a18c191` is superseded',
+);
+hermesMemory = hermesMemory.replace(
+  'Safe host-side implementation is complete; next task is live acceptance facilitation only.',
+  'Safe host-side implementation is complete; active state is HTTPS relay testing with release QR blocked until Rabbit reachability is verified.',
+);
+writeFile(paths.hermesMemory, hermesMemory);
+
+const hermesRecord = JSON.parse(fs.readFileSync(paths.hermesRecord, 'utf8'));
+hermesRecord.updated_at = isoNow;
+hermesRecord.status = 'hermes_context_fast_path_optimized_https_relay_test_active';
+hermesRecord.context_loading = {
+  fast_path: paths.hermesContext,
+  fallback_order: [
+    '/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md',
+    '/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md',
+    '/Users/z3k3z/Documents/AgentSharedMemory/shared/session-index.json',
+    '/Users/z3k3z/.hermes/memories/FEDERATED-MEMORY.md',
+  ],
+  rule: 'Use fast_path first for current Rabbit status; expand only for conflicts, history, checksums, or formal handoffs.',
+};
+hermesRecord.links = hermesRecord.links || {};
+hermesRecord.links.rabbit_current_context_fast_path = paths.hermesContext;
+hermesRecord.notes = hermesRecord.notes || [];
+const newNote = 'Hermes context optimized: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md as the compact first-read path for Rabbit Superuser Management PWA status. It points to latest handoff commit 10a5099 and route-state evidence commit b91bee7, keeps release QR blocked until Rabbit reachability is verified, and preserves the local-only relay-token rule without storing the token value.';
+hermesRecord.notes = [
+  newNote,
+  ...hermesRecord.notes.filter((note) => !note.includes('commit a18c191 Add Hermes handoff for Rabbit PWA')),
+];
+writeFile(paths.hermesRecord, `${JSON.stringify(hermesRecord, null, 2)}\n`);
+
+let codexInbox = fs.readFileSync(paths.codexInbox, 'utf8');
+const inboxEntry = `
+## 2026-08-19 - Hermes context fast path optimized
+
+- Added Hermes fast-path context at \`${paths.hermesContext}\` so Hermes can start Rabbit Superuser Management work from the current state without scanning the full federation.
+- Updated Hermes loader and session snapshot to point to latest handoff commit \`10a5099\` and route-state evidence commit \`b91bee7\`.
+- Kept release QR blocked until Rabbit reachability is verified. Relay token remains path-only and local-only; no token value stored.
+- No Rabbit device command, ADB, fastboot, recovery, reboot, install, root/SU, privileged execution, OpenClaw auth change, or Hermes lifecycle change occurred.
+`;
+if (!codexInbox.includes('Hermes context fast path optimized')) {
+  codexInbox += inboxEntry;
+  writeFile(paths.codexInbox, codexInbox);
+}
+
+console.log(JSON.stringify({ status: hermesRecord.status, written: paths }, null, 2));
