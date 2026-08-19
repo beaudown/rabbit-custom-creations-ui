@@ -75,6 +75,12 @@ Updated: 2026-08-14 20:05 PDT
   `401`-specific Step 1/2 output: `assets_ready_relay_auth_required` and
   `relay_auth_required`. The app now points to the local Mac token file path
   without printing or embedding the token value.
+- Follow-up: Mac-local auth check showed the token file did not match the
+  running relay process. Updated `scripts/gateway-relay.mjs` to support
+  `RABBIT_RELAY_TOKEN_FILE` so the relay reads
+  `/private/tmp/rabbit-https-relay-token.txt` at request time.
+- Restarted the Mac relay with `RABBIT_RELAY_TOKEN_FILE`; local authenticated
+  checks now return HTTP 200 for `/health`, `/bridge/route`, and `/adb/status`.
 
 ## What Has Been Built
 

@@ -1,10 +1,12 @@
 import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 const port = Number.parseInt(process.env.RABBIT_RELAY_PORT || "8794", 10);
 const host = process.env.RABBIT_RELAY_HOST || "127.0.0.1";
 const upstream = (process.env.RABBIT_RELAY_UPSTREAM || "http://127.0.0.1:8792").replace(/\/$/, "");
 const relayToken = process.env.RABBIT_RELAY_TOKEN || "";
+const relayTokenFile = process.env.RABBIT_RELAY_TOKEN_FILE || "";
 const relayPublicUrl = process.env.RABBIT_RELAY_PUBLIC_URL || "";
 const relayId = process.env.RABBIT_RELAY_ID || `rabbit-gateway-relay-${randomUUID().slice(0, 8)}`;
 
@@ -43,21 +45,34 @@ async function readBody(request) {
 }
 
 function hasAuth(request, url) {
-  if (!relayToken) {
+  const activeToken = getRelayToken();
+  if (!activeToken) {
     return false;
   }
   return (
-    request.headers["x-rabbit-relay-token"] === relayToken ||
-    url.searchParams.get("relay_token") === relayToken
+    request.headers["x-rabbit-relay-token"] === activeToken ||
+    url.searchParams.get("relay_token") === activeToken
   );
+}
+
+function getRelayToken() {
+  if (relayTokenFile) {
+    try {
+      return readFileSync(relayTokenFile, "utf8").trim();
+    } catch {
+      return "";
+    }
+  }
+  return relayToken;
 }
 
 function publicStatus() {
   const usesHttps = relayPublicUrl.startsWith("https://");
+  const activeToken = getRelayToken();
   return {
     schemaVersion: 1,
     relayId,
-    status: relayToken && usesHttps ? "relay_configured_for_https_test" : "relay_local_only",
+    status: activeToken && usesHttps ? "relay_configured_for_https_test" : "relay_local_only",
     role: "authenticated_gateway_relay",
     upstream,
     publicUrl: relayPublicUrl || "not_configured",
@@ -68,7 +83,7 @@ function publicStatus() {
     privilegedExecutionEnabled: false,
     releaseReady: false,
     releaseBlockers: [
-      relayToken ? null : "RABBIT_RELAY_TOKEN is not set.",
+      activeToken ? null : "RABBIT_RELAY_TOKEN or RABBIT_RELAY_TOKEN_FILE is not set.",
       usesHttps ? null : "RABBIT_RELAY_PUBLIC_URL is not configured as HTTPS.",
       "External Rabbit reachability has not been verified.",
       "Rabbit-native privileged executor is not installed or validated.",
@@ -168,8 +183,8 @@ async function handleRequest(request, response) {
   await proxyRequest(request, response, url, route);
 }
 
-if (!relayToken) {
-  console.warn("RABBIT_RELAY_TOKEN is not set. Relay will answer /relay/health but block broker forwarding.");
+if (!getRelayToken()) {
+  console.warn("RABBIT_RELAY_TOKEN or RABBIT_RELAY_TOKEN_FILE is not set. Relay will answer /relay/health but block broker forwarding.");
 }
 
 const server = createServer((request, response) => {

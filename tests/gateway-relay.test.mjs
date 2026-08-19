@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
@@ -114,5 +116,54 @@ test("gateway relay requires auth and forwards only allowlisted broker routes", 
   } finally {
     child.kill("SIGTERM");
     await new Promise((resolve) => upstream.close(resolve));
+  }
+});
+
+test("gateway relay can read auth token from a local token file", async () => {
+  const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+  const upstreamPort = 21100 + Math.floor(Math.random() * 1000);
+  const relayPort = 22100 + Math.floor(Math.random() * 1000);
+  const token = "file-backed-relay-token";
+  const tempDir = await mkdtemp(`${tmpdir()}/rabbit-relay-token-`);
+  const tokenFile = `${tempDir}/relay-token.txt`;
+  await writeFile(tokenFile, `${token}\n`);
+
+  const upstream = createServer((_request, response) => {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ ok: true, privilegedExecutionPerformed: false }));
+  });
+
+  await listen(upstream, upstreamPort);
+
+  const child = spawn(process.execPath, [`${repoRoot}/scripts/gateway-relay.mjs`], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      RABBIT_RELAY_HOST: "127.0.0.1",
+      RABBIT_RELAY_PORT: String(relayPort),
+      RABBIT_RELAY_TOKEN: "",
+      RABBIT_RELAY_TOKEN_FILE: tokenFile,
+      RABBIT_RELAY_UPSTREAM: `http://127.0.0.1:${upstreamPort}`,
+    },
+    stdio: "ignore",
+  });
+
+  const baseUrl = `http://127.0.0.1:${relayPort}`;
+
+  try {
+    const health = await waitForRelay(baseUrl);
+    assert.equal(health.status, "relay_local_only");
+
+    const unauthenticated = await fetch(`${baseUrl}/health`);
+    assert.equal(unauthenticated.status, 401);
+
+    const authenticated = await fetch(`${baseUrl}/health`, {
+      headers: { "x-rabbit-relay-token": token },
+    });
+    assert.equal(authenticated.status, 200);
+  } finally {
+    child.kill("SIGTERM");
+    await new Promise((resolve) => upstream.close(resolve));
+    await rm(tempDir, { recursive: true, force: true });
   }
 });
