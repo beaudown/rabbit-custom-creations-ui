@@ -38,7 +38,7 @@ Current state:
 Active public test route:
 
 - Hosted app with broker prefilled:
-  `https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net`
+  `https://beaudown.github.io/rabbit-custom-creations-ui/?creation=A1BrokerTestV2&broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net`
 - Broker endpoint inside the app:
   `https://michaels-macbook-pro.tailcfaeac.ts.net`
 - Relay token location on the Mac only:

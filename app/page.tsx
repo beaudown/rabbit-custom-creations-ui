@@ -142,6 +142,12 @@ type ExpandablePreviewProps = {
   value: string;
 };
 
+type StatusReadoutProps = {
+  label: string;
+  value: string;
+  details?: string;
+};
+
 const auditRecords = [
   {
     id: "audit-20260815-000003",
@@ -943,6 +949,21 @@ function ExpandablePreview({ title, summary, value }: ExpandablePreviewProps) {
   );
 }
 
+function StatusReadout({ label, value, details }: StatusReadoutProps) {
+  return (
+    <div className="simpleStatus">
+      <strong>{label}</strong>
+      <span>{value}</span>
+      {details ? (
+        <details className="simpleDetails">
+          <summary>Full output</summary>
+          <pre>{details}</pre>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Home() {
   const [view, setView] = useState<"folders" | "list">("folders");
   const [sortMode, setSortMode] = useState<SortMode>("category");
@@ -1619,10 +1640,7 @@ export default function Home() {
             Use only this box for now. These checks do not run root, ADB,
             reboot, install, fastboot, recovery, or broker start actions.
           </p>
-          <div className="simpleStatus">
-            <strong>Broker URL</strong>
-            <span>{brokerEndpoint}</span>
-          </div>
+          <StatusReadout label="Broker URL" value={brokerEndpoint} />
           <div className="simpleActions" aria-label="Safe setup checks">
             <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
               1 Check setup
@@ -1643,26 +1661,15 @@ export default function Home() {
               5 Gateway relay
             </button>
           </div>
-          <div className="simpleStatus">
-            <strong>Setup</strong>
-            <span>{readinessStatus}</span>
-          </div>
-          <div className="simpleStatus">
-            <strong>Route</strong>
-            <span>{bridgeProbeStatus}</span>
-          </div>
-          <div className="simpleStatus">
-            <strong>Service</strong>
-            <span>{serviceControlStatus}</span>
-          </div>
-          <div className="simpleStatus">
-            <strong>Approval</strong>
-            <span>{approvalStatus}</span>
-          </div>
-          <div className="simpleStatus">
-            <strong>Gateway</strong>
-            <span>{gatewayRelayStatus}</span>
-          </div>
+          <StatusReadout label="Setup" value={readinessStatus} details={readinessPreview} />
+          <StatusReadout label="Route" value={bridgeProbeStatus} details={bridgeRoutePreview} />
+          <StatusReadout label="Service" value={serviceControlStatus} details={serviceControlPreview} />
+          <StatusReadout
+            label="Approval"
+            value={approvalStatus}
+            details={approvalPreview ? JSON.stringify(approvalPreview, null, 2) : undefined}
+          />
+          <StatusReadout label="Gateway" value={gatewayRelayStatus} details={gatewayRelayPreview} />
           <p className="plainWarning">
             Use button 5 before a new QR. It shows relay blockers without running device actions.
           </p>

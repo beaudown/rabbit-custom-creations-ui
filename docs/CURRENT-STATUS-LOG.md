@@ -50,6 +50,17 @@ Updated: 2026-08-14 20:05 PDT
 - Updated QR sheet, tests, Codex handoff, Hermes full context, and Hermes
   fast-path context to use the new card name.
 
+## 2026-08-19 Output Readability And Unique Install Marker
+
+- User reported the output was not readable.
+- Removed the three-line clamp from the Start Here status outputs.
+- Added `Full output` expanders for Setup, Route, Service, Approval, and Gateway
+  details so long JSON, URLs, and route errors wrap on the Rabbit display.
+- Updated install metadata in `index.html` and `public/manifest.webmanifest` to
+  `A1 Broker Test` because Rabbit may display app metadata instead of QR title.
+- Added unique URL marker `creation=A1BrokerTestV2` to the testing Creation QR
+  payload to avoid reusing an older installed Creation entry with stale naming.
+
 ## What Has Been Built
 
 - Dark, high-contrast hosted PWA for Rabbit r1 custom creations and Superuser Management.

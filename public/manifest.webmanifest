@@ -1,8 +1,8 @@
 {
-  "name": "Rabbit Superuser Management",
-  "short_name": "R1 SU Manager",
+  "name": "A1 Broker Test",
+  "short_name": "A1 Broker",
   "description": "Hosted Rabbit r1 Superuser Management PWA for broker-guided creations, audit review, and offline recovery help.",
-  "start_url": ".",
+  "start_url": "./?creation=A1BrokerTestV2",
   "scope": ".",
   "display": "standalone",
   "background_color": "#08090d",

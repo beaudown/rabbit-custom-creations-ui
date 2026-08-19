@@ -62,7 +62,7 @@ shape produced by Rabbit's QR creator:
 ```json
 {
   "title": "A1 Broker Test",
-  "url": "https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net",
+  "url": "https://beaudown.github.io/rabbit-custom-creations-ui/?creation=A1BrokerTestV2&broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net",
   "description": "Testing-only Rabbit r1 broker route check. Run Step 1 and Step 2 only.",
   "iconUrl": "https://beaudown.github.io/rabbit-custom-creations-ui/favicon.svg",
   "themeColor": "#FE5000"
@@ -72,6 +72,9 @@ shape produced by Rabbit's QR creator:
 The current hosted QR sheet's first QR encodes that JSON payload. The manifest
 URL and lease-pairing JSON remain reference-only and must not be presented as
 Creation install QRs.
+
+The unique `creation=A1BrokerTestV2` URL marker is intentional. It helps avoid
+Rabbit reusing an older installed Creation entry with stale display metadata.
 
 Never embed the relay token, auth headers, local-only paths, one-time
 credentials, OpenClaw/Hermes secrets, GitHub tokens, or private data in a QR.

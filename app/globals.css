@@ -147,7 +147,7 @@ select {
   color: #ffffff;
   padding: 12px;
   font-weight: 800;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .simpleStatus strong {
@@ -157,12 +157,43 @@ select {
 }
 
 .simpleStatus span {
-  display: -webkit-box;
-  max-height: 4.1em;
-  overflow: hidden;
+  display: block;
+  max-height: none;
+  overflow: visible;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
+  word-break: break-word;
+  line-height: 1.45;
+}
+
+.simpleDetails {
+  margin-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 8px;
+}
+
+.simpleDetails summary {
+  min-height: 40px;
+  color: var(--accent-2);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.simpleDetails pre {
+  max-height: 260px;
+  margin: 6px 0 0;
+  overflow: auto;
+  border: 1px solid rgba(97, 244, 255, 0.18);
+  border-radius: 8px;
+  background: #030711;
+  color: #e7faff;
+  padding: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .rabbitStart .plainWarning {

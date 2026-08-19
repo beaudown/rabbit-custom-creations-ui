@@ -7,7 +7,7 @@
 - Testing QR allowed: true
 - Preferred substitute route: authenticated public HTTPS relay
 - Public relay URL: `https://michaels-macbook-pro.tailcfaeac.ts.net`
-- Hosted app URL for testing: `https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net`
+- Hosted app URL for testing: `https://beaudown.github.io/rabbit-custom-creations-ui/?creation=A1BrokerTestV2&broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net`
 - Relay token: stored locally only at `/private/tmp/rabbit-https-relay-token.txt`
 
 Do not commit or publish the relay token. Do not embed it in QR codes.

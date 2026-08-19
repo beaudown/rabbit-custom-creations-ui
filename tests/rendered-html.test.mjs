@@ -4,7 +4,7 @@ import test from "node:test";
 
 test("build emits the Rabbit custom creations shell", async () => {
   const html = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");
-  assert.match(html, /Rabbit Custom Creations/);
+  assert.match(html, /A1 Broker Test/);
   assert.match(html, /src="\/assets\//);
 });
 
@@ -144,6 +144,8 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Request Composer/);
   assert.match(source, /Queue to Mac broker/);
   assert.match(source, /Missing required values/);
+  assert.match(source, /Full output/);
+  assert.match(source, /StatusReadout/);
   assert.match(source, /requestPreview/);
   assert.match(source, /lease_holder/);
   assert.match(source, /device_state/);
@@ -167,6 +169,7 @@ test("hosted QR launch sheet exposes Rabbit-format testing Creation QR", async (
   assert.match(qrSheet, /Rabbit Creation install QR/);
   assert.match(qrSheet, /title%22%3A%22A1%20Broker%20Test/);
   assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui/);
+  assert.match(qrSheet, /creation%3DA1BrokerTestV2/);
   assert.match(qrSheet, /description%22%3A%22Testing-only%20Rabbit%20r1%20broker%20route%20check/);
   assert.match(qrSheet, /iconUrl%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Ffavicon\.svg/);
   assert.match(qrSheet, /themeColor%22%3A%22%23FE5000/);
@@ -192,7 +195,9 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   const main = await readFile(new URL("../src/main.tsx", import.meta.url), "utf8");
 
   assert.match(html, /manifest\.webmanifest/);
-  assert.equal(manifest.name, "Rabbit Superuser Management");
+  assert.equal(manifest.name, "A1 Broker Test");
+  assert.equal(manifest.short_name, "A1 Broker");
+  assert.equal(manifest.start_url, "./?creation=A1BrokerTestV2");
   assert.equal(manifest.display, "standalone");
   assert.ok(manifest.shortcuts.some((shortcut) => shortcut.name === "Audit Review"));
   assert.match(serviceWorker, /broker\/rabbit-native-broker-spec\.json/);
