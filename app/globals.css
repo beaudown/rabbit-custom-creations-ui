@@ -137,6 +137,41 @@ select {
   gap: 10px;
 }
 
+.simpleField {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(97, 244, 255, 0.16);
+  border-radius: 8px;
+  background: #070a0f;
+  padding: 12px;
+}
+
+.simpleField span {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.simpleField input {
+  min-height: 46px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0b111b;
+  color: var(--foreground);
+  padding: 0 11px;
+  font: inherit;
+}
+
+.simpleField small {
+  color: #e7f2ff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .simpleStatus {
   min-height: 52px;
   display: grid;

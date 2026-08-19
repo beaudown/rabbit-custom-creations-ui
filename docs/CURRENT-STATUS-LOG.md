@@ -68,6 +68,13 @@ Updated: 2026-08-14 20:05 PDT
 - Fixed Step 1 so core broker reachability is based on `/health` and
   `/bridge/route`; optional service, ADB, and gateway diagnostics no longer make
   the status look like a total broker outage.
+- Follow-up: user reported Step 1/2 endpoint status values were all `401`
+  for health, bridgeRoute, and adbStatus. That means the Rabbit reached the
+  HTTPS relay, but the relay token was missing or incorrect.
+- Added a relay-token field directly inside the Start Here box and added
+  `401`-specific Step 1/2 output: `assets_ready_relay_auth_required` and
+  `relay_auth_required`. The app now points to the local Mac token file path
+  without printing or embedding the token value.
 
 ## What Has Been Built
 

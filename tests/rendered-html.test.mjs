@@ -70,6 +70,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /relayToken/);
   assert.match(source, /x-rabbit-relay-token/);
   assert.match(source, /testing relay token/);
+  assert.match(source, /Relay token required or incorrect/);
+  assert.match(source, /assets_ready_relay_auth_required/);
+  assert.match(source, /relay_auth_required/);
+  assert.match(source, /required if output says 401/);
+  assert.match(source, /\/private\/tmp\/rabbit-https-relay-token\.txt/);
   assert.match(source, /detectBrokerBridge/);
   assert.match(source, /\/bridge\/route/);
   assert.match(source, /\/adb\/status/);

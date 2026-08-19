@@ -1117,6 +1117,16 @@ export default function Home() {
     });
   }
 
+  function relayAuthGuidance() {
+    return {
+      likelyCause: "Relay token is missing, expired, or typed incorrectly.",
+      fix: "Enter the relay token in the Start Here token field, then rerun Step 1 and Step 2 only.",
+      tokenSource: "Mac only: /private/tmp/rabbit-https-relay-token.txt",
+      tokenSafety: "Do not paste the token into chat, GitHub, QR codes, screenshots, shared memory, or transcripts.",
+      privilegedExecutionPerformed: false,
+    };
+  }
+
   async function queueToMacBroker() {
     if (missingVariables.length) {
       setQueueStatus(`Missing required values: ${missingVariables.map((item) => item.name).join(", ")}`);
@@ -1157,16 +1167,25 @@ export default function Home() {
       ];
       if (!healthResponse.ok || !routeResponse.ok || !adbResponse.ok) {
         const failed = endpointStatuses.filter((endpoint) => !endpoint.ok);
-        setBridgeProbeStatus("Broker bridge reachable, but one safe endpoint failed");
+        const relayAuthRequired = failed.some((endpoint) => endpoint.status === 401);
+        setBridgeProbeStatus(
+          relayAuthRequired
+            ? "Relay token required or incorrect. Re-enter token, then rerun Step 1 and Step 2."
+            : "Broker bridge reachable, but one safe endpoint failed",
+        );
         setBridgeRoutePreview(
           JSON.stringify(
             {
-              status: "partial",
+              status: relayAuthRequired ? "relay_auth_required" : "partial",
               brokerEndpoint: baseUrl,
+              relayAuthRequired,
               endpointStatuses,
               failedEndpoints: failed,
+              relayAuth: relayAuthRequired ? relayAuthGuidance() : undefined,
               nextStep:
-                "Stop after Step 2 and report this full output. Do not continue to service, approval, ADB, root, reboot, install, or cleanup.",
+                relayAuthRequired
+                  ? "Enter the relay token in Start Here. Run Step 1 and Step 2 again only. Do not continue to service, approval, ADB, root, reboot, install, or cleanup."
+                  : "Stop after Step 2 and report this full output. Do not continue to service, approval, ADB, root, reboot, install, or cleanup.",
               privilegedExecutionPerformed: false,
             },
             null,
@@ -1463,12 +1482,15 @@ export default function Home() {
     const failedOptionalEndpoints = endpointResults.filter(
       (result) => !result.requiredForRoute && !result.ok,
     );
+    const relayAuthRequired = endpointResults.some((result) => result.status === 401);
     const offlineReady = serviceWorkerReady && cacheApiReady;
     const summary = {
       schemaVersion: 1,
       status:
         requiredAssetsReady && offlineReady && endpointsReady
           ? "ready_for_single_creation_use"
+          : requiredAssetsReady && offlineReady && relayAuthRequired
+            ? "assets_ready_relay_auth_required"
           : requiredAssetsReady && offlineReady && coreBrokerReachable
             ? "assets_ready_core_broker_reachable_optional_failed"
           : requiredAssetsReady && offlineReady
@@ -1482,6 +1504,8 @@ export default function Home() {
       brokerEndpoint: baseBrokerUrl,
       coreBrokerReachable,
       endpointsReady,
+      relayAuthRequired,
+      relayAuth: relayAuthRequired ? relayAuthGuidance() : undefined,
       assetResults,
       endpointResults,
       failedOptionalEndpoints,
@@ -1489,7 +1513,9 @@ export default function Home() {
         controlledByServiceWorker
           ? "Offline cache is controlled by a service worker."
           : "Reload once after first online load so the service worker can control the page.",
-        coreBrokerReachable
+        relayAuthRequired
+          ? "Relay auth failed. Enter the relay token in Start Here, then rerun Step 1 and Step 2 only."
+          : coreBrokerReachable
           ? "Core broker route is reachable. Continue to Step 2 only."
           : "Stop after setup. Route, service, approval, and gateway all need a reachable broker endpoint.",
         endpointResults.some((result) => result.label === "gatewayRelay" && result.ok)
@@ -1500,7 +1526,9 @@ export default function Home() {
     };
 
     setReadinessStatus(
-      `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, core broker ${coreBrokerReachable ? "reachable" : "unreachable"}`,
+      relayAuthRequired
+        ? `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, relay token required`
+        : `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, core broker ${coreBrokerReachable ? "reachable" : "unreachable"}`,
     );
     setReadinessPreview(JSON.stringify(summary, null, 2));
   }
@@ -1676,6 +1704,16 @@ export default function Home() {
             reboot, install, fastboot, recovery, or broker start actions.
           </p>
           <StatusReadout label="Broker URL" value={brokerEndpoint} />
+          <label className="simpleField">
+            <span>Relay token</span>
+            <input
+              value={relayToken}
+              onChange={(event) => setRelayToken(event.target.value)}
+              placeholder="required if output says 401"
+              type="password"
+            />
+            <small>401 means this token is missing or wrong. The token stays local and is never printed here.</small>
+          </label>
           <div className="simpleActions" aria-label="Safe setup checks">
             <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
               1 Check setup
