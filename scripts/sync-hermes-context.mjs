@@ -132,6 +132,10 @@ hermesMemory = hermesMemory.replace(
   `current handoff/sync commit \`${latestHandoffCommit}\`; route-state evidence commit \`b91bee7\`; older commits \`388f027\`, \`10a5099\`, and \`a18c191\` are superseded`,
 );
 hermesMemory = hermesMemory.replace(
+  /current handoff\/sync commit `[^`]+`; route-state evidence commit `b91bee7`; older commits `10a5099` and `a18c191` are superseded/g,
+  `current handoff/sync commit \`${latestHandoffCommit}\`; route-state evidence commit \`b91bee7\`; older commits \`388f027\`, \`10a5099\`, and \`a18c191\` are superseded`,
+);
+hermesMemory = hermesMemory.replace(
   'Latest repo handoff commit: 10a5099. Route-state evidence commit: b91bee7.',
   `Latest repo handoff/sync commit: ${latestHandoffCommit}. Route-state evidence commit: b91bee7.`,
 );
