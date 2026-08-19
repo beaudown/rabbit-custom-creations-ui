@@ -74,6 +74,11 @@ The Mac broker exposes `GET /gateway/relay/probe` and
 `POST /gateway/relay/probe`. The probe is intentionally non-executing. It exists
 to keep all expected failure points visible before another QR is generated.
 
+The relay sidecar implementation lives at `scripts/gateway-relay.mjs` and is
+documented in `docs/gateway-relay.md`. It can forward allowlisted broker calls
+after relay authentication, but it is not release-ready until a public HTTPS
+route is configured and Rabbit reachability is verified.
+
 The relay candidate is ready only when all of these are true:
 
 - Rabbit can reach a public or otherwise routable HTTPS endpoint.

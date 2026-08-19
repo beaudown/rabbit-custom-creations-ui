@@ -67,6 +67,9 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Mac broker if local lease is reachable/);
   assert.match(source, /Detect broker bridge/);
   assert.match(source, /brokerEndpoint/);
+  assert.match(source, /relayToken/);
+  assert.match(source, /x-rabbit-relay-token/);
+  assert.match(source, /testing relay token/);
   assert.match(source, /detectBrokerBridge/);
   assert.match(source, /\/bridge\/route/);
   assert.match(source, /\/adb\/status/);
@@ -336,6 +339,9 @@ test("release gate blocks release QR until broker route is fixed", async () => {
   assert.equal(gate.releaseQrAllowed, false);
   assert.equal(gate.testingQrAllowed, true);
   assert.equal(gate.currentBlocker.id, "broker_route_unreachable_from_rabbit");
+  assert.equal(gate.progress.gatewayRelaySidecarImplemented, true);
+  assert.equal(gate.progress.gatewayRelayPublicHttpsConfigured, false);
+  assert.equal(gate.progress.externalRabbitReachabilityVerified, false);
   assert.ok(gate.currentBlocker.affectedChecks.includes("3 Service status"));
   assert.ok(
     gate.releaseRequirements.some((requirement) =>

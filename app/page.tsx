@@ -924,6 +924,13 @@ function initialBrokerEndpoint() {
   return new URLSearchParams(window.location.search).get("broker") || defaultBrokerEndpoint;
 }
 
+function initialRelayToken() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return new URLSearchParams(window.location.search).get("relay_token") || "";
+}
+
 function ExpandablePreview({ title, summary, value }: ExpandablePreviewProps) {
   return (
     <details className="expandBox">
@@ -954,6 +961,7 @@ export default function Home() {
   const [leaseActionStatus, setLeaseActionStatus] = useState("Lease manager idle");
   const [auditHandoffStatus, setAuditHandoffStatus] = useState("No audit handoff exported");
   const [brokerEndpoint, setBrokerEndpoint] = useState(initialBrokerEndpoint);
+  const [relayToken, setRelayToken] = useState(initialRelayToken);
   const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
   const [serviceControlStatus, setServiceControlStatus] = useState("No service-control request sent");
@@ -1076,6 +1084,18 @@ export default function Home() {
     setWizardChecks((current) => ({ ...current, [name]: checked }));
   }
 
+  function brokerFetch(path: string, init: RequestInit = {}) {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
+    const headers = new Headers(init.headers);
+    if (relayToken.trim()) {
+      headers.set("x-rabbit-relay-token", relayToken.trim());
+    }
+    return fetch(`${baseUrl}${path}`, {
+      ...init,
+      headers,
+    });
+  }
+
   async function queueToMacBroker() {
     if (missingVariables.length) {
       setQueueStatus(`Missing required values: ${missingVariables.map((item) => item.name).join(", ")}`);
@@ -1084,7 +1104,7 @@ export default function Home() {
 
     setQueueStatus("Queueing to Mac broker...");
     try {
-      const response = await fetch(`${brokerEndpoint.replace(/\/$/, "")}/requests`, {
+      const response = await brokerFetch("/requests", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: requestPreview,
@@ -1105,9 +1125,9 @@ export default function Home() {
     setBridgeProbeStatus("Checking broker bridge...");
     try {
       const [healthResponse, routeResponse, adbResponse] = await Promise.all([
-        fetch(`${baseUrl}/health`),
-        fetch(`${baseUrl}/bridge/route`),
-        fetch(`${baseUrl}/adb/status`),
+        brokerFetch("/health"),
+        brokerFetch("/bridge/route"),
+        brokerFetch("/adb/status"),
       ]);
       if (!healthResponse.ok || !routeResponse.ok || !adbResponse.ok) {
         setBridgeProbeStatus("Broker bridge reachable, but one safe endpoint failed");
@@ -1151,10 +1171,9 @@ export default function Home() {
   }
 
   async function requestServiceControl(serviceAction: string) {
-    const baseUrl = brokerEndpoint.replace(/\/$/, "");
     setServiceControlStatus(`Requesting ${serviceAction}...`);
     try {
-      const response = await fetch(`${baseUrl}/broker/service`, {
+      const response = await brokerFetch("/broker/service", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -1202,7 +1221,6 @@ export default function Home() {
   }
 
   async function openBrokerApprovalDialog() {
-    const baseUrl = brokerEndpoint.replace(/\/$/, "");
     setApprovalStatus("Opening broker approval dialog...");
     setApprovalDialogOpen(true);
     setApprovalPreview({
@@ -1218,7 +1236,7 @@ export default function Home() {
     });
 
     try {
-      const response = await fetch(`${baseUrl}/actions`, {
+      const response = await brokerFetch("/actions", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -1289,7 +1307,7 @@ export default function Home() {
     const baseUrl = brokerEndpoint.replace(/\/$/, "");
     setGatewayRelayStatus("Checking OpenClaw/Hermes relay path...");
     try {
-      const response = await fetch(`${baseUrl}/gateway/relay/probe`, {
+      const response = await brokerFetch("/gateway/relay/probe", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -1376,7 +1394,7 @@ export default function Home() {
         ["gatewayRelay", "/gateway/relay/probe"],
       ].map(async ([label, path]) => {
         try {
-          const response = await fetch(`${baseBrokerUrl}${path}`);
+          const response = await brokerFetch(path);
           return {
             label,
             ok: response.ok,
@@ -1478,11 +1496,10 @@ export default function Home() {
   }
 
   async function queueSkillUpload() {
-    const baseUrl = brokerEndpoint.replace(/\/$/, "");
     setSkillUploadStatus("Queueing skill upload dry run...");
     try {
       const request = JSON.parse(skillUploadPreview);
-      const response = await fetch(`${baseUrl}/skills/upload`, {
+      const response = await brokerFetch("/skills/upload", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(request),
@@ -2268,6 +2285,16 @@ export default function Home() {
               placeholder="http://127.0.0.1:8792"
             />
             <small>Use the Mac fallback endpoint now; switch to the Rabbit broker endpoint when installed.</small>
+          </label>
+          <label className="composerField">
+            <span>Relay token</span>
+            <input
+              value={relayToken}
+              onChange={(event) => setRelayToken(event.target.value)}
+              placeholder="testing relay token"
+              type="password"
+            />
+            <small>Only for an authenticated HTTPS relay test. Leave blank for the local Mac broker.</small>
           </label>
           <button className="wideButton" onClick={detectBrokerBridge}>
             Detect broker bridge

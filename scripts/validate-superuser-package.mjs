@@ -243,6 +243,14 @@ if (releaseGate) {
     "Release gate must name the Rabbit broker-route blocker.",
   );
   assert(
+    releaseGate.progress?.gatewayRelaySidecarImplemented === true,
+    "Release gate must record that the gateway relay sidecar is implemented.",
+  );
+  assert(
+    releaseGate.progress?.gatewayRelayPublicHttpsConfigured === false,
+    "Release gate must keep public HTTPS relay marked unconfigured until verified.",
+  );
+  assert(
     releaseGate.releaseRequirements?.some((requirement) =>
       requirement.includes("HTTPS"),
     ),

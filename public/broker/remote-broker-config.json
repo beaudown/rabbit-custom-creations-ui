@@ -18,6 +18,30 @@
       "POST /requests"
     ]
   },
+  "gatewayRelay": {
+    "implemented": true,
+    "status": "local_sidecar_ready_public_https_not_configured",
+    "script": "scripts/gateway-relay.mjs",
+    "startCommand": "npm run relay:gateway",
+    "localDefaultUrl": "http://127.0.0.1:8794",
+    "requiresToken": true,
+    "requiresHttpsForRabbit": true,
+    "releaseReady": false,
+    "allowedRoutes": [
+      "GET /health",
+      "GET /bridge/route",
+      "GET /adb/status",
+      "GET /broker/service",
+      "POST /broker/service",
+      "GET /actions/catalog",
+      "POST /actions",
+      "POST /requests",
+      "POST /skills/upload",
+      "GET /rabbit-broker/health",
+      "GET /rabbit-broker/actions/catalog",
+      "POST /rabbit-broker/actions"
+    ]
+  },
   "execution": {
     "privilegedExecutionEnabled": false,
     "requiresRabbitNativeOrDeviceAdjacentExecutor": true,
