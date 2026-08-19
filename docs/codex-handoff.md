@@ -1,6 +1,6 @@
 # Codex Handoff - Rabbit Superuser Management PWA
 
-Updated: 2026-08-19 03:44 PDT
+Updated: 2026-08-19 10:39 PDT
 
 ## Current Override - HTTPS Relay Test
 
@@ -34,8 +34,11 @@ Current state:
   must encode Rabbit's JSON payload with `title`, `url`, `description`,
   `iconUrl`, and `themeColor`. The previous manifest/JSON QR was correctly
   rejected by r1 as "not a valid creation."
-- Testing QR is allowed only for the route test.
-- Rabbit reachability is not verified yet.
+- Testing QR is allowed only for route/service diagnostics.
+- Rabbit-originated route/auth reachability is verified from the user's Step 1
+  and Step 2 output.
+- Step 2 currently needs the deployed UI unwrap fix because the relay envelope
+  caused the display to say `selected undefined`.
 - No relay token is stored in GitHub, shared memory, QR payloads, or this file.
 - No Rabbit device command, ADB, fastboot, root/SU, reboot, install, recovery,
   flash, OpenClaw auth change, Hermes lifecycle change, or privileged execution
@@ -65,9 +68,13 @@ Verified host-side evidence:
 - Authenticated public `/health` forwards to the Mac broker and returns
   `privilegedExecutionPerformed=false`, `persistentChange=false`, and
   `otaBreakingChange=false`.
+- Rabbit Step 1 reported `ready_for_single_creation_use: assets ready core broker reachable`.
+- Rabbit Step 2 reported `Broker online selected undefined privilege, execution, disabled`.
+- `selected undefined` is a display unwrap bug, not evidence that the route
+  target is absent; direct/relay broker checks return `rabbit_native_broker`.
 - `npm run relay:preflight` with the public URL and token configured reports
-  `relayProbe.ok=true`, but `releaseReady=false` because Rabbit has not yet
-  completed the route test.
+  `relayProbe.ok=true`; `releaseReady=false` remains correct because privileged
+  execution and release gates are not validated.
 
 Current Rabbit test instructions:
 
@@ -77,11 +84,11 @@ Current Rabbit test instructions:
 2. Open the installed `A1 Broker Test` Creation card.
 3. Confirm Broker endpoint is `https://michaels-macbook-pro.tailcfaeac.ts.net`.
 4. Enter the relay token manually from `/private/tmp/rabbit-https-relay-token.txt`.
-5. Tap Step 1 only.
-6. Tap Step 2 only.
+5. After the UI unwrap fix is deployed, tap Step 2 only.
+6. Confirm the output names `selected rabbit_native_broker`.
 7. Stop and record the exact Step 2 output.
 
-Do not tap Step 3 or later until Step 2 is reported back and reviewed.
+Do not tap Step 3 or later until the fixed Step 2 label is reported back and reviewed.
 
 Detailed task note:
 
@@ -91,23 +98,23 @@ Current GitHub-hosted release state:
 
 - `public/broker/release-gate.json` has
   `gatewayRelayPublicHttpsConfigured=true`,
-  `externalRabbitReachabilityVerified=false`, and `releaseQrAllowed=false`.
+  `externalRabbitReachabilityVerified=true`, and `releaseQrAllowed=false`.
 - `public/broker/remote-broker-config.json` has gatewayRelay status
-  `public_https_configured_waiting_for_rabbit_route_test`.
+  `public_https_route_verified_from_rabbit_privileged_blocked`.
 
 ## Executive State
 
-Codex/ChatGPT safe host-side work is complete for the current route-test stage.
-The package is published, validated, logged in Rabbit federated memory, and
-waiting for the user's Rabbit-side Step 1/Step 2 output.
+Codex/ChatGPT safe host-side route work is complete. The next package update
+must deploy the route response unwrap fix, update status gates, validate, push,
+and then wait for one fixed Rabbit Step 2 confirmation.
 
-The current step is ready for HTTPS route testing:
+The current step is ready for fixed Step 2 confirmation:
 
 1. Scan the testing QR for the hosted app with broker prefilled to the HTTPS
    relay URL.
 2. Enter the relay token manually.
-3. Run Step 1.
-4. Run Step 2.
+3. Run Step 2.
+4. Confirm the route label is `rabbit_native_broker`.
 5. Stop before Step 3, service status, approval dialog, gateway probe, ADB,
    fastboot, root/SU, reboot mode, storage exposure, APK
    install, on-device broker install, or other device-affecting action unless

@@ -365,8 +365,9 @@ Keep these in view while troubleshooting:
   `https://michaels-macbook-pro.tailcfaeac.ts.net`.
 - Token missing: relay token is manual-only. If not entered, authenticated broker
   calls can fail.
-- Rabbit external reachability: still unverified. Hosted `release-gate.json`
-  keeps `externalRabbitReachabilityVerified=false`.
+- Rabbit external reachability: verified by the user's Step 1/Step 2 route/auth
+  output. Hosted `release-gate.json` now keeps
+  `externalRabbitReachabilityVerified=true` while release remains blocked.
 - HTTP private route: raw `http://100.80.216.88:8792` should not be treated as a
   Rabbit-reachable public Creation route.
 - Service/status cascade: if Step 2 route fails, later service, approval, and
@@ -551,18 +552,26 @@ without checking the current official source.
 
 Immediate next step:
 
-- Wait for the user to test the hosted first QR through r1
-  `Creations > add via QR`.
-- User should report exact Step 2 output.
+- Deploy the Codex UI unwrap fix for forwarded HTTPS relay responses.
+- Ask the user to rerun Step 2 only and confirm it shows
+  `selected rabbit_native_broker`.
 
-If Step 2 succeeds:
+Current Rabbit-originated evidence:
+
+- Step 1 reported `ready_for_single_creation_use: assets ready core broker reachable`.
+- Step 2 reported `Broker online selected undefined privilege, execution, disabled`.
+- Interpretation: route/auth is working from Rabbit, privileged execution is
+  still disabled, and `selected undefined` is a UI display bug caused by the
+  relay envelope wrapping the broker response under `response`.
+
+If fixed Step 2 succeeds:
 
 1. Record the exact output in `docs/CURRENT-STATUS-LOG.md`,
    `docs/codex-handoff.md`, and shared federation.
 2. Re-run `npm run relay:preflight` with the public URL/token configured without
-   printing token values.
-3. Consider marking `externalRabbitReachabilityVerified=true` only if the
-   evidence is genuinely Rabbit-originated.
+   printing token values if current route state needs reconfirmation.
+3. Keep `externalRabbitReachabilityVerified=true` based on the
+   Rabbit-originated route/auth report.
 4. Decide whether Step 3 service-status check is safe to expose next.
 
 If Step 2 fails:

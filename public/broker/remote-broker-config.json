@@ -20,7 +20,7 @@
   },
   "gatewayRelay": {
     "implemented": true,
-    "status": "public_https_configured_waiting_for_rabbit_route_test",
+    "status": "public_https_route_verified_from_rabbit_privileged_blocked",
     "script": "scripts/gateway-relay.mjs",
     "startCommand": "npm run relay:gateway",
     "preflightCommand": "npm run relay:preflight",
@@ -29,7 +29,7 @@
     "requiresToken": true,
     "requiresHttpsForRabbit": true,
     "publicHttpsConfigured": true,
-    "externalRabbitReachabilityVerified": false,
+    "externalRabbitReachabilityVerified": true,
     "releaseReady": false,
     "allowedRoutes": [
       "GET /health",
@@ -50,7 +50,7 @@
     {
       "id": "authenticated_public_https_relay",
       "label": "Authenticated HTTPS relay",
-      "recommendation": "preferred_next_test",
+      "recommendation": "route_verified_for_testing_only",
       "whatItReplaces": "unreachable Mac private HTTP endpoint",
       "requiresExplicitApproval": true,
       "requiresRabbitTest": true,

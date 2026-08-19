@@ -72,7 +72,9 @@ const publicUrlUsesHttps = configuredPublicUrl.startsWith("https://");
 const relayProbe = await probeRelay(configuredPublicUrl);
 
 const substitutes = remoteBrokerConfig.routeSubstitutes ?? [];
-const recommended = substitutes.find((item) => item.recommendation === "preferred_next_test");
+const recommended = substitutes.find((item) =>
+  ["route_verified_for_testing_only", "preferred_next_test"].includes(item.recommendation),
+);
 const releaseReady =
   releaseGate.releaseQrAllowed === true &&
   tokenConfigured &&
@@ -87,7 +89,7 @@ const result = {
   recommendedSubstitute: recommended?.id ?? "authenticated_public_https_relay",
   explanation: releaseReady
     ? "Relay route has the minimum preflight signals for a Rabbit test."
-    : "Release QR remains blocked until a token-authenticated HTTPS relay or validated Rabbit-native route is tested from Rabbit.",
+    : "Release QR remains blocked until service, approval, and privileged-executor gates are validated.",
   currentBlocker: releaseGate.currentBlocker?.id ?? "unknown",
   releaseQrAllowed: releaseGate.releaseQrAllowed === true,
   testingQrAllowed: releaseGate.testingQrAllowed === true,
@@ -109,7 +111,7 @@ const result = {
   doNotUse: releaseGate.substituteDecision?.doNotUse ?? remoteBrokerConfig.blockedRouteSubstitutes ?? [],
   nextManualTestRequired: !releaseReady,
   nextManualTest:
-    "After explicit approval for an HTTPS route, scan only a testing QR, set Broker endpoint to the HTTPS relay URL, enter the relay token, and run steps 1 and 2 only. Stop if route fails.",
+    "After the route display fix is deployed, rerun Step 2 only and confirm the selected broker label before any later service or approval check.",
 };
 
 console.log(JSON.stringify(result, null, 2));

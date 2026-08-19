@@ -3,17 +3,16 @@
   "status": "testing_only",
   "releaseQrAllowed": false,
   "testingQrAllowed": true,
-  "reason": "Rabbit can load hosted assets, but the Creation cannot reach the broker route yet.",
+  "reason": "Rabbit can load hosted assets and reach the authenticated core broker route. Release remains blocked until the route display fix is deployed and service/approval/privileged-executor gates are validated.",
   "progress": {
     "gatewayRelaySidecarImplemented": true,
     "gatewayRelayPublicHttpsConfigured": true,
-    "externalRabbitReachabilityVerified": false
+    "externalRabbitReachabilityVerified": true
   },
   "currentBlocker": {
-    "id": "broker_route_unreachable_from_rabbit",
-    "summary": "Setup can pass while route, service, approval, and gateway checks fail because they all need the same reachable broker endpoint.",
+    "id": "privileged_executor_not_validated",
+    "summary": "Rabbit-originated route/auth reachability is verified, but privileged execution is disabled and no Rabbit-native executor has been installed or validated.",
     "affectedChecks": [
-      "2 Detect route",
       "3 Service status",
       "4 Approval dialog",
       "5 Gateway relay"
@@ -32,7 +31,8 @@
     "Testing QR codes are allowed only when explicitly labeled testing-only.",
     "Testing QR codes must not be presented as deployment-ready.",
     "Stop after setup if broker route is unreachable.",
-    "Do not retry service, approval, or gateway checks after route fails."
+    "After route succeeds, continue only to the next explicitly requested non-privileged diagnostic.",
+    "Do not run service, approval, ADB, root, reboot, install, cleanup, or release checks without explicit review."
   ],
   "substituteDecision": {
     "recommendedNext": "authenticated_public_https_relay",
@@ -45,5 +45,5 @@
       "openclaw_or_hermes_secret_bearing_url_in_qr"
     ]
   },
-  "lastUpdated": "2026-08-19T10:31:42Z"
+  "lastUpdated": "2026-08-19T17:39:31Z"
 }

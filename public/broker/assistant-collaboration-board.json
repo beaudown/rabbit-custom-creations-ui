@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-08-19T17:08:00Z",
+  "updatedAt": "2026-08-19T17:39:31Z",
   "purpose": "Shared low-friction coordination board for Gemini, Codex, Hermes, and OpenClaw on the Rabbit A1 Broker Test project.",
   "sourceOfTruth": [
     "docs/GEMINI-NOTEBOOK-CONTEXT-ARCHIVE-2026-08-19.md",
@@ -42,7 +42,7 @@
     "hermesOpenclaw": "Context consumers that should follow the latest handoff and avoid unevidenced claims."
   },
   "activeState": {
-    "latestImplementationCommit": "3e15f51 Read relay token from local token file",
+    "latestImplementationState": "current main includes forwarded relay route response unwrap",
     "latestContextArchiveCommit": "ea208fe Add Gemini notebook context archive",
     "releaseQrAllowed": false,
     "localRelayAuthChecks": {
@@ -51,21 +51,21 @@
       "bridgeRoute": 200,
       "adbStatus": 200
     },
-    "nextSafeRabbitAction": "User enters the local relay token manually in A1 Broker Test, runs Step 1 and Step 2 only, then reports endpointStatuses."
+    "rabbitRouteAuthVerified": true,
+    "rabbitReportedOutput": "ready_for_single_creation_use: assets ready core broker reachable; broker online selected undefined privileged execution disabled",
+    "nextSafeRabbitAction": "After Codex deploys the route display fix, rerun Step 2 only and confirm selected rabbit_native_broker. Do not run service, approval, ADB, root, reboot, install, cleanup, or release QR."
   },
   "tasks": [
     {
       "id": "RABBIT-A1-001",
-      "title": "Confirm Rabbit Step 2 route status after token-file relay fix",
-      "owner": "user",
+      "title": "Deploy route display fix and confirm Step 2 names rabbit_native_broker",
+      "owner": "codex",
       "reviewer": "codex",
-      "status": "waiting_for_user_test",
+      "status": "route_auth_verified_fix_pending_deploy",
       "allowedActions": [
         "Open A1 Broker Test",
-        "Enter relay token manually",
-        "Run Step 1",
         "Run Step 2",
-        "Report endpointStatuses"
+        "Report selected broker label"
       ],
       "blockedActions": [
         "Step 3",
@@ -78,17 +78,17 @@
         "release QR"
       ],
       "successCriteria": [
-        "health shows 200/OK",
-        "bridgeRoute shows 200/OK",
-        "adbStatus shows 200/OK"
+        "Step 2 no longer says selected undefined",
+        "Step 2 shows selected rabbit_native_broker",
+        "privileged execution remains disabled"
       ]
     },
     {
       "id": "GEMINI-REVIEW-001",
-      "title": "Review smallest safe diagnostic if Rabbit still reports 401",
+      "title": "Review smallest safe diagnostic after route label is confirmed",
       "owner": "gemini",
       "reviewer": "codex",
-      "status": "ready_for_gemini",
+      "status": "waiting_for_updated_step_2_confirmation",
       "promptSource": "docs/GEMINI-CODEX-COLLABORATION.md#active-handoff-to-paste-into-gemini",
       "successCriteria": [
         "No token disclosure",

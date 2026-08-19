@@ -75,6 +75,9 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /relay_auth_required/);
   assert.match(source, /required if output says 401/);
   assert.match(source, /\/private\/tmp\/rabbit-https-relay-token\.txt/);
+  assert.match(source, /unwrapBrokerResponse/);
+  assert.match(source, /relayForwarded/);
+  assert.match(source, /route target not returned/);
   assert.match(source, /detectBrokerBridge/);
   assert.match(source, /\/bridge\/route/);
   assert.match(source, /\/adb\/status/);
@@ -349,7 +352,7 @@ test("creation skill exposes broker request templates", async () => {
   assert.match(checklist, /Blocks if missing/);
 });
 
-test("release gate blocks release QR until broker route is fixed", async () => {
+test("release gate blocks release QR until privileged executor is validated", async () => {
   const gate = JSON.parse(
     await readFile(
       new URL("../public/broker/release-gate.json", import.meta.url),
@@ -360,10 +363,10 @@ test("release gate blocks release QR until broker route is fixed", async () => {
   assert.equal(gate.status, "testing_only");
   assert.equal(gate.releaseQrAllowed, false);
   assert.equal(gate.testingQrAllowed, true);
-  assert.equal(gate.currentBlocker.id, "broker_route_unreachable_from_rabbit");
+  assert.equal(gate.currentBlocker.id, "privileged_executor_not_validated");
   assert.equal(gate.progress.gatewayRelaySidecarImplemented, true);
   assert.equal(gate.progress.gatewayRelayPublicHttpsConfigured, true);
-  assert.equal(gate.progress.externalRabbitReachabilityVerified, false);
+  assert.equal(gate.progress.externalRabbitReachabilityVerified, true);
   assert.equal(gate.substituteDecision.recommendedNext, "authenticated_public_https_relay");
   assert.equal(gate.substituteDecision.requiresTestingBeforeQR, true);
   assert.equal(gate.substituteDecision.requiresExplicitPublicExposureApproval, true);
@@ -434,11 +437,11 @@ test("remote broker config marks executor as not deployed", async () => {
   assert.equal(config.gatewayRelay.preflightCommand, "npm run relay:preflight");
   assert.equal(config.gatewayRelay.requiresToken, true);
   assert.equal(config.gatewayRelay.publicHttpsConfigured, true);
-  assert.equal(config.gatewayRelay.externalRabbitReachabilityVerified, false);
+  assert.equal(config.gatewayRelay.externalRabbitReachabilityVerified, true);
   assert.equal(config.gatewayRelay.releaseReady, false);
   assert.ok(
     config.routeSubstitutes.some(
-      (item) => item.id === "authenticated_public_https_relay" && item.recommendation === "preferred_next_test",
+      (item) => item.id === "authenticated_public_https_relay" && item.recommendation === "route_verified_for_testing_only",
     ),
   );
   assert.ok(config.blockedRouteSubstitutes.includes("raw_http_100_x_tailscale_url_from_hosted_creation"));

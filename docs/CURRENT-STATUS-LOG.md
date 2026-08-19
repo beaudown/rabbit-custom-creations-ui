@@ -1,6 +1,6 @@
 # Rabbit Superuser Management PWA - Current Status Log
 
-Updated: 2026-08-14 20:05 PDT
+Updated: 2026-08-19 10:39 PDT
 
 ## Current Published State
 
@@ -11,6 +11,29 @@ Updated: 2026-08-14 20:05 PDT
 - Branch: `main`
 - Remote: `origin https://github.com/beaudown/rabbit-custom-creations-ui.git`
 - GitHub Pages: public, HTTPS enforced, workflow deployment enabled.
+
+## 2026-08-19 Rabbit Route/Auth Verified
+
+- User reported Rabbit Step 1 output:
+  `ready_for_single_creation_use: assets ready core broker reachable`.
+- User reported Rabbit Step 2 output:
+  `Broker online selected undefined privilege, execution, disabled`.
+- Interpretation: this is a real Rabbit-originated HTTPS relay/auth success.
+  The Rabbit reached the core broker path, and privileged execution remained
+  disabled as intended.
+- Root cause of `selected undefined`: the HTTPS relay wraps upstream broker
+  JSON under `response`, while the UI read `routeTarget` from the top-level
+  relay envelope.
+- Fixed `app/page.tsx` to unwrap forwarded relay responses before displaying
+  route, health, and ADB status. Step 2 should now show
+  `selected rabbit_native_broker` instead of `selected undefined`.
+- Updated the release gate and remote broker config to mark external Rabbit
+  reachability verified while keeping `releaseQrAllowed=false`.
+- Next development step after deploy: rerun Step 2 only and confirm the label
+  reads `rabbit_native_broker`; then decide whether to expose the smallest
+  non-privileged Step 3 service-status diagnostic.
+- Still blocked: approval dialog, privileged execution, ADB, root/SU, reboot,
+  install, cleanup, on-device broker install, and release QR.
 
 ## 2026-08-19 QR Validity Correction
 

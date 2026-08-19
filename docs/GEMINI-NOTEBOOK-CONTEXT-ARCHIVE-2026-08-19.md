@@ -354,6 +354,15 @@ it into the Rabbit UI.
 
 ## What Gemini Should Do
 
+Current Rabbit route result before Gemini review:
+
+- Rabbit Step 1 reported `ready_for_single_creation_use: assets ready core broker reachable`.
+- Rabbit Step 2 reported `Broker online selected undefined privilege, execution, disabled`.
+- Treat this as Rabbit-originated route/auth success with privileged execution
+  still disabled.
+- `selected undefined` is a Codex UI unwrap bug in the relay envelope display;
+  Codex is deploying a fix so Step 2 should show `rabbit_native_broker`.
+
 Gemini should:
 
 1. Treat `3e15f51` as the latest source state.
@@ -361,8 +370,9 @@ Gemini should:
 3. Review whether `scripts/gateway-relay.mjs` keeps routes allowlisted and
    authenticated.
 4. Review whether `app/page.tsx` gives clear enough Step 1/Step 2 instructions.
-5. Identify likely causes only if Rabbit still gets `401`.
-6. Suggest the smallest safe next diagnostic.
+5. Review the Step 2 route-label unwrap fix and the next smallest safe
+   non-privileged diagnostic.
+6. Suggest the smallest safe next diagnostic after fixed Step 2 is confirmed.
 7. Keep recommendations concise and avoid privileged device actions.
 8. Use `docs/GEMINI-CODEX-COLLABORATION.md` for the collaboration loop and
    response format.
@@ -375,7 +385,8 @@ Gemini should not:
 - Recommend disabling auth.
 - Recommend embedding token in QR.
 - Recommend Rabbit ADB/root/reboot/install/cleanup/release QR.
-- Claim deployment is release-ready before the Rabbit route test returns 200/OK.
+- Claim deployment is release-ready before service/approval/privileged-executor
+  gates are validated.
 
 ## Suggested Gemini Prompt
 

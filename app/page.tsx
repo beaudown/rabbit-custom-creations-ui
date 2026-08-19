@@ -1127,6 +1127,12 @@ export default function Home() {
     };
   }
 
+  function unwrapBrokerResponse(body: Record<string, unknown>) {
+    return body.status === "forwarded" && body.response && typeof body.response === "object"
+      ? (body.response as Record<string, unknown>)
+      : body;
+  }
+
   async function queueToMacBroker() {
     if (missingVariables.length) {
       setQueueStatus(`Missing required values: ${missingVariables.map((item) => item.name).join(", ")}`);
@@ -1194,20 +1200,30 @@ export default function Home() {
         );
         return;
       }
-      const health = await healthResponse.json();
-      const route = await routeResponse.json();
-      const adb = await adbResponse.json();
+      const healthEnvelope = await healthResponse.json();
+      const routeEnvelope = await routeResponse.json();
+      const adbEnvelope = await adbResponse.json();
+      const health = unwrapBrokerResponse(healthEnvelope);
+      const route = unwrapBrokerResponse(routeEnvelope);
+      const adb = unwrapBrokerResponse(adbEnvelope);
+      const routeTarget =
+        typeof route.routeTarget === "string" ? route.routeTarget : "route target not returned";
+      const privilegedExecutionEnabled = Boolean(health.privilegedExecutionEnabled);
+      const adbStatus = adb.adb && typeof adb.adb === "object"
+        ? (adb.adb as Record<string, { status?: string }>)
+        : {};
       setBridgeProbeStatus(
-        `${health.role ?? "broker"} online; selected ${route.routeTarget}; privileged execution ${health.privilegedExecutionEnabled ? "enabled" : "disabled"}`,
+        `${typeof health.role === "string" ? health.role : "broker"} online; selected ${routeTarget}; privileged execution ${privilegedExecutionEnabled ? "enabled" : "disabled"}`,
       );
       setBridgeRoutePreview(
         JSON.stringify(
           {
-            routeTarget: route.routeTarget,
+            routeTarget,
             expectedOutput: route.expectedOutput,
             blockers: route.blockers,
-            adbUsb: adb.adb?.usb?.status,
-            adbTcpip: adb.adb?.tcpip?.status,
+            adbUsb: adbStatus.usb?.status,
+            adbTcpip: adbStatus.tcpip?.status,
+            relayForwarded: routeEnvelope.status === "forwarded",
           },
           null,
           2,

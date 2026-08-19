@@ -228,19 +228,19 @@ if (auditManifest) {
 if (releaseGate) {
   assert(
     releaseGate.status === "testing_only",
-    "Release gate must remain testing_only until broker route is fixed.",
+    "Release gate must remain testing_only until privileged/service release gates are validated.",
   );
   assert(
     releaseGate.releaseQrAllowed === false,
-    "Release gate must block release QR while broker route is unreachable.",
+    "Release gate must block release QR while privileged execution is not validated.",
   );
   assert(
     releaseGate.testingQrAllowed === true,
     "Release gate must allow explicitly labeled testing QR.",
   );
   assert(
-    releaseGate.currentBlocker?.id === "broker_route_unreachable_from_rabbit",
-    "Release gate must name the Rabbit broker-route blocker.",
+    releaseGate.currentBlocker?.id === "privileged_executor_not_validated",
+    "Release gate must name the privileged-executor blocker.",
   );
   assert(
     releaseGate.progress?.gatewayRelaySidecarImplemented === true,
@@ -251,8 +251,8 @@ if (releaseGate) {
     "Release gate must record that the public HTTPS relay is configured for testing.",
   );
   assert(
-    releaseGate.progress?.externalRabbitReachabilityVerified === false,
-    "Release gate must keep external Rabbit reachability unverified until the Rabbit test passes.",
+    releaseGate.progress?.externalRabbitReachabilityVerified === true,
+    "Release gate must record Rabbit-originated route/auth reachability once the Rabbit test passes.",
   );
   assert(
     releaseGate.substituteDecision?.recommendedNext === "authenticated_public_https_relay",
