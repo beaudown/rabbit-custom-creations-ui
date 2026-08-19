@@ -12,6 +12,11 @@ Hermes and OpenClaw should read that compact context first, then this handoff, a
 the full federation for conflicts, older decisions, checksums, or formal
 handoffs.
 
+Full Hermes project context:
+`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`.
+Hermes mirror target:
+`/Users/z3k3z/.hermes/memories/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`.
+
 Current handoff/sync source: current `main` version of this file plus
 `scripts/sync-hermes-context.mjs`.
 Current route-state commit: `b91bee7 Record HTTPS relay test state`.
@@ -246,6 +251,7 @@ Tests:
 
 Docs:
 
+- `docs/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`
 - `docs/CURRENT-STATUS-LOG.md`
 - `docs/DEPENDENCY-FILE-INVENTORY.md`
 - `docs/QR-LAUNCH-SHEET.html`

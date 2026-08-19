@@ -30,6 +30,16 @@ Updated: 2026-08-14 20:05 PDT
   `npm run lint`, and `npm test -- --runInBand` with localhost permission,
   25/25 passing.
 
+## 2026-08-19 Hermes Full Project Context
+
+- Added `docs/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md` as the full handoff
+  document for Hermes/OpenClaw/Codex continuity.
+- The document includes current deployment state, exact user test steps, QR
+  payload rules, GitHub repo details, local file paths, safety boundaries,
+  skills Hermes can adopt, known failure points, and next-step branches.
+- Intended Hermes mirror path:
+  `/Users/z3k3z/.hermes/memories/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`.
+
 ## What Has Been Built
 
 - Dark, high-contrast hosted PWA for Rabbit r1 custom creations and Superuser Management.
