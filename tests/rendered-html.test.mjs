@@ -340,7 +340,7 @@ test("release gate blocks release QR until broker route is fixed", async () => {
   assert.equal(gate.testingQrAllowed, true);
   assert.equal(gate.currentBlocker.id, "broker_route_unreachable_from_rabbit");
   assert.equal(gate.progress.gatewayRelaySidecarImplemented, true);
-  assert.equal(gate.progress.gatewayRelayPublicHttpsConfigured, false);
+  assert.equal(gate.progress.gatewayRelayPublicHttpsConfigured, true);
   assert.equal(gate.progress.externalRabbitReachabilityVerified, false);
   assert.equal(gate.substituteDecision.recommendedNext, "authenticated_public_https_relay");
   assert.equal(gate.substituteDecision.requiresTestingBeforeQR, true);
@@ -411,6 +411,8 @@ test("remote broker config marks executor as not deployed", async () => {
   assert.equal(config.execution.assistantClientsMayExecutePrivilegedActions, false);
   assert.equal(config.gatewayRelay.preflightCommand, "npm run relay:preflight");
   assert.equal(config.gatewayRelay.requiresToken, true);
+  assert.equal(config.gatewayRelay.publicHttpsConfigured, true);
+  assert.equal(config.gatewayRelay.externalRabbitReachabilityVerified, false);
   assert.equal(config.gatewayRelay.releaseReady, false);
   assert.ok(
     config.routeSubstitutes.some(

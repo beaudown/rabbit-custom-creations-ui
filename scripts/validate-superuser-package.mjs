@@ -247,8 +247,12 @@ if (releaseGate) {
     "Release gate must record that the gateway relay sidecar is implemented.",
   );
   assert(
-    releaseGate.progress?.gatewayRelayPublicHttpsConfigured === false,
-    "Release gate must keep public HTTPS relay marked unconfigured until verified.",
+    releaseGate.progress?.gatewayRelayPublicHttpsConfigured === true,
+    "Release gate must record that the public HTTPS relay is configured for testing.",
+  );
+  assert(
+    releaseGate.progress?.externalRabbitReachabilityVerified === false,
+    "Release gate must keep external Rabbit reachability unverified until the Rabbit test passes.",
   );
   assert(
     releaseGate.substituteDecision?.recommendedNext === "authenticated_public_https_relay",

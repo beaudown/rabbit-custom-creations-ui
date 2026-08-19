@@ -20,13 +20,16 @@
   },
   "gatewayRelay": {
     "implemented": true,
-    "status": "local_sidecar_ready_public_https_not_configured",
+    "status": "public_https_configured_waiting_for_rabbit_route_test",
     "script": "scripts/gateway-relay.mjs",
     "startCommand": "npm run relay:gateway",
     "preflightCommand": "npm run relay:preflight",
     "localDefaultUrl": "http://127.0.0.1:8794",
+    "publicTestUrl": "https://michaels-macbook-pro.tailcfaeac.ts.net",
     "requiresToken": true,
     "requiresHttpsForRabbit": true,
+    "publicHttpsConfigured": true,
+    "externalRabbitReachabilityVerified": false,
     "releaseReady": false,
     "allowedRoutes": [
       "GET /health",

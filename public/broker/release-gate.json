@@ -6,7 +6,7 @@
   "reason": "Rabbit can load hosted assets, but the Creation cannot reach the broker route yet.",
   "progress": {
     "gatewayRelaySidecarImplemented": true,
-    "gatewayRelayPublicHttpsConfigured": false,
+    "gatewayRelayPublicHttpsConfigured": true,
     "externalRabbitReachabilityVerified": false
   },
   "currentBlocker": {
@@ -45,5 +45,5 @@
       "openclaw_or_hermes_secret_bearing_url_in_qr"
     ]
   },
-  "lastUpdated": "2026-08-19T00:35:00Z"
+  "lastUpdated": "2026-08-19T10:31:42Z"
 }
