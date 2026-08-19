@@ -90,10 +90,10 @@
     <main>
       <h1>Rabbit Superuser Management Launch Sheet</h1>
       <p>
-        Use this sheet for the hosted PWA and single Custom Creation import.
-        Final QR codes should be generated from the GitHub-hosted URLs after
-        the repo contains all source files, dependencies, public resources,
-        docs, and deployment assets. The exact targets are listed below.
+        Use the hosted QR sheet for the current testing Creation install. A
+        Rabbit Creation QR must encode the Creation JSON payload with title,
+        url, description, iconUrl, and themeColor. Do not generate Creation
+        install QRs from a plain URL, manifest JSON URL, or lease metadata URL.
       </p>
       <p>
         The hosted version copied into GitHub Pages lives at
@@ -103,8 +103,8 @@
       </p>
       <div class="grid">
         <section>
-          <h2>PWA launch</h2>
-          <div class="qr">Generate QR from GitHub-hosted PWA URL</div>
+          <h2>Testing Creation install</h2>
+          <div class="qr">Use Rabbit-format JSON payload QR from hosted sheet</div>
           <p>
             <a href="https://beaudown.github.io/rabbit-custom-creations-ui/">
               https://beaudown.github.io/rabbit-custom-creations-ui/
@@ -112,8 +112,8 @@
           </p>
         </section>
         <section>
-          <h2>Creation manifest</h2>
-          <div class="qr">Generate QR from GitHub-hosted manifest URL</div>
+          <h2>Creation manifest reference</h2>
+          <div class="qr">Reference only - do not scan as Creation QR</div>
           <p>
             <a href="https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json">
               https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json
@@ -121,8 +121,8 @@
           </p>
         </section>
         <section>
-          <h2>Lease pairing</h2>
-          <div class="qr">Generate QR from GitHub-hosted lease URL</div>
+          <h2>Lease pairing reference</h2>
+          <div class="qr">Reference only - do not scan as Creation QR</div>
           <p>
             <a href="https://beaudown.github.io/rabbit-custom-creations-ui/broker/lease-pairing.json">
               https://beaudown.github.io/rabbit-custom-creations-ui/broker/lease-pairing.json
@@ -133,12 +133,12 @@
       <section>
         <h2>First-run sequence</h2>
         <ol>
-          <li>Open the hosted PWA and confirm the page loads.</li>
-          <li>Run the First Run / Readiness panel.</li>
-          <li>Confirm service-worker/cache support if the Rabbit browser exposes it.</li>
-          <li>Import or call the Creation manifest.</li>
-          <li>Use broker detection only against safe dry-run endpoints.</li>
-          <li>Stop before ADB, fastboot, root, boot-cycle, or device mode changes unless separately authorized live.</li>
+          <li>Open r1 Creations, choose add via QR, and scan only the testing Creation install QR.</li>
+          <li>Open the installed Rabbit SU Manager Creation card.</li>
+          <li>Confirm the broker endpoint is the HTTPS relay URL.</li>
+          <li>Enter the relay token manually if the app asks for it.</li>
+          <li>Run Step 1 and Step 2 only.</li>
+          <li>Stop before service, approval, ADB, fastboot, root, reboot, install, or cleanup controls.</li>
         </ol>
       </section>
     </main>

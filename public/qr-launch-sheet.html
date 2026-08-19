@@ -116,40 +116,45 @@
         privileged commands.
       </p>
       <p>
-        Release QR is blocked until the Rabbit can reach a broker endpoint over
-        HTTPS or through a validated Rabbit-native route. If setup passes but
-        route fails, stop there.
+        Release QR is blocked, but the first QR below is a testing Creation
+        install QR. It encodes Rabbit's required JSON payload instead of a plain
+        URL or manifest link. It does not contain tokens or privileged commands.
       </p>
 
       <div class="grid">
         <section>
-          <h2>PWA launch - testing only</h2>
+          <h2>Testing Creation install QR</h2>
           <img
-            alt="QR code for Rabbit Superuser Management PWA"
-            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2F"
+            alt="Rabbit Creation install QR for Rabbit Superuser Management testing"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=%7B%22title%22%3A%22Rabbit%20SU%20Manager%22%2C%22url%22%3A%22https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2F%3Fbroker%3Dhttps%253A%252F%252Fmichaels-macbook-pro.tailcfaeac.ts.net%22%2C%22description%22%3A%22Testing-only%20Rabbit%20r1%20broker%20readiness%20and%20audit%20control%20surface.%20Run%20Step%201%20and%20Step%202%20only.%22%2C%22iconUrl%22%3A%22https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Ffavicon.svg%22%2C%22themeColor%22%3A%22%23FE5000%22%7D"
           />
-          <a href="https://beaudown.github.io/rabbit-custom-creations-ui/">
-            https://beaudown.github.io/rabbit-custom-creations-ui/
+          <p>
+            Scan this one in r1 Creations add via QR for the current testing
+            install.
+          </p>
+          <a href="https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net">
+            https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net
           </a>
         </section>
 
         <section>
-          <h2>Creation manifest - testing only</h2>
-          <img
-            alt="QR code for Rabbit Custom Creation manifest"
-            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Fcreation-skill%2Fmanifest.json"
-          />
+          <h2>Creation JSON payload</h2>
+          <p>
+            The QR encodes title, url, description, iconUrl, and themeColor.
+            The previous manifest QR was a JSON URL and the r1 correctly
+            rejected it as "not a valid creation."
+          </p>
           <a href="https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json">
-            https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json
+            Manifest reference only, do not scan as Creation QR
           </a>
         </section>
 
         <section>
-          <h2>Lease pairing - testing only</h2>
-          <img
-            alt="QR code for broker lease pairing metadata"
-            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Fbroker%2Flease-pairing.json"
-          />
+          <h2>Lease pairing - reference only</h2>
+          <p>
+            This is broker metadata, not a Creation install QR. Use it only if a
+            running broker or assistant explicitly asks for the URL.
+          </p>
           <a href="https://beaudown.github.io/rabbit-custom-creations-ui/broker/lease-pairing.json">
             https://beaudown.github.io/rabbit-custom-creations-ui/broker/lease-pairing.json
           </a>
@@ -159,11 +164,12 @@
       <section>
         <h2>Safe first run</h2>
         <ol>
-          <li>Open the PWA QR first and confirm the UI loads.</li>
-          <li>Run setup. If broker is unreachable, stop testing later buttons.</li>
-          <li>Use the Creation manifest QR only for the single management Creation.</li>
-          <li>Use the lease pairing QR only for broker ownership metadata.</li>
-          <li>Stop before ADB, fastboot, root, reboot modes, or device changes unless separately authorized live.</li>
+          <li>Open r1 Creations, choose add via QR, and scan only the first QR.</li>
+          <li>Open the installed Rabbit SU Manager Creation card.</li>
+          <li>Confirm the broker endpoint is the HTTPS relay URL.</li>
+          <li>Enter the relay token manually if the app asks for it.</li>
+          <li>Run Step 1 and Step 2 only.</li>
+          <li>Stop before service, approval, ADB, fastboot, root, reboot, install, or cleanup controls.</li>
         </ol>
       </section>
     </main>

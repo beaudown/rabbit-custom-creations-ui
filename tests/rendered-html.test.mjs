@@ -157,18 +157,29 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 
-test("hosted QR launch sheet exposes GitHub-hosted scan targets", async () => {
+test("hosted QR launch sheet exposes Rabbit-format testing Creation QR", async () => {
   const qrSheet = await readFile(new URL("../public/qr-launch-sheet.html", import.meta.url), "utf8");
 
   assert.match(qrSheet, /Rabbit Superuser Management QR Sheet/);
   assert.match(qrSheet, /Testing-only QR sheet/);
   assert.match(qrSheet, /Release QR is blocked/);
-  assert.match(qrSheet, /PWA launch - testing only/);
+  assert.match(qrSheet, /Testing Creation install QR/);
+  assert.match(qrSheet, /Rabbit Creation install QR/);
+  assert.match(qrSheet, /title%22%3A%22Rabbit%20SU%20Manager/);
+  assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui/);
+  assert.match(qrSheet, /description%22%3A%22Testing-only%20Rabbit%20r1%20broker/);
+  assert.match(qrSheet, /iconUrl%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Ffavicon\.svg/);
+  assert.match(qrSheet, /themeColor%22%3A%22%23FE5000/);
+  assert.match(qrSheet, /Manifest reference only, do not scan as Creation QR/);
+  assert.match(qrSheet, /Lease pairing - reference only/);
   assert.match(qrSheet, /api\.qrserver\.com/);
-  assert.match(qrSheet, /https:\/\/beaudown\.github\.io\/rabbit-custom-creations-ui\//);
+  assert.match(qrSheet, /broker=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
   assert.match(qrSheet, /creation-skill\/manifest\.json/);
   assert.match(qrSheet, /broker\/lease-pairing\.json/);
   assert.match(qrSheet, /do not contain root payloads/);
+  assert.doesNotMatch(qrSheet, /PWA launch - testing only/);
+  assert.doesNotMatch(qrSheet, /Creation manifest - testing only/);
+  assert.doesNotMatch(qrSheet, /Route test URL - not a Creation QR/);
 });
 
 test("hosted app exposes installable PWA metadata and offline cache", async () => {

@@ -25,6 +25,10 @@ Current state:
 
 - Public HTTPS relay test route is configured.
 - Release QR is still blocked: `releaseQrAllowed=false`.
+- Rabbit Creation install QR correction is implemented locally: the testing QR
+  must encode Rabbit's JSON payload with `title`, `url`, `description`,
+  `iconUrl`, and `themeColor`. The previous manifest/JSON QR was correctly
+  rejected by r1 as "not a valid creation."
 - Testing QR is allowed only for the route test.
 - Rabbit reachability is not verified yet.
 - No relay token is stored in GitHub, shared memory, QR payloads, or this file.
@@ -62,12 +66,15 @@ Verified host-side evidence:
 
 Current Rabbit test instructions:
 
-1. Scan only the testing QR for the hosted app URL above.
-2. Confirm Broker endpoint is `https://michaels-macbook-pro.tailcfaeac.ts.net`.
-3. Enter the relay token manually from `/private/tmp/rabbit-https-relay-token.txt`.
-4. Tap Step 1 only.
-5. Tap Step 2 only.
-6. Stop and record the exact Step 2 output.
+1. Open r1 Creations, choose add via QR, and scan only the first testing
+   Creation QR from `public/qr-launch-sheet.html` or the hosted QR sheet after
+   deploy.
+2. Open the installed Rabbit SU Manager Creation card.
+3. Confirm Broker endpoint is `https://michaels-macbook-pro.tailcfaeac.ts.net`.
+4. Enter the relay token manually from `/private/tmp/rabbit-https-relay-token.txt`.
+5. Tap Step 1 only.
+6. Tap Step 2 only.
+7. Stop and record the exact Step 2 output.
 
 Do not tap Step 3 or later until Step 2 is reported back and reviewed.
 

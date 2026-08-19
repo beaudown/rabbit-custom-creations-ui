@@ -12,6 +12,24 @@ Updated: 2026-08-14 20:05 PDT
 - Remote: `origin https://github.com/beaudown/rabbit-custom-creations-ui.git`
 - GitHub Pages: public, HTTPS enforced, workflow deployment enabled.
 
+## 2026-08-19 QR Validity Correction
+
+- User reported the scanned QR was "not a valid creation."
+- Root cause: the r1 Creations add-via-QR scanner was being pointed at a
+  hosted JSON/URL manifest. That is not a Rabbit-generated Creation install QR,
+  so the device rejection was correct.
+- Updated `public/qr-launch-sheet.html` so it no longer presents the manifest
+  URL or lease-pairing JSON as scannable Creation install QRs.
+- Follow-up correction: the first QR now uses Rabbit's testing Creation payload
+  shape: `title`, `url`, `description`, `iconUrl`, and `themeColor`. The `url`
+  points to the HTTPS relay route-test URL with the broker endpoint prefilled.
+- The release QR remains blocked until the route/service gates are verified,
+  but the first QR is intended for testing install through r1 Creations add via
+  QR.
+- Validation passed after this correction: `npm run broker:validate`,
+  `npm run lint`, and `npm test -- --runInBand` with localhost permission,
+  25/25 passing.
+
 ## What Has Been Built
 
 - Dark, high-contrast hosted PWA for Rabbit r1 custom creations and Superuser Management.
