@@ -51,14 +51,17 @@ If Gemini can access the repo, read these files in this order:
 
 1. `docs/GEMINI-NOTEBOOK-CONTEXT-ARCHIVE-2026-08-19.md`
 2. `docs/CURRENT-STATUS-LOG.md`
-3. `docs/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`
-4. `docs/codex-handoff.md`
-5. `scripts/gateway-relay.mjs`
-6. `tests/gateway-relay.test.mjs`
-7. `app/page.tsx`
-8. `public/qr-launch-sheet.html`
-9. `public/broker/release-gate.json`
-10. `public/broker/remote-broker-config.json`
+3. `docs/GEMINI-CODEX-COLLABORATION.md`
+4. `docs/GEMINI-REVIEW-INBOX.md`
+5. `public/broker/assistant-collaboration-board.json`
+6. `docs/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`
+7. `docs/codex-handoff.md`
+8. `scripts/gateway-relay.mjs`
+9. `tests/gateway-relay.test.mjs`
+10. `app/page.tsx`
+11. `public/qr-launch-sheet.html`
+12. `public/broker/release-gate.json`
+13. `public/broker/remote-broker-config.json`
 
 If Gemini cannot access GitHub, upload this Markdown archive plus those files as
 sources.
@@ -361,6 +364,10 @@ Gemini should:
 5. Identify likely causes only if Rabbit still gets `401`.
 6. Suggest the smallest safe next diagnostic.
 7. Keep recommendations concise and avoid privileged device actions.
+8. Use `docs/GEMINI-CODEX-COLLABORATION.md` for the collaboration loop and
+   response format.
+9. Treat `public/broker/assistant-collaboration-board.json` as the active task
+   board.
 
 Gemini should not:
 
@@ -409,6 +416,8 @@ Rabbit still reports 401 or another endpoint failure.
 For a full upload bundle, include:
 
 - `docs/GEMINI-NOTEBOOK-CONTEXT-ARCHIVE-2026-08-19.md`
+- `docs/GEMINI-CODEX-COLLABORATION.md`
+- `docs/GEMINI-REVIEW-INBOX.md`
 - `docs/CURRENT-STATUS-LOG.md`
 - `docs/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`
 - `docs/codex-handoff.md`
@@ -424,6 +433,7 @@ For a full upload bundle, include:
 - `public/qr-launch-sheet.html`
 - `public/broker/release-gate.json`
 - `public/broker/remote-broker-config.json`
+- `public/broker/assistant-collaboration-board.json`
 - `public/broker/mac-local-broker-config.json`
 - `public/broker/rabbit-native-broker-spec.json`
 - `public/creation-skill/manifest.json`

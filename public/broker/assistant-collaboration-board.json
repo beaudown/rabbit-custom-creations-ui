@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-08-19T17:08:00Z",
+  "purpose": "Shared low-friction coordination board for Gemini, Codex, Hermes, and OpenClaw on the Rabbit A1 Broker Test project.",
+  "sourceOfTruth": [
+    "docs/GEMINI-NOTEBOOK-CONTEXT-ARCHIVE-2026-08-19.md",
+    "docs/CURRENT-STATUS-LOG.md",
+    "docs/GEMINI-CODEX-COLLABORATION.md",
+    "docs/GEMINI-REVIEW-INBOX.md",
+    "docs/codex-handoff.md"
+  ],
+  "security": {
+    "relayTokenPathMayBeReferenced": "/private/tmp/rabbit-https-relay-token.txt",
+    "relayTokenValueMayBeStored": false,
+    "noSecretUploadTargets": [
+      "Gemini Notebook",
+      "Gemini chat",
+      "GitHub",
+      "Google Drive",
+      "QR codes",
+      "shared memory",
+      "screenshots",
+      "chat transcripts"
+    ],
+    "blockedActionsWithoutFreshUserApproval": [
+      "Rabbit ADB",
+      "root or SU execution",
+      "reboot",
+      "fastboot",
+      "recovery",
+      "flash or erase",
+      "APK install",
+      "on-device broker install",
+      "cleanup that deletes evidence",
+      "release QR activation"
+    ]
+  },
+  "roles": {
+    "gemini": "Source-grounded architecture reviewer and failure-mode analyst.",
+    "codex": "Local implementation, validation, commit, deployment, and shared-memory updater.",
+    "user": "Manual bridge between Gemini and Codex, and operator for Rabbit-side Step 1/Step 2 tests.",
+    "hermesOpenclaw": "Context consumers that should follow the latest handoff and avoid unevidenced claims."
+  },
+  "activeState": {
+    "latestImplementationCommit": "3e15f51 Read relay token from local token file",
+    "latestContextArchiveCommit": "ea208fe Add Gemini notebook context archive",
+    "releaseQrAllowed": false,
+    "localRelayAuthChecks": {
+      "relayHealth": 200,
+      "health": 200,
+      "bridgeRoute": 200,
+      "adbStatus": 200
+    },
+    "nextSafeRabbitAction": "User enters the local relay token manually in A1 Broker Test, runs Step 1 and Step 2 only, then reports endpointStatuses."
+  },
+  "tasks": [
+    {
+      "id": "RABBIT-A1-001",
+      "title": "Confirm Rabbit Step 2 route status after token-file relay fix",
+      "owner": "user",
+      "reviewer": "codex",
+      "status": "waiting_for_user_test",
+      "allowedActions": [
+        "Open A1 Broker Test",
+        "Enter relay token manually",
+        "Run Step 1",
+        "Run Step 2",
+        "Report endpointStatuses"
+      ],
+      "blockedActions": [
+        "Step 3",
+        "approval dialog",
+        "ADB",
+        "root",
+        "reboot",
+        "install",
+        "cleanup",
+        "release QR"
+      ],
+      "successCriteria": [
+        "health shows 200/OK",
+        "bridgeRoute shows 200/OK",
+        "adbStatus shows 200/OK"
+      ]
+    },
+    {
+      "id": "GEMINI-REVIEW-001",
+      "title": "Review smallest safe diagnostic if Rabbit still reports 401",
+      "owner": "gemini",
+      "reviewer": "codex",
+      "status": "ready_for_gemini",
+      "promptSource": "docs/GEMINI-CODEX-COLLABORATION.md#active-handoff-to-paste-into-gemini",
+      "successCriteria": [
+        "No token disclosure",
+        "No privileged Rabbit action",
+        "One smallest next diagnostic",
+        "Findings cite uploaded sources when possible"
+      ]
+    },
+    {
+      "id": "CODEX-IMPL-001",
+      "title": "Apply accepted Gemini review notes",
+      "owner": "codex",
+      "reviewer": "user",
+      "status": "blocked_until_gemini_or_rabbit_output",
+      "successCriteria": [
+        "Changes are scoped",
+        "Tests pass",
+        "Status log updated",
+        "Board updated",
+        "No unrelated runtime files committed"
+      ]
+    }
+  ],
+  "geminiResponseFormat": [
+    "Source set used",
+    "Question answered",
+    "Findings",
+    "Recommended next step",
+    "Do not do",
+    "Open questions"
+  ]
+}

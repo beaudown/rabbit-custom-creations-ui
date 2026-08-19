@@ -52,6 +52,19 @@ Updated: 2026-08-14 20:05 PDT
 - It explicitly excludes the relay token value and repeats that
   `/private/tmp/rabbit-https-relay-token.txt` must not be uploaded or copied.
 
+## 2026-08-19 Gemini / Codex Collaboration Protocol
+
+- Added `docs/GEMINI-CODEX-COLLABORATION.md` to define the working loop between
+  Gemini Notebook, Gemini chat, Codex, Hermes, OpenClaw, and the user.
+- Added `docs/GEMINI-REVIEW-INBOX.md` as the paste target for Gemini review
+  outputs, including Codex disposition fields.
+- Added `public/broker/assistant-collaboration-board.json` as a small
+  machine-readable task board with active tasks, role boundaries, safety rules,
+  and success criteria.
+- Operating model: Gemini reviews and proposes safe diagnostics from the
+  uploaded archive; Codex verifies, implements, tests, commits, deploys, and
+  updates shared state.
+
 ## 2026-08-19 Creation Card Discoverability Fix
 
 - User reported the Creation list was busy and they could not find
