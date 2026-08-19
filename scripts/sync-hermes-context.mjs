@@ -18,11 +18,21 @@ const displayNow = new Intl.DateTimeFormat('en-US', {
 
 const paths = {
   hermesContext: '/Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md',
+  hermesCodexHandoff: '/Users/z3k3z/.hermes/memories/codex-handoff.md',
   hermesMemory: '/Users/z3k3z/.hermes/memories/MEMORY.md',
   hermesSnapshot: '/Users/z3k3z/.hermes/memories/FEDERATED-SESSION-SNAPSHOT.md',
+  hermesFederatedMemory: '/Users/z3k3z/.hermes/memories/FEDERATED-MEMORY.md',
+  openclawCodexHandoff: '/Users/z3k3z/.openclaw/workspace/codex-handoff.md',
+  openclawMemory: '/Users/z3k3z/.openclaw/workspace/MEMORY.md',
+  openclawFederatedMemory: '/Users/z3k3z/.openclaw/workspace/FEDERATED-MEMORY.md',
+  repoCodexHandoff: '/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/codex-handoff.md',
   hermesRecord: '/Users/z3k3z/Documents/AgentSharedMemory/hermes/memory.json',
   sourceOfTruth: '/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md',
   sessionIndex: '/Users/z3k3z/Documents/AgentSharedMemory/shared/session-index.json',
+  sharedCodexHandoff: '/Users/z3k3z/Documents/AgentSharedMemory/shared/distribution/rabbit-r1/codex-handoff.md',
+  sharedArtifactCodexHandoff:
+    '/Users/z3k3z/Documents/AgentSharedMemory/shared/artifacts/rabbit-r1/rabbit-superuser-pwa-codex-handoff-2026-08-19.md',
+  sharedIndex: '/Users/z3k3z/Documents/AgentSharedMemory/shared/index.json',
   codexInbox: '/Users/z3k3z/Documents/AgentSharedMemory/shared/inbox/codex-chatgpt.md',
 };
 
@@ -49,7 +59,7 @@ Purpose: compact first-read context for Hermes so Rabbit work starts from the cu
 ## Read This First
 
 1. This file: \`${paths.hermesContext}\`
-2. If project details are needed: \`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md\`
+2. If project details are needed: \`${paths.repoCodexHandoff}\`
 3. If there is any conflict: \`/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md\`, then \`shared/session-index.json\`
 4. Only for deeper history: \`/Users/z3k3z/.hermes/memories/FEDERATED-MEMORY.md\`
 
@@ -97,6 +107,11 @@ function writeFile(path, contents) {
 }
 
 writeFile(paths.hermesContext, currentContext);
+const codexHandoff = fs.readFileSync(paths.repoCodexHandoff, 'utf8');
+writeFile(paths.hermesCodexHandoff, codexHandoff);
+writeFile(paths.openclawCodexHandoff, codexHandoff);
+writeFile(paths.sharedCodexHandoff, codexHandoff);
+writeFile(paths.sharedArtifactCodexHandoff, codexHandoff);
 writeFile(
   paths.hermesSnapshot,
   currentContext.replace(
@@ -113,6 +128,9 @@ if (!hermesMemory.includes('## Rabbit Current Context Fast Path')) {
 
 For Rabbit R1, Rabbit Superuser Management PWA, broker, OpenClaw, Hermes, or deployment-status work, read this compact current context first:
 \`${paths.hermesContext}\`.
+
+For detailed project state, read the renamed Codex handoff:
+\`${paths.hermesCodexHandoff}\`.
 
 Only load the full federation or older handoffs if there is a conflict, missing detail, or a request for history. The relay token value must never be stored in memory, GitHub, QR codes, screenshots, or chat logs.
 
@@ -140,8 +158,16 @@ hermesMemory = hermesMemory.replace(
   `Latest repo handoff/sync commit: ${latestHandoffCommit}. Route-state evidence commit: b91bee7.`,
 );
 hermesMemory = hermesMemory.replace(
-  /Latest repo handoff\/sync commit: [^.]+\. Route-state evidence commit: b91bee7\./g,
+  /Latest repo handoff\/sync commit: .+?\. Route-state evidence commit: b91bee7\./g,
   `Latest repo handoff/sync commit: ${latestHandoffCommit}. Route-state evidence commit: b91bee7.`,
+);
+hermesMemory = hermesMemory.replaceAll(
+  '/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md',
+  paths.repoCodexHandoff,
+);
+hermesMemory = hermesMemory.replaceAll(
+  '/Users/z3k3z/Documents/AgentSharedMemory/shared/distribution/rabbit-r1/hermes-handoff-rabbit-superuser-pwa-2026-08-14.md',
+  paths.sharedCodexHandoff,
 );
 hermesMemory = hermesMemory.replace(
   'Safe host-side implementation is complete; next task is live acceptance facilitation only.',
@@ -155,7 +181,9 @@ hermesRecord.status = 'hermes_context_fast_path_optimized_https_relay_test_activ
 hermesRecord.context_loading = {
   fast_path: paths.hermesContext,
   fallback_order: [
-    '/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md',
+    paths.hermesCodexHandoff,
+    paths.openclawCodexHandoff,
+    paths.repoCodexHandoff,
     '/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md',
     '/Users/z3k3z/Documents/AgentSharedMemory/shared/session-index.json',
     '/Users/z3k3z/.hermes/memories/FEDERATED-MEMORY.md',
@@ -163,9 +191,18 @@ hermesRecord.context_loading = {
   rule: 'Use fast_path first for current Rabbit status; expand only for conflicts, history, checksums, or formal handoffs.',
 };
 hermesRecord.links = hermesRecord.links || {};
+delete hermesRecord.links.rabbit_superuser_pwa_hermes_handoff;
+delete hermesRecord.links.rabbit_superuser_pwa_shared_artifact;
+delete hermesRecord.links.rabbit_superuser_pwa_distribution_handoff;
 hermesRecord.links.rabbit_current_context_fast_path = paths.hermesContext;
+hermesRecord.links.rabbit_superuser_pwa_latest_handoff = paths.repoCodexHandoff;
+hermesRecord.links.rabbit_superuser_pwa_codex_handoff_hermes = paths.hermesCodexHandoff;
+hermesRecord.links.rabbit_superuser_pwa_codex_handoff_openclaw = paths.openclawCodexHandoff;
+hermesRecord.links.rabbit_superuser_pwa_codex_handoff_repo = paths.repoCodexHandoff;
+hermesRecord.links.rabbit_superuser_pwa_codex_handoff_shared = paths.sharedCodexHandoff;
+hermesRecord.links.rabbit_superuser_pwa_codex_handoff_shared_artifact = paths.sharedArtifactCodexHandoff;
 hermesRecord.notes = hermesRecord.notes || [];
-const newNote = `Hermes context optimized: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md as the compact first-read path for Rabbit Superuser Management PWA status. It points to latest handoff/sync commit ${latestHandoffCommit} and route-state evidence commit b91bee7, keeps release QR blocked until Rabbit reachability is verified, and preserves the local-only relay-token rule without storing the token value.`;
+const newNote = `Hermes/OpenClaw Codex handoff imported: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md as the compact first-read path, then /Users/z3k3z/.hermes/memories/codex-handoff.md for Hermes or /Users/z3k3z/.openclaw/workspace/codex-handoff.md for OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7. Release QR remains blocked until Rabbit reachability is verified. Relay token value is not stored.`;
 hermesRecord.notes = [
   newNote,
   ...hermesRecord.notes.filter(
@@ -175,12 +212,59 @@ hermesRecord.notes = [
       !note.includes('latest handoff/sync commit 388f027') &&
       !note.includes('Latest repo handoff commit is 10a5099') &&
       !note.includes('Hermes context optimized on 2026-08-19') &&
-      !note.includes('Hermes context optimized: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md'),
+      !note.includes('Hermes context optimized: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md') &&
+      !note.includes('Hermes/OpenClaw Codex handoff imported:') &&
+      !note.includes('Handoff files are docs/HERMES-HANDOFF.md'),
   ),
 ];
 writeFile(paths.hermesRecord, `${JSON.stringify(hermesRecord, null, 2)}\n`);
 
+let openclawMemory = fs.readFileSync(paths.openclawMemory, 'utf8');
+if (!openclawMemory.includes('## Rabbit Superuser Management Codex handoff')) {
+  openclawMemory += `
+
+## Rabbit Superuser Management Codex handoff
+
+For Rabbit Superuser Management PWA, broker, or deployment-status work, read:
+\`${paths.openclawCodexHandoff}\`.
+
+Use \`${paths.sourceOfTruth}\` and \`${paths.sessionIndex}\` for conflicts or deeper history. Do not run Rabbit device commands, gateway lifecycle changes, root/SU, ADB, fastboot, recovery, reboot, install, flash, or privileged execution without separate explicit live authorization.
+`;
+}
+openclawMemory = openclawMemory.replaceAll(
+  '/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md',
+  paths.repoCodexHandoff,
+);
+writeFile(paths.openclawMemory, openclawMemory);
+
 let sourceOfTruth = fs.readFileSync(paths.sourceOfTruth, 'utf8');
+sourceOfTruth = sourceOfTruth.replaceAll(
+  '/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md',
+  paths.repoCodexHandoff,
+);
+sourceOfTruth = sourceOfTruth.replaceAll(
+  '/Users/z3k3z/Documents/AgentSharedMemory/shared/distribution/rabbit-r1/hermes-handoff-rabbit-superuser-pwa-2026-08-14.md',
+  paths.sharedCodexHandoff,
+);
+sourceOfTruth = sourceOfTruth.replaceAll(
+  'distribution/rabbit-r1/hermes-handoff-rabbit-superuser-pwa-2026-08-14.md',
+  'distribution/rabbit-r1/codex-handoff.md',
+);
+sourceOfTruth = sourceOfTruth.replaceAll(
+  'rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md',
+  'rabbit-custom-creations-ui/docs/codex-handoff.md',
+);
+sourceOfTruth = sourceOfTruth.replaceAll(
+  'shared/artifacts/rabbit-r1/rabbit-superuser-pwa-hermes-handoff-2026-08-14.md',
+  'shared/artifacts/rabbit-r1/rabbit-superuser-pwa-codex-handoff-2026-08-19.md',
+);
+sourceOfTruth = sourceOfTruth.replaceAll(
+  'artifacts/rabbit-r1/rabbit-superuser-pwa-hermes-handoff-2026-08-14.md',
+  'artifacts/rabbit-r1/rabbit-superuser-pwa-codex-handoff-2026-08-19.md',
+);
+sourceOfTruth = sourceOfTruth.replaceAll('Hermes handoff:', 'Codex handoff:');
+sourceOfTruth = sourceOfTruth.replaceAll('rabbit_superuser_pwa_hermes', 'rabbit_superuser_pwa_codex');
+sourceOfTruth = sourceOfTruth.replaceAll('rabbit_superuser_pwa_shared_artifact', 'rabbit_superuser_pwa_codex_shared_artifact');
 sourceOfTruth = sourceOfTruth.replace(
   '- Latest pushed handoff commit: `10a5099 Remove stale commit claims from Hermes handoff` (2026-08-19). Route-state evidence commit: `b91bee7 Record HTTPS relay test state`. GitHub Pages run `32243263171` completed successfully for the route-state update.',
   `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
@@ -190,6 +274,8 @@ sourceOfTruth = sourceOfTruth.replace(
   `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
 );
 writeFile(paths.sourceOfTruth, sourceOfTruth);
+writeFile(paths.hermesFederatedMemory, sourceOfTruth);
+writeFile(paths.openclawFederatedMemory, sourceOfTruth);
 
 const sessionIndex = JSON.parse(fs.readFileSync(paths.sessionIndex, 'utf8'));
 sessionIndex.updatedAt = isoNow;
@@ -200,15 +286,26 @@ if (codexSession) {
   codexSession.updatedAt = isoNow;
   codexSession.status = 'hermes_context_fast_path_synced_https_relay_test_active';
   codexSession.lastKnown =
-    `Hermes context fast-path sync verified and pushed. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then docs/HERMES-HANDOFF.md, and expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Release QR remains blocked; Rabbit reachability is unverified. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is user-operated Rabbit Step 1 and Step 2 only, then stop and report exact Step 2 output. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, Hermes lifecycle change, or privileged execution occurred.`;
+    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Release QR remains blocked; Rabbit reachability is unverified. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is user-operated Rabbit Step 1 and Step 2 only, then stop and report exact Step 2 output. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, Hermes lifecycle change, or privileged execution occurred.`;
 }
 writeFile(paths.sessionIndex, `${JSON.stringify(sessionIndex, null, 2)}\n`);
+
+const sharedIndex = JSON.parse(fs.readFileSync(paths.sharedIndex, 'utf8'));
+sharedIndex.handoffs = sharedIndex.handoffs || {};
+sharedIndex.handoffs.rabbit_superuser_pwa = paths.repoCodexHandoff;
+sharedIndex.handoffs.rabbit_superuser_pwa_codex = 'distribution/rabbit-r1/codex-handoff.md';
+sharedIndex.handoffs.rabbit_superuser_pwa_codex_shared_artifact =
+  'artifacts/rabbit-r1/rabbit-superuser-pwa-codex-handoff-2026-08-19.md';
+delete sharedIndex.handoffs.rabbit_superuser_pwa_hermes;
+delete sharedIndex.handoffs.rabbit_superuser_pwa_shared_artifact;
+writeFile(paths.sharedIndex, `${JSON.stringify(sharedIndex, null, 2)}\n`);
 
 let codexInbox = fs.readFileSync(paths.codexInbox, 'utf8');
 const inboxEntry = `
 ## 2026-08-19 - Hermes context fast path optimized
 
 - Added Hermes fast-path context at \`${paths.hermesContext}\` so Hermes can start Rabbit Superuser Management work from the current state without scanning the full federation.
+- Imported renamed Codex handoff at \`${paths.hermesCodexHandoff}\` and \`${paths.openclawCodexHandoff}\`.
 - Updated Hermes loader and session snapshot to point to the current handoff/sync commit and route-state evidence commit \`b91bee7\`.
 - Kept release QR blocked until Rabbit reachability is verified. Relay token remains path-only and local-only; no token value stored.
 - No Rabbit device command, ADB, fastboot, recovery, reboot, install, root/SU, privileged execution, OpenClaw auth change, or Hermes lifecycle change occurred.

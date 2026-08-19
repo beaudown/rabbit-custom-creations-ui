@@ -1,7 +1,4 @@
-# Hermes Handoff - Rabbit Superuser Management PWA
-
-Compatibility alias. The canonical handoff filename for Hermes and OpenClaw is
-`docs/codex-handoff.md`.
+# Codex Handoff - Rabbit Superuser Management PWA
 
 Updated: 2026-08-19 03:44 PDT
 
@@ -11,14 +8,14 @@ This section supersedes older August 14 acceptance notes in this file.
 
 Current Hermes local fast path:
 `/Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md`.
-Hermes should read that compact context first, then this handoff, and only load
+Hermes and OpenClaw should read that compact context first, then this handoff, and only load
 the full federation for conflicts, older decisions, checksums, or formal
 handoffs.
 
 Current handoff/sync source: current `main` version of this file plus
 `scripts/sync-hermes-context.mjs`.
 Current route-state commit: `b91bee7 Record HTTPS relay test state`.
-Hermes handoff update: use the current `main` version of this file; the
+Codex handoff update: use the current `main` version of this file; the
 route-state evidence remains `b91bee7`.
 Current GitHub Pages deploy state: deployments have completed successfully for
 the route-state and handoff-sync pushes; verify the newest exact run with
@@ -113,7 +110,7 @@ package checkpoint.
 - Current handoff/sync source: current `main` version of this file plus
   `scripts/sync-hermes-context.mjs`
 - Route-state commit: `b91bee7 Record HTTPS relay test state`
-- Hermes handoff update: current `main` version of this file
+- Codex handoff update: current `main` version of this file
 - Live PWA: `https://beaudown.github.io/rabbit-custom-creations-ui/`
 - Hosted QR sheet: `https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html`
 - Creation manifest: `https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json`
@@ -143,13 +140,13 @@ Hosted release gate and remote broker config were verified after the final push.
 - Rabbit source of truth:
   `/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md`
 
-## Required Read Order for Hermes
+## Required Read Order for Hermes and OpenClaw
 
 Read these before making claims about current Rabbit state:
 
 1. `/Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md`
 2. This file:
-   `/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/HERMES-HANDOFF.md`
+   `/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/codex-handoff.md`
 3. `/Users/z3k3z/Documents/AgentSharedMemory/shared/SOURCE-OF-TRUTH.md`
 4. `/Users/z3k3z/Documents/AgentSharedMemory/shared/session-index.json`
 5. Latest relevant snapshot under:
@@ -246,7 +243,7 @@ Docs:
 - `docs/DEPENDENCY-FILE-INVENTORY.md`
 - `docs/QR-LAUNCH-SHEET.html`
 - `docs/ROADMAP-WIREFRAME.md`
-- `docs/HERMES-HANDOFF.md`
+- `docs/codex-handoff.md`
 - `docs/broker-audit-log.md`
 - `docs/github-sync.md`
 - `docs/gateway-relay.md`
@@ -360,7 +357,7 @@ remaining intentionally uncommitted
 Temporary relay/broker test services may be running for the user test. Do not
 restart or change them unless explicitly asked.
 
-## What Hermes Should Do Next
+## What Hermes and OpenClaw Should Do Next
 
 First safe task:
 
