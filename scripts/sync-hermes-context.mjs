@@ -183,11 +183,11 @@ writeFile(paths.hermesRecord, `${JSON.stringify(hermesRecord, null, 2)}\n`);
 let sourceOfTruth = fs.readFileSync(paths.sourceOfTruth, 'utf8');
 sourceOfTruth = sourceOfTruth.replace(
   '- Latest pushed handoff commit: `10a5099 Remove stale commit claims from Hermes handoff` (2026-08-19). Route-state evidence commit: `b91bee7 Record HTTPS relay test state`. GitHub Pages run `32243263171` completed successfully for the route-state update.',
-  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages run \`32269243390\` completed successfully for the Hermes sync update; earlier route-state run \`32243263171\` completed successfully.`,
+  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
 );
 sourceOfTruth = sourceOfTruth.replace(
-  /- Latest pushed handoff\/sync commit: `[^`]+` \(2026-08-19\)\. Route-state evidence commit: `b91bee7 Record HTTPS relay test state`\. GitHub Pages run `32269243390` completed successfully for the Hermes sync update; earlier route-state run `32243263171` completed successfully\./,
-  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages run \`32269243390\` completed successfully for the Hermes sync update; earlier route-state run \`32243263171\` completed successfully.`,
+  /- Latest pushed handoff\/sync commit: `[^`]+` \(2026-08-19\)\. Route-state evidence commit: `b91bee7 Record HTTPS relay test state`\. GitHub Pages .*?\./,
+  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
 );
 writeFile(paths.sourceOfTruth, sourceOfTruth);
 
