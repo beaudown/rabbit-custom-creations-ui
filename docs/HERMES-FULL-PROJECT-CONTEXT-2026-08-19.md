@@ -61,9 +61,9 @@ shape produced by Rabbit's QR creator:
 
 ```json
 {
-  "title": "Rabbit SU Manager",
+  "title": "A1 Broker Test",
   "url": "https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net",
-  "description": "Testing-only Rabbit r1 broker readiness and audit control surface. Run Step 1 and Step 2 only.",
+  "description": "Testing-only Rabbit r1 broker route check. Run Step 1 and Step 2 only.",
   "iconUrl": "https://beaudown.github.io/rabbit-custom-creations-ui/favicon.svg",
   "themeColor": "#FE5000"
 }
@@ -86,7 +86,7 @@ them:
 2. On r1, open `Creations`.
 3. Tap `add via QR`.
 4. Scan only the first QR labeled `Testing Creation install QR`.
-5. Open the installed `Rabbit SU Manager` card.
+5. Open the installed `A1 Broker Test` card.
 6. Confirm the broker endpoint is
    `https://michaels-macbook-pro.tailcfaeac.ts.net`.
 7. Enter the relay token manually from the Mac file only if the app asks for it:
@@ -142,7 +142,7 @@ To verify the hosted QR sheet contains the Rabbit-format payload:
 
 ```bash
 curl -fsSL https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html \
-  | rg -n "Testing Creation install QR|title%22%3A%22Rabbit%20SU%20Manager|themeColor%22%3A%22%23FE5000"
+  | rg -n "Testing Creation install QR|title%22%3A%22A1%20Broker%20Test|themeColor%22%3A%22%23FE5000"
 ```
 
 ## Local File Locations
@@ -425,7 +425,7 @@ Use this for safe repo-only deployments:
 
    ```bash
    curl -fsSL https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html \
-     | rg -n "Testing Creation install QR|Rabbit%20SU%20Manager|themeColor%22%3A%22%23FE5000"
+     | rg -n "Testing Creation install QR|A1%20Broker%20Test|themeColor%22%3A%22%23FE5000"
    ```
 
 9. Update handoffs if the next safe action changed:
@@ -599,4 +599,4 @@ it is:
 - a manifest/reference URL.
 
 State that distinction plainly every time. Keep testing in one place: the hosted
-QR sheet and the Rabbit SU Manager Creation card.
+QR sheet and the `A1 Broker Test` Creation card.

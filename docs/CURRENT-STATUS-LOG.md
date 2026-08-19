@@ -40,6 +40,16 @@ Updated: 2026-08-14 20:05 PDT
 - Intended Hermes mirror path:
   `/Users/z3k3z/.hermes/memories/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`.
 
+## 2026-08-19 Creation Card Discoverability Fix
+
+- User reported the Creation list was busy and they could not find
+  `Rabbit SU Manager`.
+- Updated the Rabbit-format testing Creation QR payload title to
+  `A1 Broker Test` so the installed card is easier to spot and may sort near
+  the top of the r1 Creations list.
+- Updated QR sheet, tests, Codex handoff, Hermes full context, and Hermes
+  fast-path context to use the new card name.
+
 ## What Has Been Built
 
 - Dark, high-contrast hosted PWA for Rabbit r1 custom creations and Superuser Management.

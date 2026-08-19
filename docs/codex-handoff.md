@@ -74,7 +74,7 @@ Current Rabbit test instructions:
 1. Open r1 Creations, choose add via QR, and scan only the first testing
    Creation QR from `public/qr-launch-sheet.html` or the hosted QR sheet after
    deploy.
-2. Open the installed Rabbit SU Manager Creation card.
+2. Open the installed `A1 Broker Test` Creation card.
 3. Confirm Broker endpoint is `https://michaels-macbook-pro.tailcfaeac.ts.net`.
 4. Enter the relay token manually from `/private/tmp/rabbit-https-relay-token.txt`.
 5. Tap Step 1 only.

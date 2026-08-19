@@ -165,11 +165,12 @@ test("hosted QR launch sheet exposes Rabbit-format testing Creation QR", async (
   assert.match(qrSheet, /Release QR is blocked/);
   assert.match(qrSheet, /Testing Creation install QR/);
   assert.match(qrSheet, /Rabbit Creation install QR/);
-  assert.match(qrSheet, /title%22%3A%22Rabbit%20SU%20Manager/);
+  assert.match(qrSheet, /title%22%3A%22A1%20Broker%20Test/);
   assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui/);
-  assert.match(qrSheet, /description%22%3A%22Testing-only%20Rabbit%20r1%20broker/);
+  assert.match(qrSheet, /description%22%3A%22Testing-only%20Rabbit%20r1%20broker%20route%20check/);
   assert.match(qrSheet, /iconUrl%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Ffavicon\.svg/);
   assert.match(qrSheet, /themeColor%22%3A%22%23FE5000/);
+  assert.match(qrSheet, /A1 Broker Test/);
   assert.match(qrSheet, /Manifest reference only, do not scan as Creation QR/);
   assert.match(qrSheet, /Lease pairing - reference only/);
   assert.match(qrSheet, /api\.qrserver\.com/);
