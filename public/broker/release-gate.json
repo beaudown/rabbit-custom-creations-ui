@@ -22,6 +22,7 @@
   "releaseRequirements": [
     "Rabbit reaches a broker endpoint over HTTPS or a validated Rabbit-native local route.",
     "Gateway relay has a public HTTPS URL and requires relay authentication.",
+    "Route substitute is one of: authenticated public HTTPS relay, proven private tailnet route, or validated Rabbit-native broker route.",
     "Broker route, service status, approval dialog, and gateway relay probe all return controlled responses.",
     "Relay requires authentication and exposes no OpenClaw, Hermes, Rabbit connector, GitHub, or broker secrets.",
     "Privileged execution remains false unless a validated Rabbit-native broker later executes after live approval.",
@@ -33,5 +34,16 @@
     "Stop after setup if broker route is unreachable.",
     "Do not retry service, approval, or gateway checks after route fails."
   ],
-  "lastUpdated": "2026-08-18T22:30:00Z"
+  "substituteDecision": {
+    "recommendedNext": "authenticated_public_https_relay",
+    "requiresTestingBeforeQR": true,
+    "requiresExplicitPublicExposureApproval": true,
+    "doNotUse": [
+      "raw_http_100_x_tailscale_url_from_hosted_creation",
+      "tokenless_public_funnel_or_proxy",
+      "hole_rabbit_tech_as_tailnet_or_broker_proxy",
+      "openclaw_or_hermes_secret_bearing_url_in_qr"
+    ]
+  },
+  "lastUpdated": "2026-08-19T00:35:00Z"
 }

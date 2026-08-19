@@ -23,6 +23,7 @@
     "status": "local_sidecar_ready_public_https_not_configured",
     "script": "scripts/gateway-relay.mjs",
     "startCommand": "npm run relay:gateway",
+    "preflightCommand": "npm run relay:preflight",
     "localDefaultUrl": "http://127.0.0.1:8794",
     "requiresToken": true,
     "requiresHttpsForRabbit": true,
@@ -42,6 +43,50 @@
       "POST /rabbit-broker/actions"
     ]
   },
+  "routeSubstitutes": [
+    {
+      "id": "authenticated_public_https_relay",
+      "label": "Authenticated HTTPS relay",
+      "recommendation": "preferred_next_test",
+      "whatItReplaces": "unreachable Mac private HTTP endpoint",
+      "requiresExplicitApproval": true,
+      "requiresRabbitTest": true,
+      "requiresToken": true,
+      "requiresPublicHttps": true,
+      "deviceAffecting": false,
+      "releaseReadyNow": false
+    },
+    {
+      "id": "private_tailnet_route",
+      "label": "Private tailnet route",
+      "recommendation": "only_if_rabbit_can_join_tailnet_or_subnet_route_is_proven",
+      "whatItReplaces": "raw 100.x Tailscale URL in the hosted Creation",
+      "requiresExplicitApproval": true,
+      "requiresRabbitTest": true,
+      "requiresToken": true,
+      "requiresPublicHttps": false,
+      "deviceAffecting": false,
+      "releaseReadyNow": false
+    },
+    {
+      "id": "rabbit_native_broker_route",
+      "label": "Rabbit-native broker route",
+      "recommendation": "later_after_live_device_safety_gates",
+      "whatItReplaces": "Mac fallback broker for current-boot execution",
+      "requiresExplicitApproval": true,
+      "requiresRabbitTest": true,
+      "requiresToken": true,
+      "requiresPublicHttps": false,
+      "deviceAffecting": true,
+      "releaseReadyNow": false
+    }
+  ],
+  "blockedRouteSubstitutes": [
+    "raw_http_100_x_tailscale_url_from_hosted_creation",
+    "tokenless_public_funnel_or_proxy",
+    "hole_rabbit_tech_as_tailnet_or_broker_proxy",
+    "openclaw_or_hermes_secret_bearing_url_in_qr"
+  ],
   "execution": {
     "privilegedExecutionEnabled": false,
     "requiresRabbitNativeOrDeviceAdjacentExecutor": true,

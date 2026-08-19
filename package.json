@@ -9,6 +9,7 @@
     "dev": "vite --host 127.0.0.1",
     "broker:mac": "node scripts/mac-local-broker.mjs",
     "relay:gateway": "node scripts/gateway-relay.mjs",
+    "relay:preflight": "node scripts/relay-preflight.mjs",
     "broker:export": "node scripts/export-broker-sync.mjs",
     "audit:status": "node scripts/manage-audit-log.mjs --status",
     "audit:archive": "node scripts/manage-audit-log.mjs --archive",

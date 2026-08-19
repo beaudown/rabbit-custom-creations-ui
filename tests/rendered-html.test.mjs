@@ -342,6 +342,10 @@ test("release gate blocks release QR until broker route is fixed", async () => {
   assert.equal(gate.progress.gatewayRelaySidecarImplemented, true);
   assert.equal(gate.progress.gatewayRelayPublicHttpsConfigured, false);
   assert.equal(gate.progress.externalRabbitReachabilityVerified, false);
+  assert.equal(gate.substituteDecision.recommendedNext, "authenticated_public_https_relay");
+  assert.equal(gate.substituteDecision.requiresTestingBeforeQR, true);
+  assert.equal(gate.substituteDecision.requiresExplicitPublicExposureApproval, true);
+  assert.ok(gate.substituteDecision.doNotUse.includes("tokenless_public_funnel_or_proxy"));
   assert.ok(gate.currentBlocker.affectedChecks.includes("3 Service status"));
   assert.ok(
     gate.releaseRequirements.some((requirement) =>
@@ -405,6 +409,15 @@ test("remote broker config marks executor as not deployed", async () => {
   assert.equal(config.execution.openClawGatewayAware, true);
   assert.equal(config.execution.hermesGatewayAware, true);
   assert.equal(config.execution.assistantClientsMayExecutePrivilegedActions, false);
+  assert.equal(config.gatewayRelay.preflightCommand, "npm run relay:preflight");
+  assert.equal(config.gatewayRelay.requiresToken, true);
+  assert.equal(config.gatewayRelay.releaseReady, false);
+  assert.ok(
+    config.routeSubstitutes.some(
+      (item) => item.id === "authenticated_public_https_relay" && item.recommendation === "preferred_next_test",
+    ),
+  );
+  assert.ok(config.blockedRouteSubstitutes.includes("raw_http_100_x_tailscale_url_from_hosted_creation"));
   assert.equal(config.featureFlags.remoteRequests, true);
   assert.equal(config.featureFlags.remoteExecution, false);
   assert.equal(config.featureFlags.adbAuthorizationPromptRequest, true);

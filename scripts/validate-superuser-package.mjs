@@ -251,6 +251,18 @@ if (releaseGate) {
     "Release gate must keep public HTTPS relay marked unconfigured until verified.",
   );
   assert(
+    releaseGate.substituteDecision?.recommendedNext === "authenticated_public_https_relay",
+    "Release gate must name the authenticated HTTPS relay as the next substitute.",
+  );
+  assert(
+    releaseGate.substituteDecision?.requiresTestingBeforeQR === true,
+    "Release gate must require testing before QR release.",
+  );
+  assert(
+    releaseGate.substituteDecision?.doNotUse?.includes("raw_http_100_x_tailscale_url_from_hosted_creation"),
+    "Release gate must block raw private Tailscale URLs from hosted Creation use.",
+  );
+  assert(
     releaseGate.releaseRequirements?.some((requirement) =>
       requirement.includes("HTTPS"),
     ),

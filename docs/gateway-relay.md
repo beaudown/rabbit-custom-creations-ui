@@ -10,6 +10,7 @@ Rabbit can load the hosted app, but it cannot reach the Mac-only broker route.
 
 - Implemented: `scripts/gateway-relay.mjs`
 - Start command: `npm run relay:gateway`
+- Preflight command: `npm run relay:preflight`
 - Default local URL: `http://127.0.0.1:8794`
 - Default upstream broker: `http://127.0.0.1:8792`
 - Release status: not ready
@@ -26,6 +27,26 @@ RABBIT_RELAY_PUBLIC_URL=https://example-relay-host
 ```
 
 Do not commit `RABBIT_RELAY_TOKEN`. Do not place it in GitHub Pages.
+
+## Substitute Decision
+
+Use this command before generating any new QR:
+
+```bash
+npm run relay:preflight
+```
+
+The current substitute for the unreachable Mac private HTTP endpoint is an
+authenticated public HTTPS relay. That route still requires explicit approval
+before exposure and a Rabbit-side test before release.
+
+Do not substitute with:
+
+- raw `http://100.x.x.x` Tailscale URLs from the hosted Creation,
+- tokenless public Funnel/proxy routes,
+- `hole.rabbit.tech` as a Tailscale or broker proxy,
+- QR URLs containing OpenClaw, Hermes, Rabbit connector, GitHub, or relay
+  secrets.
 
 ## Allowed Routes
 
