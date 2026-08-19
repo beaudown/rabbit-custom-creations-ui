@@ -40,6 +40,18 @@ Updated: 2026-08-14 20:05 PDT
 - Intended Hermes mirror path:
   `/Users/z3k3z/.hermes/memories/HERMES-FULL-PROJECT-CONTEXT-2026-08-19.md`.
 
+## 2026-08-19 Gemini Notebook Context Archive
+
+- Added `docs/GEMINI-NOTEBOOK-CONTEXT-ARCHIVE-2026-08-19.md` as a single-source
+  upload document for Gemini Notebook / NotebookLM.
+- The archive supersedes older handoff sections where commit references are
+  stale and names latest state `3e15f51 Read relay token from local token file`.
+- It includes public repo links, local file paths, the QR payload rule, current
+  relay/token-file state, safety boundaries, validation evidence, next safe
+  Rabbit test steps, and a Gemini prompt.
+- It explicitly excludes the relay token value and repeats that
+  `/private/tmp/rabbit-https-relay-token.txt` must not be uploaded or copied.
+
 ## 2026-08-19 Creation Card Discoverability Fix
 
 - User reported the Creation list was busy and they could not find
