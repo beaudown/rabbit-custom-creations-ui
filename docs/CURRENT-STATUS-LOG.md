@@ -60,6 +60,14 @@ Updated: 2026-08-14 20:05 PDT
   `A1 Broker Test` because Rabbit may display app metadata instead of QR title.
 - Added unique URL marker `creation=A1BrokerTestV2` to the testing Creation QR
   payload to avoid reusing an older installed Creation entry with stale naming.
+- Follow-up: user reported Step 1 said assets ready / broker unreachable, while
+  Step 2 said the broker bridge was reachable but one safe endpoint failed and
+  full output still said "No route selected."
+- Fixed Step 2 so partial endpoint failures write detailed full output with
+  health, bridgeRoute, and adbStatus HTTP status values.
+- Fixed Step 1 so core broker reachability is based on `/health` and
+  `/bridge/route`; optional service, ADB, and gateway diagnostics no longer make
+  the status look like a total broker outage.
 
 ## What Has Been Built
 

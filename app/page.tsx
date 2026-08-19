@@ -1150,8 +1150,29 @@ export default function Home() {
         brokerFetch("/bridge/route"),
         brokerFetch("/adb/status"),
       ]);
+      const endpointStatuses = [
+        { label: "health", ok: healthResponse.ok, status: healthResponse.status },
+        { label: "bridgeRoute", ok: routeResponse.ok, status: routeResponse.status },
+        { label: "adbStatus", ok: adbResponse.ok, status: adbResponse.status },
+      ];
       if (!healthResponse.ok || !routeResponse.ok || !adbResponse.ok) {
+        const failed = endpointStatuses.filter((endpoint) => !endpoint.ok);
         setBridgeProbeStatus("Broker bridge reachable, but one safe endpoint failed");
+        setBridgeRoutePreview(
+          JSON.stringify(
+            {
+              status: "partial",
+              brokerEndpoint: baseUrl,
+              endpointStatuses,
+              failedEndpoints: failed,
+              nextStep:
+                "Stop after Step 2 and report this full output. Do not continue to service, approval, ADB, root, reboot, install, or cleanup.",
+              privilegedExecutionPerformed: false,
+            },
+            null,
+            2,
+          ),
+        );
         return;
       }
       const health = await healthResponse.json();
@@ -1192,6 +1213,7 @@ export default function Home() {
   }
 
   async function requestServiceControl(serviceAction: string) {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
     setServiceControlStatus(`Requesting ${serviceAction}...`);
     try {
       const response = await brokerFetch("/broker/service", {
@@ -1408,37 +1430,47 @@ export default function Home() {
 
     const endpointResults = await Promise.all(
       [
-        ["health", "/health"],
-        ["bridgeRoute", "/bridge/route"],
-        ["serviceControl", "/broker/service"],
-        ["adbStatus", "/adb/status"],
-        ["gatewayRelay", "/gateway/relay/probe"],
-      ].map(async ([label, path]) => {
+        { label: "health", path: "/health", requiredForRoute: true },
+        { label: "bridgeRoute", path: "/bridge/route", requiredForRoute: true },
+        { label: "serviceControl", path: "/broker/service", requiredForRoute: false },
+        { label: "adbStatus", path: "/adb/status", requiredForRoute: false },
+        { label: "gatewayRelay", path: "/gateway/relay/probe", requiredForRoute: false },
+      ].map(async ({ label, path, requiredForRoute }) => {
         try {
           const response = await brokerFetch(path);
           return {
             label,
             ok: response.ok,
             status: response.status,
+            requiredForRoute,
           };
         } catch {
           return {
             label,
             ok: false,
             status: "unreachable",
+            requiredForRoute,
           };
         }
       }),
     );
 
     const requiredAssetsReady = assetResults.every((result) => result.ok);
+    const coreBrokerReachable = endpointResults
+      .filter((result) => result.requiredForRoute)
+      .every((result) => result.ok);
     const endpointsReady = endpointResults.every((result) => result.ok);
+    const failedOptionalEndpoints = endpointResults.filter(
+      (result) => !result.requiredForRoute && !result.ok,
+    );
     const offlineReady = serviceWorkerReady && cacheApiReady;
     const summary = {
       schemaVersion: 1,
       status:
         requiredAssetsReady && offlineReady && endpointsReady
           ? "ready_for_single_creation_use"
+          : requiredAssetsReady && offlineReady && coreBrokerReachable
+            ? "assets_ready_core_broker_reachable_optional_failed"
           : requiredAssetsReady && offlineReady
             ? "assets_ready_broker_unreachable"
             : "partial",
@@ -1448,25 +1480,27 @@ export default function Home() {
       cacheApiReady,
       controlledByServiceWorker,
       brokerEndpoint: baseBrokerUrl,
+      coreBrokerReachable,
       endpointsReady,
       assetResults,
       endpointResults,
+      failedOptionalEndpoints,
       nextSteps: [
         controlledByServiceWorker
           ? "Offline cache is controlled by a service worker."
           : "Reload once after first online load so the service worker can control the page.",
-        endpointsReady
-          ? "Broker MVP endpoints are reachable."
+        coreBrokerReachable
+          ? "Core broker route is reachable. Continue to Step 2 only."
           : "Stop after setup. Route, service, approval, and gateway all need a reachable broker endpoint.",
         endpointResults.some((result) => result.label === "gatewayRelay" && result.ok)
           ? "Gateway relay probe is available."
-          : "Add OpenClaw/Hermes relay before trying another remote QR path.",
+          : "Gateway relay is optional at Step 1. Do not continue past Step 2 until route output is reviewed.",
         "Keep service-control and skill-hook actions as broker-approved dry runs until live authorization exists.",
       ],
     };
 
     setReadinessStatus(
-      `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, broker ${endpointsReady ? "reachable" : "unreachable"}`,
+      `${summary.status}: assets ${requiredAssetsReady ? "ready" : "partial"}, core broker ${coreBrokerReachable ? "reachable" : "unreachable"}`,
     );
     setReadinessPreview(JSON.stringify(summary, null, 2));
   }
@@ -1517,6 +1551,7 @@ export default function Home() {
   }
 
   async function queueSkillUpload() {
+    const baseUrl = brokerEndpoint.replace(/\/$/, "");
     setSkillUploadStatus("Queueing skill upload dry run...");
     try {
       const request = JSON.parse(skillUploadPreview);
