@@ -6,7 +6,8 @@ Updated: 2026-08-19 03:31 PDT
 
 This section supersedes older August 14 acceptance notes in this file.
 
-Current repo commit: `b91bee7 Record HTTPS relay test state`.
+Current route-state commit: `b91bee7 Record HTTPS relay test state`.
+Current Hermes handoff update is in this file on `main` after `c21448f`.
 Current GitHub Pages run: `32243263171`, completed successfully.
 
 Current state:
@@ -95,7 +96,8 @@ package checkpoint.
 ## GitHub and Hosted URLs
 
 - GitHub repo: `https://github.com/beaudown/rabbit-custom-creations-ui`
-- Latest commit at handoff: `b91bee7 Record HTTPS relay test state`
+- Route-state commit: `b91bee7 Record HTTPS relay test state`
+- Hermes handoff update: `c21448f Update Hermes handoff for HTTPS relay test`
 - Live PWA: `https://beaudown.github.io/rabbit-custom-creations-ui/`
 - Hosted QR sheet: `https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html`
 - Creation manifest: `https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json`
