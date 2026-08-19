@@ -12,7 +12,8 @@ Hermes should read that compact context first, then this handoff, and only load
 the full federation for conflicts, older decisions, checksums, or formal
 handoffs.
 
-Current handoff/sync commit: `388f027 Add Hermes context fast path sync`.
+Current handoff/sync source: current `main` version of this file plus
+`scripts/sync-hermes-context.mjs`.
 Current route-state commit: `b91bee7 Record HTTPS relay test state`.
 Hermes handoff update: use the current `main` version of this file; the
 route-state evidence remains `b91bee7`.
@@ -104,7 +105,8 @@ package checkpoint.
 ## GitHub and Hosted URLs
 
 - GitHub repo: `https://github.com/beaudown/rabbit-custom-creations-ui`
-- Current handoff/sync commit: `388f027 Add Hermes context fast path sync`
+- Current handoff/sync source: current `main` version of this file plus
+  `scripts/sync-hermes-context.mjs`
 - Route-state commit: `b91bee7 Record HTTPS relay test state`
 - Hermes handoff update: current `main` version of this file
 - Live PWA: `https://beaudown.github.io/rabbit-custom-creations-ui/`
