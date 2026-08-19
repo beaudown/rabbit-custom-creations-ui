@@ -65,6 +65,19 @@ Updated: 2026-08-14 20:05 PDT
   uploaded archive; Codex verifies, implements, tests, commits, deploys, and
   updates shared state.
 
+## 2026-08-19 Gemini Skill Import Bundle
+
+- Added `docs/GEMINI-SKILL-IMPORT-README-2026-08-19.md` as the focused import
+  guide for the Rabbit `A1 Broker Test` Custom Creation skill.
+- Created `gemini-rabbit-skill-import-2026-08-19.zip` with the Creation skill
+  files, dependent broker contracts, relay/broker scripts, key UI files, tests,
+  and Gemini/Codex collaboration docs.
+- Copied the same zip to Desktop for manual Gemini Notebook upload:
+  `/Users/z3k3z/Desktop/gemini-rabbit-skill-import-2026-08-19.zip`.
+- SHA-256:
+  `0ecab76864578b9ef6468d52d9e13c184aecb78e9ba35aa3829256181f6c6a29`.
+- Secret scan found no real relay-token pattern in the focused import bundle.
+
 ## 2026-08-19 Creation Card Discoverability Fix
 
 - User reported the Creation list was busy and they could not find
