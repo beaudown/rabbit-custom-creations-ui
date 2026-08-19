@@ -1,19 +1,91 @@
 # Hermes Handoff - Rabbit Superuser Management PWA
 
-Updated: 2026-08-14 20:20 PDT
+Updated: 2026-08-19 03:31 PDT
+
+## Current Override - HTTPS Relay Test
+
+This section supersedes older August 14 acceptance notes in this file.
+
+Current repo commit: `b91bee7 Record HTTPS relay test state`.
+Current GitHub Pages run: `32243263171`, completed successfully.
+
+Current state:
+
+- Public HTTPS relay test route is configured.
+- Release QR is still blocked: `releaseQrAllowed=false`.
+- Testing QR is allowed only for the route test.
+- Rabbit reachability is not verified yet.
+- No relay token is stored in GitHub, shared memory, QR payloads, or this file.
+- No Rabbit device command, ADB, fastboot, root/SU, reboot, install, recovery,
+  flash, OpenClaw auth change, Hermes lifecycle change, or privileged execution
+  has occurred.
+
+Active public test route:
+
+- Hosted app with broker prefilled:
+  `https://beaudown.github.io/rabbit-custom-creations-ui/?broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net`
+- Broker endpoint inside the app:
+  `https://michaels-macbook-pro.tailcfaeac.ts.net`
+- Relay token location on the Mac only:
+  `/private/tmp/rabbit-https-relay-token.txt`
+
+Verified host-side evidence:
+
+- Mac broker `/health` on `http://100.80.216.88:8792` returns
+  `privilegedExecutionEnabled=false` and `containsRootPayload=false`.
+- Temporary launchd job `rabbit.https.relay` runs
+  `scripts/gateway-relay.mjs` on `127.0.0.1:8794`.
+- Tailscale Funnel proxies
+  `https://michaels-macbook-pro.tailcfaeac.ts.net/` to
+  `http://127.0.0.1:8794`.
+- Public `/relay/health` returns `relay_configured_for_https_test`,
+  `requiresAuth=true`, `publicUrlUsesHttps=true`,
+  `privilegedExecutionEnabled=false`, and `exposesGatewaySecrets=false`.
+- Authenticated public `/health` forwards to the Mac broker and returns
+  `privilegedExecutionPerformed=false`, `persistentChange=false`, and
+  `otaBreakingChange=false`.
+- `npm run relay:preflight` with the public URL and token configured reports
+  `relayProbe.ok=true`, but `releaseReady=false` because Rabbit has not yet
+  completed the route test.
+
+Current Rabbit test instructions:
+
+1. Scan only the testing QR for the hosted app URL above.
+2. Confirm Broker endpoint is `https://michaels-macbook-pro.tailcfaeac.ts.net`.
+3. Enter the relay token manually from `/private/tmp/rabbit-https-relay-token.txt`.
+4. Tap Step 1 only.
+5. Tap Step 2 only.
+6. Stop and record the exact Step 2 output.
+
+Do not tap Step 3 or later until Step 2 is reported back and reviewed.
+
+Detailed task note:
+
+- `docs/https-relay-test-2026-08-19.md`
+
+Current GitHub-hosted release state:
+
+- `public/broker/release-gate.json` has
+  `gatewayRelayPublicHttpsConfigured=true`,
+  `externalRabbitReachabilityVerified=false`, and `releaseQrAllowed=false`.
+- `public/broker/remote-broker-config.json` has gatewayRelay status
+  `public_https_configured_waiting_for_rabbit_route_test`.
 
 ## Executive State
 
-Codex/ChatGPT safe host-side work is complete. The package is published,
-validated, zipped for handoff, and logged in the Rabbit federated memory.
+Codex/ChatGPT safe host-side work is complete for the current route-test stage.
+The package is published, validated, logged in Rabbit federated memory, and
+waiting for the user's Rabbit-side Step 1/Step 2 output.
 
-The current step is ready for live acceptance testing:
+The current step is ready for HTTPS route testing:
 
-1. Open the GitHub-hosted QR sheet.
-2. Open the PWA on Rabbit r1.
-3. Import or call the Custom Creation manifest.
-4. Run First Run / Readiness.
-5. Stop before any ADB, fastboot, root/SU, reboot mode, storage exposure, APK
+1. Scan the testing QR for the hosted app with broker prefilled to the HTTPS
+   relay URL.
+2. Enter the relay token manually.
+3. Run Step 1.
+4. Run Step 2.
+5. Stop before Step 3, service status, approval dialog, gateway probe, ADB,
+   fastboot, root/SU, reboot mode, storage exposure, APK
    install, on-device broker install, or other device-affecting action unless
    the user gives separate live action-time approval.
 
@@ -23,14 +95,17 @@ package checkpoint.
 ## GitHub and Hosted URLs
 
 - GitHub repo: `https://github.com/beaudown/rabbit-custom-creations-ui`
-- Latest commit at handoff: `caf4dec Add hosted QR sheet and audit maintenance tooling`
+- Latest commit at handoff: `b91bee7 Record HTTPS relay test state`
 - Live PWA: `https://beaudown.github.io/rabbit-custom-creations-ui/`
 - Hosted QR sheet: `https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html`
 - Creation manifest: `https://beaudown.github.io/rabbit-custom-creations-ui/creation-skill/manifest.json`
 - Lease pairing target: `https://beaudown.github.io/rabbit-custom-creations-ui/broker/lease-pairing.json`
-- Final verified GitHub Pages run: `31861074785`
+- HTTPS relay test note: `https://github.com/beaudown/rabbit-custom-creations-ui/blob/main/docs/https-relay-test-2026-08-19.md`
+- Release gate: `https://beaudown.github.io/rabbit-custom-creations-ui/broker/release-gate.json`
+- Remote broker config: `https://beaudown.github.io/rabbit-custom-creations-ui/broker/remote-broker-config.json`
+- Final verified GitHub Pages run: `32243263171`
 
-All four hosted URLs returned HTTP 200 after the final push.
+Hosted release gate and remote broker config were verified after the final push.
 
 ## Local Project Locations
 
@@ -129,6 +204,8 @@ Broker contracts:
 Scripts:
 
 - `scripts/mac-local-broker.mjs`
+- `scripts/gateway-relay.mjs`
+- `scripts/relay-preflight.mjs`
 - `scripts/export-broker-sync.mjs`
 - `scripts/manage-audit-log.mjs`
 - `scripts/validate-superuser-package.mjs`
@@ -138,6 +215,8 @@ Tests:
 - `tests/audit-management.test.mjs`
 - `tests/mac-broker-handshake.test.mjs`
 - `tests/package-readiness.test.mjs`
+- `tests/gateway-relay.test.mjs`
+- `tests/relay-preflight.test.mjs`
 - `tests/rendered-html.test.mjs`
 - `tests/sync-export.test.mjs`
 
@@ -150,6 +229,8 @@ Docs:
 - `docs/HERMES-HANDOFF.md`
 - `docs/broker-audit-log.md`
 - `docs/github-sync.md`
+- `docs/gateway-relay.md`
+- `docs/https-relay-test-2026-08-19.md`
 - `docs/mac-local-broker.md`
 - `docs/rabbit-native-broker.md`
 - `docs/remote-broker-topology.md`
@@ -207,11 +288,14 @@ Broker:
 
 ```bash
 npm run broker:mac
+npm run relay:gateway
+npm run relay:preflight
 ```
 
-The broker binds to `http://127.0.0.1:8792` by default. Rabbit cannot reach
-that loopback endpoint from the hosted PWA. Exposing the broker to LAN/Tailscale
-is a separate later decision.
+The active Mac broker for this test is reachable from the Mac at
+`http://100.80.216.88:8792`. The active relay listens locally at
+`http://127.0.0.1:8794` and is exposed to Rabbit through the approved Tailscale
+Funnel HTTPS route. Do not expose the raw broker or any token-bearing URL.
 
 Broker status endpoints:
 
@@ -239,35 +323,33 @@ Passed:
 - `npm run audit:query -- dry_run`
 - `npm run broker:validate`
 - `npm run lint`
-- `npm test` with localhost permission, 22/22 passing
-- GitHub Pages deployment run `31861074785`
-- HTTP 200 for PWA, QR sheet, Creation manifest, and lease pairing target
+- `npm test` with localhost permission, 25/25 passing
+- GitHub Pages deployment run `32243263171`
+- Hosted release gate shows HTTPS configured but Rabbit reachability unverified
+- Public HTTPS relay health and authenticated broker forwarding verified
 
 Local repo status at handoff:
 
 ```text
-main...origin/main clean
+main...origin/main at `b91bee7`, with local runtime broker audit/queue files
+remaining intentionally uncommitted
 ```
 
-No broker process was left running on `127.0.0.1:8792`.
+Temporary relay/broker test services may be running for the user test. Do not
+restart or change them unless explicitly asked.
 
 ## What Hermes Should Do Next
 
 First safe task:
 
-1. Confirm the GitHub URLs still load.
-2. Ask the user to scan/open the hosted QR sheet.
-3. Have the user open the PWA on Rabbit.
-4. Record exact Rabbit behavior:
-   - page loads
-   - blank screen
-   - unsupported browser/page
-   - QR scan failure
-   - text/layout issue
-   - manifest import issue
-   - cache/readiness result
-5. Update GitHub docs and shared memory with the result.
+1. Wait for the user's exact Rabbit Step 1 and Step 2 outputs.
+2. If Step 2 fails, keep release QR blocked and record the exact route failure.
+3. If Step 2 passes, update GitHub docs and shared memory, then test only the
+   next safe broker status/control surface after explicit confirmation.
+4. Do not store the relay token in any repo, QR, shared memory, screenshot, or
+   public note.
+5. Keep release QR blocked until route, service status, approval dialog, and
+   gateway relay checks all return controlled responses.
 
 Do not start live device-affecting tests until the user gives separate explicit
 live authorization at action time.
-
