@@ -97,6 +97,11 @@ Rabbit Superuser Management hosted PWA and single Custom Creation package.
   app output is
   \`/Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app\`.
   This local commit is not pushed to upstream \`NousResearch/hermes-agent\`.
+- User approved saving the Hermes and Rabbit tokens through the packaged Hermes
+  UI. Tailscale token for \`:8443\` and Rabbit Gateway
+  \`x-rabbit-relay-token\` header are saved as \`safeStorage\` envelopes in
+  Hermes \`connections.json\`; built-in UI tests returned \`Tailscale Reachable\`
+  and \`Rabbit Gateway Reachable\`. Token values are not stored in this handoff.
 - Mac fallback broker live state can be externalized with
   \`MAC_BROKER_STATE_ROOT\` so audit, lease, and queue writes do not dirty the
   tracked \`public/broker\` seed files.
@@ -112,16 +117,10 @@ Rabbit Superuser Management hosted PWA and single Custom Creation package.
 
 User-operated Rabbit confirmation only:
 
-1. In Hermes Desktop Settings -> Connections -> Tailscale, set Gateway URL to
-   \`https://michaels-macbook-pro.tailcfaeac.ts.net:8443\`.
-2. Paste the persistent Hermes session token from the Mac clipboard if the UI
-   asks for Session token, then run Test.
-3. Reopen or reload the installed \`A1 Broker Test\` Creation.
-4. Confirm Broker endpoint is \`https://michaels-macbook-pro.tailcfaeac.ts.net\`.
-5. Keep the Rabbit relay token entered manually from the local token file if the app
-   does not retain it.
-6. Run Step 2 only.
-7. Stop and report whether Step 2 says \`selected rabbit_native_broker\`.
+1. Reopen or reload the installed \`A1 Broker Test\` Creation.
+2. Confirm Broker endpoint is \`https://michaels-macbook-pro.tailcfaeac.ts.net\`.
+3. Run Step 2 only.
+4. Stop and report whether Step 2 says \`selected rabbit_native_broker\`.
 
 ## Hard Stops
 
@@ -316,7 +315,7 @@ if (codexSession) {
   codexSession.updatedAt = isoNow;
   codexSession.status = 'hermes_tailscale_private_route_verified_8443';
   codexSession.lastKnown =
-    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Hermes Desktop Settings -> Connections includes a first-class Tailscale helper row. Hermes Desktop/agent route is https://michaels-macbook-pro.tailcfaeac.ts.net:8443, backed by launchd job hermes.tailscale.host-proxy on 127.0.0.1:9121, which rewrites Host and forwards to Hermes backend 127.0.0.1:9120; root :443 is Rabbit broker relay only and intentionally blocks non-broker routes. Hermes local source commit is a60c953e3c Add Rabbit gateway and Tailscale connection helpers; packaged app path is /Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app; this commit is not pushed upstream. Mac broker runtime state can be externalized with MAC_BROKER_STATE_ROOT so live audit, lease, and queue files do not dirty tracked public/broker seeds. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Rabbit-originated route/auth reachability is verified and release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is set Hermes Desktop Settings -> Connections -> Tailscale Gateway URL to the :8443 URL, paste the clipboard Hermes session token, save, and Test; then continue user-operated fixed Rabbit Step 2 confirmation only. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, new public Tailscale exposure, token disclosure, or privileged execution occurred.`;
+    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Hermes Desktop Settings -> Connections includes a first-class Tailscale helper row. Hermes Desktop/agent route is https://michaels-macbook-pro.tailcfaeac.ts.net:8443, backed by launchd job hermes.tailscale.host-proxy on 127.0.0.1:9121, which rewrites Host and forwards to Hermes backend 127.0.0.1:9120; root :443 is Rabbit broker relay only and intentionally blocks non-broker routes. Hermes local source commit is a60c953e3c Add Rabbit gateway and Tailscale connection helpers; packaged app path is /Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app; this commit is not pushed upstream. User approved saving Hermes and Rabbit tokens through packaged Hermes UI; Tailscale token and Rabbit Gateway x-rabbit-relay-token are saved as safeStorage envelopes and built-in UI tests returned Tailscale Reachable and Rabbit Gateway Reachable. Mac broker runtime state can be externalized with MAC_BROKER_STATE_ROOT so live audit, lease, and queue files do not dirty tracked public/broker seeds. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Rabbit-originated route/auth reachability is verified and release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is user-operated fixed Rabbit Step 2 confirmation only. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, new public Tailscale exposure, token disclosure, or privileged execution occurred.`;
 }
 writeFile(paths.sessionIndex, `${JSON.stringify(sessionIndex, null, 2)}\n`);
 

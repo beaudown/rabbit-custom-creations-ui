@@ -1,6 +1,6 @@
 # Codex Handoff - Rabbit Superuser Management PWA
 
-Updated: 2026-08-23 17:24 PDT
+Updated: 2026-08-23 19:22 PDT
 
 ## Current Override - HTTPS Relay Test
 
@@ -95,6 +95,16 @@ Verified host-side evidence:
   `a60c953e3c Add Rabbit gateway and Tailscale connection helpers`. They are
   validated and packaged locally, but not pushed to the upstream
   `NousResearch/hermes-agent` remote.
+- User approved saving Hermes and Rabbit tokens through the Hermes UI. The
+  packaged Hermes Desktop build now has:
+  - Tailscale session token saved for
+    `https://michaels-macbook-pro.tailcfaeac.ts.net:8443`.
+  - Rabbit Gateway extra header `x-rabbit-relay-token` saved for
+    `https://michaels-macbook-pro.tailcfaeac.ts.net`.
+  - Both saved as `safeStorage` envelopes; token values are not in docs,
+    GitHub, QR payloads, or shared memory.
+  - Built-in UI tests returned `Tailscale Reachable` and
+    `Rabbit Gateway Reachable`.
 - The Mac fallback broker now supports `MAC_BROKER_STATE_ROOT` so live lease,
   audit, and queue writes can be moved out of tracked `public/broker` seed
   files before the next persistent broker restart.
@@ -106,10 +116,9 @@ Current Rabbit test instructions:
    deploy.
 2. Open the installed `A1 Broker Test` Creation card.
 3. Confirm Broker endpoint is `https://michaels-macbook-pro.tailcfaeac.ts.net`.
-4. Enter the relay token manually from `/private/tmp/rabbit-https-relay-token.txt`.
-5. After the UI unwrap fix is deployed, tap Step 2 only.
-6. Confirm the output names `selected rabbit_native_broker`.
-7. Stop and record the exact Step 2 output.
+4. Tap Step 2 only.
+5. Confirm the output names `selected rabbit_native_broker`.
+6. Stop and record the exact Step 2 output.
 
 Do not tap Step 3 or later until the fixed Step 2 label is reported back and reviewed.
 

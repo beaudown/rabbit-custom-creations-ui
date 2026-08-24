@@ -1,6 +1,6 @@
 # Rabbit Superuser Management PWA - Current Status Log
 
-Updated: 2026-08-23 17:24 PDT
+Updated: 2026-08-23 19:22 PDT
 
 ## Current Published State
 
@@ -41,9 +41,29 @@ Updated: 2026-08-23 17:24 PDT
   `npm test -- --runInBand`, 26/26 passing.
 - Still not performed: no Rabbit device command, root/SU, ADB, reboot, install,
   flash, persistent system change, token disclosure, or privileged execution.
-- Still blocked before release QR: Hermes saved connection tokens need explicit
-  user-approved update, Rabbit Step 2 must be rerun against the fixed UI, and
-  service/approval/privileged-executor gates remain unvalidated.
+- Still blocked before release QR: Rabbit Step 2 must be rerun against the
+  fixed UI, and service/approval/privileged-executor gates remain unvalidated.
+
+## 2026-08-23 Hermes Grapher Connection Tokens Saved
+
+- User explicitly approved saving both Hermes and Rabbit tokens.
+- Opened packaged Hermes Desktop build `a60c953` and updated the visible
+  Settings -> Gateways / Connections UI directly.
+- Saved Tailscale session token for
+  `https://michaels-macbook-pro.tailcfaeac.ts.net:8443`.
+- Saved Rabbit Gateway extra header `x-rabbit-relay-token` for
+  `https://michaels-macbook-pro.tailcfaeac.ts.net`.
+- Verified saved metadata only: Tailscale token and Rabbit header value are
+  stored with `safeStorage` envelopes in Hermes `connections.json`; token values
+  were not printed, copied to docs, committed, or sent to chat.
+- Hermes built-in UI tests passed:
+  - `Rabbit Gateway Reachable`
+  - `Tailscale Reachable`
+- Still not performed: no Rabbit device command, root/SU, ADB, reboot, install,
+  flash, persistent Rabbit system change, token disclosure, or privileged
+  execution.
+- Next user-operated action remains Rabbit-only: open `A1 Broker Test`, run
+  Step 2 only, and report whether it says `selected rabbit_native_broker`.
 
 ## 2026-08-19 Rabbit Route/Auth Verified
 
