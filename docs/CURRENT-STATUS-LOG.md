@@ -30,6 +30,13 @@ Updated: 2026-08-23 17:24 PDT
 - Added `MAC_BROKER_STATE_ROOT` support to `scripts/mac-local-broker.mjs` so
   live lease, audit, and queue state can be moved out of tracked
   `public/broker` seed files.
+- Hermes Desktop source changes were committed locally in
+  `/Users/z3k3z/.hermes/hermes-agent` as
+  `a60c953e3c Add Rabbit gateway and Tailscale connection helpers`.
+  This local commit was not pushed to the upstream `NousResearch/hermes-agent`
+  remote.
+- Packaged Hermes Desktop app exists at
+  `/Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app`.
 - Validation passed after the broker-state patch:
   `npm test -- --runInBand`, 26/26 passing.
 - Still not performed: no Rabbit device command, root/SU, ADB, reboot, install,

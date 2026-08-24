@@ -90,6 +90,11 @@ Verified host-side evidence:
   `hermes.tailscale.host-proxy`. It uses the persistent local Hermes session
   token stored outside GitHub/shared memory; token value must never be copied
   into docs, QR payloads, screenshots, or transcripts.
+- Hermes Desktop source changes are committed locally in
+  `/Users/z3k3z/.hermes/hermes-agent` as
+  `a60c953e3c Add Rabbit gateway and Tailscale connection helpers`. They are
+  validated and packaged locally, but not pushed to the upstream
+  `NousResearch/hermes-agent` remote.
 - The Mac fallback broker now supports `MAC_BROKER_STATE_ROOT` so live lease,
   audit, and queue writes can be moved out of tracked `public/broker` seed
   files before the next persistent broker restart.
@@ -399,6 +404,11 @@ Passed:
     token file.
 - Rabbit project validation passed after the runtime-state-root patch:
   `npm test -- --runInBand`, 26/26 passing.
+- Hermes Desktop package passed:
+  `npm run pack`; app output
+  `/Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app`.
+  Local signing/notarization remains skipped because no Developer ID identity is
+  configured.
 
 Local repo status at handoff:
 
