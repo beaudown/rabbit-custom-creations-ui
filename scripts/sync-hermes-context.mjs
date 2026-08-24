@@ -79,6 +79,21 @@ Rabbit Superuser Management hosted PWA and single Custom Creation package.
 - HTTPS relay test route: \`https://michaels-macbook-pro.tailcfaeac.ts.net\`
 - Relay forwards allowlisted calls to the Mac broker at \`http://100.80.216.88:8792\` through local relay \`127.0.0.1:8794\`.
 - Release QR is still blocked.
+- Hermes Desktop Settings -> Connections now includes a visible \`Tailscale\`
+  helper row. Use that row to add/edit the private \`.ts.net\` remote connection;
+  do not look only in the web dashboard Channels page.
+- Hermes Desktop Tailscale connection must use
+  \`https://michaels-macbook-pro.tailcfaeac.ts.net:8443\`. Do not use the root
+  \`:443\` URL for Hermes; \`:443\` is the Rabbit broker relay and intentionally
+  blocks non-broker routes with \`route_not_allowlisted\`.
+- Tailscale Serve maps \`:8443\` to \`127.0.0.1:9121\`, owned by launchd job
+  \`hermes.tailscale.host-proxy\`. That proxy rewrites the Host header and
+  forwards to the stable Hermes backend on \`127.0.0.1:9120\`. HTTP
+  \`/api/status\` and WebSocket \`/api/ws\` were verified through the \`:8443\`
+  URL.
+- Mac fallback broker live state can be externalized with
+  \`MAC_BROKER_STATE_ROOT\` so audit, lease, and queue writes do not dirty the
+  tracked \`public/broker\` seed files.
 - Rabbit-originated route/auth reachability is verified. Step 1 reported assets
   ready and core broker reachable; Step 2 reached the broker with privileged
   execution disabled.
@@ -91,12 +106,16 @@ Rabbit Superuser Management hosted PWA and single Custom Creation package.
 
 User-operated Rabbit confirmation only:
 
-1. Reopen or reload the installed \`A1 Broker Test\` Creation.
-2. Confirm Broker endpoint is \`https://michaels-macbook-pro.tailcfaeac.ts.net\`.
-3. Keep the relay token entered manually from the local token file if the app
+1. In Hermes Desktop Settings -> Connections -> Tailscale, set Gateway URL to
+   \`https://michaels-macbook-pro.tailcfaeac.ts.net:8443\`.
+2. Paste the persistent Hermes session token from the Mac clipboard if the UI
+   asks for Session token, then run Test.
+3. Reopen or reload the installed \`A1 Broker Test\` Creation.
+4. Confirm Broker endpoint is \`https://michaels-macbook-pro.tailcfaeac.ts.net\`.
+5. Keep the Rabbit relay token entered manually from the local token file if the app
    does not retain it.
-4. Run Step 2 only.
-5. Stop and report whether Step 2 says \`selected rabbit_native_broker\`.
+6. Run Step 2 only.
+7. Stop and report whether Step 2 says \`selected rabbit_native_broker\`.
 
 ## Hard Stops
 
@@ -207,7 +226,7 @@ hermesRecord.links.rabbit_superuser_pwa_codex_handoff_repo = paths.repoCodexHand
 hermesRecord.links.rabbit_superuser_pwa_codex_handoff_shared = paths.sharedCodexHandoff;
 hermesRecord.links.rabbit_superuser_pwa_codex_handoff_shared_artifact = paths.sharedArtifactCodexHandoff;
 hermesRecord.notes = hermesRecord.notes || [];
-const newNote = `Hermes/OpenClaw Codex handoff imported: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md as the compact first-read path, then /Users/z3k3z/.hermes/memories/codex-handoff.md for Hermes or /Users/z3k3z/.openclaw/workspace/codex-handoff.md for OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7. Rabbit-originated route/auth reachability is verified, but release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token value is not stored.`;
+const newNote = `Hermes/OpenClaw Codex handoff imported: use /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md as the compact first-read path, then /Users/z3k3z/.hermes/memories/codex-handoff.md for Hermes or /Users/z3k3z/.openclaw/workspace/codex-handoff.md for OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7. Hermes Desktop Settings -> Connections includes the Tailscale helper row. Hermes route is https://michaels-macbook-pro.tailcfaeac.ts.net:8443; root :443 is Rabbit broker relay only. Rabbit-originated route/auth reachability is verified, but release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token value is not stored.`;
 hermesRecord.notes = [
   newNote,
   ...hermesRecord.notes.filter(
@@ -289,9 +308,9 @@ const codexSession = sessionIndex.sessions?.find(
 );
 if (codexSession) {
   codexSession.updatedAt = isoNow;
-  codexSession.status = 'hermes_context_fast_path_synced_https_relay_test_active';
+  codexSession.status = 'hermes_tailscale_private_route_verified_8443';
   codexSession.lastKnown =
-    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Rabbit-originated route/auth reachability is verified and release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is user-operated fixed Step 2 confirmation only, then stop and report whether it says selected rabbit_native_broker. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, Hermes lifecycle change, token disclosure, or privileged execution occurred.`;
+    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Hermes Desktop Settings -> Connections includes a first-class Tailscale helper row. Hermes Desktop/agent route is https://michaels-macbook-pro.tailcfaeac.ts.net:8443, backed by launchd job hermes.tailscale.host-proxy on 127.0.0.1:9121, which rewrites Host and forwards to Hermes backend 127.0.0.1:9120; root :443 is Rabbit broker relay only and intentionally blocks non-broker routes. Mac broker runtime state can be externalized with MAC_BROKER_STATE_ROOT so live audit, lease, and queue files do not dirty tracked public/broker seeds. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Rabbit-originated route/auth reachability is verified and release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is set Hermes Desktop Settings -> Connections -> Tailscale Gateway URL to the :8443 URL, paste the clipboard Hermes session token, save, and Test; then continue user-operated fixed Rabbit Step 2 confirmation only. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, new public Tailscale exposure, token disclosure, or privileged execution occurred.`;
 }
 writeFile(paths.sessionIndex, `${JSON.stringify(sessionIndex, null, 2)}\n`);
 
@@ -312,6 +331,9 @@ const inboxEntry = `
 - Added Hermes fast-path context at \`${paths.hermesContext}\` so Hermes can start Rabbit Superuser Management work from the current state without scanning the full federation.
 - Imported renamed Codex handoff at \`${paths.hermesCodexHandoff}\` and \`${paths.openclawCodexHandoff}\`.
 - Updated Hermes loader and session snapshot to point to the current handoff/sync commit and route-state evidence commit \`b91bee7\`.
+- Recorded that Hermes Desktop Settings -> Connections now has the visible
+  \`Tailscale\` helper row; web dashboard Channels is no longer the only
+  configured UI surface.
 - Kept release QR blocked until service, approval, and privileged-executor gates
   are validated. Relay token remains path-only and local-only; no token value
   stored.

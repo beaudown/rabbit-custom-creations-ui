@@ -1,11 +1,14 @@
 import { createServer } from "node:http";
 import { hostname, homedir } from "node:os";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 
 const root = process.cwd();
+const stateRoot = process.env.MAC_BROKER_STATE_ROOT || root;
+const seedBrokerRoot = join(root, "public/broker");
+const brokerStateRoot = join(stateRoot, "public/broker");
 const port = Number.parseInt(process.env.MAC_BROKER_PORT || "8792", 10);
 const host = process.env.MAC_BROKER_HOST || "127.0.0.1";
 const brokerId = process.env.MAC_BROKER_ID || `mac-local-${hostname()}`;
@@ -23,17 +26,18 @@ let startupCleanup = {
 };
 
 const paths = {
-  auditLog: join(root, "public/broker/audit-log.jsonl"),
-  coordination: join(root, "public/broker/broker-coordination.json"),
-  config: join(root, "public/broker/mac-local-broker-config.json"),
-  promptLibrary: join(root, "public/broker/prompt-library.json"),
-  syncManifest: join(root, "public/broker/sync-manifest.json"),
-  leasePairing: join(root, "public/broker/lease-pairing.json"),
-  templates: join(root, "public/broker/request-templates"),
-  queueInbox: join(root, "public/broker/queue/inbox"),
-  queueOutbox: join(root, "public/broker/queue/outbox"),
-  queueProcessed: join(root, "public/broker/queue/processed"),
-  queueDeadLetter: join(root, "public/broker/queue/dead-letter"),
+  auditManifest: join(brokerStateRoot, "audit-manifest.json"),
+  auditLog: join(brokerStateRoot, "audit-log.jsonl"),
+  coordination: join(brokerStateRoot, "broker-coordination.json"),
+  config: join(brokerStateRoot, "mac-local-broker-config.json"),
+  promptLibrary: join(brokerStateRoot, "prompt-library.json"),
+  syncManifest: join(brokerStateRoot, "sync-manifest.json"),
+  leasePairing: join(brokerStateRoot, "lease-pairing.json"),
+  templates: join(brokerStateRoot, "request-templates"),
+  queueInbox: join(brokerStateRoot, "queue/inbox"),
+  queueOutbox: join(brokerStateRoot, "queue/outbox"),
+  queueProcessed: join(brokerStateRoot, "queue/processed"),
+  queueDeadLetter: join(brokerStateRoot, "queue/dead-letter"),
 };
 
 const gatewayRelayAllowlist = [
@@ -321,6 +325,19 @@ function buildActionReview(request, route) {
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
+}
+
+async function ensureBrokerStateRoot() {
+  if (stateRoot === root) {
+    return;
+  }
+
+  await mkdir(join(stateRoot, "public"), { recursive: true });
+  await cp(seedBrokerRoot, brokerStateRoot, {
+    recursive: true,
+    force: false,
+    errorOnExist: false,
+  });
 }
 
 async function readOptionalJson(path) {
@@ -1141,7 +1158,7 @@ async function handleRequest(request, response) {
   if (request.method === "POST" && url.pathname === "/audit/handoff") {
     const body = await readBody(request);
     const [auditManifest, route, adbStatus] = await Promise.all([
-      readJson(join(root, "public/broker/audit-manifest.json")),
+      readJson(paths.auditManifest),
       buildBridgeRoute(),
       Promise.resolve(buildAdbStatus()),
     ]);
@@ -1190,6 +1207,7 @@ const server = createServer((request, response) => {
 });
 
 server.listen(port, host, async () => {
+  await ensureBrokerStateRoot().catch(() => {});
   await clearPreviousBrokerConfigurations("broker startup").catch(() => {});
   await acquireLease("broker startup").catch(() => {});
   console.log(`Mac fallback broker listening on http://${host}:${port}`);

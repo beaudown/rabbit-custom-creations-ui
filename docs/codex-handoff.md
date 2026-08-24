@@ -1,6 +1,6 @@
 # Codex Handoff - Rabbit Superuser Management PWA
 
-Updated: 2026-08-19 10:39 PDT
+Updated: 2026-08-23 17:24 PDT
 
 ## Current Override - HTTPS Relay Test
 
@@ -75,6 +75,24 @@ Verified host-side evidence:
 - `npm run relay:preflight` with the public URL and token configured reports
   `relayProbe.ok=true`; `releaseReady=false` remains correct because privileged
   execution and release gates are not validated.
+- Hermes Desktop Settings -> Connections now has a first-class `Tailscale`
+  helper row. It reuses the normal `remote` connection registry, opens a
+  prefilled `Tailscale` editor with a `https://` URL, detects saved `.ts.net`
+  connections, and exposes the normal Test/Edit path there. The earlier web
+  dashboard Channels implementation also remains in place.
+- Hermes Tailscale connection correction: the root URL on port `443` is the
+  Rabbit broker relay and intentionally blocks Hermes Desktop routes with
+  `route_not_allowlisted`. The Hermes-only private route is now
+  `https://michaels-macbook-pro.tailcfaeac.ts.net:8443`, proxied by Tailscale
+  Serve to `127.0.0.1:9121`. That local proxy rewrites the Host header and
+  forwards to the stable Hermes backend on `127.0.0.1:9120`.
+- The Hermes Tailscale proxy is owned by launchd job
+  `hermes.tailscale.host-proxy`. It uses the persistent local Hermes session
+  token stored outside GitHub/shared memory; token value must never be copied
+  into docs, QR payloads, screenshots, or transcripts.
+- The Mac fallback broker now supports `MAC_BROKER_STATE_ROOT` so live lease,
+  audit, and queue writes can be moved out of tracked `public/broker` seed
+  files before the next persistent broker restart.
 
 Current Rabbit test instructions:
 
@@ -366,6 +384,21 @@ Passed:
 - Public HTTPS relay health and authenticated broker forwarding verified
 - Hermes context fast-path sync passed local write verification and the Rabbit
   federation validator returned `status=ok`
+- Hermes Desktop Connections Tailscale row test passed:
+  `npm run test:ui -- src/app/settings/connections-settings.test.tsx` with
+  5/5 tests passing.
+- Hermes Desktop typecheck passed: `npm run typecheck`.
+- Hermes Desktop renderer build passed: `npm run build`, refreshing
+  `apps/desktop/dist`.
+- Hermes Tailscale private route validation passed:
+  - `tailscale serve status` shows `:443 -> 127.0.0.1:8794` for the Rabbit
+    relay and `:8443 -> 127.0.0.1:9121` for Hermes.
+  - `GET /api/status` through
+    `https://michaels-macbook-pro.tailcfaeac.ts.net:8443` returned HTTP 200.
+  - `wss://...:8443/api/ws` opened successfully with the current local session
+    token file.
+- Rabbit project validation passed after the runtime-state-root patch:
+  `npm test -- --runInBand`, 26/26 passing.
 
 Local repo status at handoff:
 

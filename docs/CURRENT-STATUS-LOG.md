@@ -1,6 +1,6 @@
 # Rabbit Superuser Management PWA - Current Status Log
 
-Updated: 2026-08-19 10:39 PDT
+Updated: 2026-08-23 17:24 PDT
 
 ## Current Published State
 
@@ -11,6 +11,32 @@ Updated: 2026-08-19 10:39 PDT
 - Branch: `main`
 - Remote: `origin https://github.com/beaudown/rabbit-custom-creations-ui.git`
 - GitHub Pages: public, HTTPS enforced, workflow deployment enabled.
+
+## 2026-08-23 Hermes Gateway Handshake And Broker State Cleanup
+
+- Verified live Tailscale routing:
+  - Rabbit broker relay: `https://michaels-macbook-pro.tailcfaeac.ts.net`
+    proxies to `127.0.0.1:8794`.
+  - Hermes Desktop private route:
+    `https://michaels-macbook-pro.tailcfaeac.ts.net:8443` proxies to
+    `127.0.0.1:9121`, which rewrites Host and forwards to Hermes backend
+    `127.0.0.1:9120`.
+- Verified Hermes `GET /api/status` through `:8443` returns overall `ok`.
+- Verified Rabbit relay `/relay/health` through the root `.ts.net` URL returns
+  `relay_configured_for_https_test`, requires auth, keeps privileged execution
+  disabled, and keeps `releaseReady=false`.
+- Confirmed launchd jobs are running for `rabbit-tailscale-broker`,
+  `rabbit.https.relay`, and `hermes.tailscale.host-proxy`.
+- Added `MAC_BROKER_STATE_ROOT` support to `scripts/mac-local-broker.mjs` so
+  live lease, audit, and queue state can be moved out of tracked
+  `public/broker` seed files.
+- Validation passed after the broker-state patch:
+  `npm test -- --runInBand`, 26/26 passing.
+- Still not performed: no Rabbit device command, root/SU, ADB, reboot, install,
+  flash, persistent system change, token disclosure, or privileged execution.
+- Still blocked before release QR: Hermes saved connection tokens need explicit
+  user-approved update, Rabbit Step 2 must be rerun against the fixed UI, and
+  service/approval/privileged-executor gates remain unvalidated.
 
 ## 2026-08-19 Rabbit Route/Auth Verified
 

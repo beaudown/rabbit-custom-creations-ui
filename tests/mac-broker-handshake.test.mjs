@@ -26,6 +26,7 @@ async function waitForHealth(url) {
 test("mac local broker performs isolated health, lease, and request handshake", async () => {
   const repoRoot = fileURLToPath(new URL("..", import.meta.url));
   const sandbox = await mkdtemp(join(tmpdir(), "rabbit-mac-broker-"));
+  const runtimeRoot = await mkdtemp(join(tmpdir(), "rabbit-mac-broker-state-"));
   await mkdir(join(sandbox, "public"), { recursive: true });
   await cp(join(repoRoot, "public/broker"), join(sandbox, "public/broker"), {
     recursive: true,
@@ -39,6 +40,7 @@ test("mac local broker performs isolated health, lease, and request handshake", 
       ...process.env,
       MAC_BROKER_PORT: String(port),
       MAC_BROKER_ID: "mac-local-test",
+      MAC_BROKER_STATE_ROOT: runtimeRoot,
     },
     stdio: "ignore",
   });
@@ -156,9 +158,11 @@ test("mac local broker performs isolated health, lease, and request handshake", 
     assert.equal(requestBody.privilegedExecutionPerformed, false);
     assert.equal(requestBody.queued.queuePath, "broker/queue/inbox/test-request-001.json");
 
-    const auditLog = await readFile(join(sandbox, "public/broker/audit-log.jsonl"), "utf8");
+    const auditLog = await readFile(join(runtimeRoot, "public/broker/audit-log.jsonl"), "utf8");
     assert.match(auditLog, /test-request-001/);
     assert.match(auditLog, /Mac fallback broker accepted request/);
+    const seedAuditLog = await readFile(join(sandbox, "public/broker/audit-log.jsonl"), "utf8");
+    assert.doesNotMatch(seedAuditLog, /test-request-001/);
 
     const adbDryRunResponse = await fetch(`${baseUrl}/adb/authorize`, {
       method: "POST",
@@ -235,7 +239,7 @@ test("mac local broker performs isolated health, lease, and request handshake", 
 
     const queuedRequest = JSON.parse(
       await readFile(
-        join(sandbox, "public/broker/queue/inbox/test-request-001.json"),
+        join(runtimeRoot, "public/broker/queue/inbox/test-request-001.json"),
         "utf8",
       ),
     );
