@@ -83,7 +83,8 @@
 
       button,
       input,
-      textarea {
+      textarea,
+      .thread {
         border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.1);
@@ -208,6 +209,9 @@
 
       .thread {
         padding: 12px 10px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-tap-highlight-color: rgba(143, 230, 255, 0.22);
       }
 
       .thread.active {
@@ -219,6 +223,10 @@
       }
 
       .conversation-title {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
         margin: -12px -10px 10px;
         padding: 10px;
         background: rgba(7, 9, 13, 0.94);
@@ -237,6 +245,11 @@
       .conversation-title span {
         color: #b8c7d8;
         font-size: 12px;
+      }
+
+      .conversation-title button {
+        min-height: 36px;
+        padding: 8px 10px;
       }
 
       .bubble {
@@ -493,20 +506,19 @@
             return;
           }
           threadsEl.innerHTML = "";
-          threads.forEach(function (thread) {
+          threads.forEach(function (thread, index) {
             var latest = latestMessage(thread);
-            var button = document.createElement("button");
-            button.type = "button";
-            button.className = "thread" + (threadKey(thread) === activeThreadKey ? " active" : "");
-            button.innerHTML = '<span><span class="thread-name"></span><span class="thread-handle"></span><span class="thread-preview"></span></span><span class="thread-time"></span>';
-            button.querySelector(".thread-name").textContent = threadTitle(thread);
-            button.querySelector(".thread-handle").textContent = threadHandle(thread);
-            button.querySelector(".thread-preview").textContent = latest ? (latest.direction === "sent" ? "You: " : "") + (latest.text || (latest.hasAttachments ? "Attachment" : "")) : "No preview";
-            button.querySelector(".thread-time").textContent = latest ? formatTime(latest.at) : "";
-            button.addEventListener("click", function () {
-              selectThread(threadKey(thread));
-            });
-            threadsEl.appendChild(button);
+            var row = document.createElement("div");
+            row.className = "thread" + (threadKey(thread) === activeThreadKey ? " active" : "");
+            row.setAttribute("role", "button");
+            row.setAttribute("tabindex", "0");
+            row.setAttribute("data-thread-index", String(index));
+            row.innerHTML = '<span><span class="thread-name"></span><span class="thread-handle"></span><span class="thread-preview"></span></span><span class="thread-time"></span>';
+            row.querySelector(".thread-name").textContent = threadTitle(thread);
+            row.querySelector(".thread-handle").textContent = threadHandle(thread);
+            row.querySelector(".thread-preview").textContent = latest ? (latest.direction === "sent" ? "You: " : "") + (latest.text || (latest.hasAttachments ? "Attachment" : "")) : "No preview";
+            row.querySelector(".thread-time").textContent = latest ? formatTime(latest.at) : "";
+            threadsEl.appendChild(row);
           });
         }
 
@@ -524,10 +536,16 @@
           conversationEl.innerHTML = "";
           var title = document.createElement("div");
           title.className = "conversation-title";
-          title.innerHTML = "<strong></strong><span></span>";
+          title.innerHTML = '<span><strong></strong><span></span></span><button type="button" class="secondary" data-action="reply">Reply</button>';
           title.querySelector("strong").textContent = threadTitle(thread);
-          title.querySelector("span").textContent = threadHandle(thread);
+          title.querySelector("span span").textContent = threadHandle(thread);
           conversationEl.appendChild(title);
+          title.querySelector('[data-action="reply"]').addEventListener("click", function () {
+            recipient.value = thread.contactMatchedHandle || thread.chatIdentifier || "";
+            selectedThread.textContent = threadTitle(thread);
+            document.getElementById("composer").scrollIntoView({ behavior: "smooth", block: "start" });
+            message.focus();
+          });
           if (!messages.length) {
             var empty = document.createElement("p");
             empty.className = "empty";
@@ -558,6 +576,18 @@
           })[0];
           renderThreads();
           renderConversation(thread);
+          if (thread && conversationEl.scrollIntoView) {
+            conversationEl.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        }
+
+        function selectThreadAtIndex(indexValue) {
+          var index = Number(indexValue);
+          if (!Number.isFinite(index) || !threads[index]) {
+            setStatus("blocked", "thread selection unavailable");
+            return;
+          }
+          selectThread(threadKey(threads[index]));
         }
 
         function refreshThreads() {
@@ -658,6 +688,29 @@
         });
         document.querySelector('[data-action="new"]').addEventListener("click", startNewMessage);
         document.querySelector('[data-action="send"]').addEventListener("click", sendMessage);
+        threadsEl.addEventListener("click", function (event) {
+          var row = event.target.closest ? event.target.closest("[data-thread-index]") : null;
+          if (row) {
+            selectThreadAtIndex(row.getAttribute("data-thread-index"));
+          }
+        });
+        threadsEl.addEventListener("touchend", function (event) {
+          var row = event.target.closest ? event.target.closest("[data-thread-index]") : null;
+          if (row) {
+            event.preventDefault();
+            selectThreadAtIndex(row.getAttribute("data-thread-index"));
+          }
+        });
+        threadsEl.addEventListener("keydown", function (event) {
+          if (event.key !== "Enter" && event.key !== " ") {
+            return;
+          }
+          var row = event.target.closest ? event.target.closest("[data-thread-index]") : null;
+          if (row) {
+            event.preventDefault();
+            selectThreadAtIndex(row.getAttribute("data-thread-index"));
+          }
+        });
         Array.prototype.forEach.call(document.querySelectorAll("[data-scroll-target]"), function (button) {
           button.addEventListener("click", function () {
             var target = document.getElementById(button.getAttribute("data-scroll-target"));

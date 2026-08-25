@@ -281,6 +281,10 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.match(actionPage, /contactName/);
   assert.match(actionPage, /contactMatchedHandle/);
   assert.match(actionPage, /conversation-title/);
+  assert.match(actionPage, /data-thread-index/);
+  assert.match(actionPage, /selectThreadAtIndex/);
+  assert.match(actionPage, /touchend/);
+  assert.match(actionPage, /data-action="reply"/);
   assert.match(actionPage, /setBusy/);
   assert.match(actionPage, /overflow-y: auto/);
   assert.match(actionPage, /display: block/);
