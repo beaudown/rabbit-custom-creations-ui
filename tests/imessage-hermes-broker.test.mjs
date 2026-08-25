@@ -269,7 +269,7 @@ CREATE TABLE message (
   cache_has_attachments INTEGER DEFAULT 0
 );
 CREATE TABLE chat_message_join (chat_id INTEGER, message_id INTEGER, message_date INTEGER);
-INSERT INTO chat VALUES (1, 'chat-guid-1', '+15555550100', 'Test Thread', 'iMessage');
+INSERT INTO chat VALUES (1, 'chat-guid-1', 'iMessage;-;chat-guid-1', 'Test Thread', 'iMessage');
 INSERT INTO handle VALUES (1, '+15555550100');
 INSERT INTO message VALUES (1, 'recv-old', 'received old', 1, 700000000000000000, 0, 0, 0, 0, 1, 0);
 INSERT INTO message VALUES (2, 'recv-new', 'received new', 1, 700000001000000000, 0, 0, 0, 0, 1, 0);
@@ -279,6 +279,8 @@ INSERT INTO chat_message_join VALUES (1, 1, 700000000000000000);
 INSERT INTO chat_message_join VALUES (1, 2, 700000001000000000);
 INSERT INTO chat_message_join VALUES (1, 3, 700000002000000000);
 INSERT INTO chat_message_join VALUES (1, 4, 700000003000000000);
+CREATE TABLE chat_handle_join (chat_id INTEGER, handle_id INTEGER);
+INSERT INTO chat_handle_join VALUES (1, 1);
 `]);
 
   await execFileAsync("sqlite3", [contactsDbPath, `

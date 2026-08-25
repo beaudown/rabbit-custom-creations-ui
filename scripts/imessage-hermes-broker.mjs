@@ -342,6 +342,7 @@ async function enrichThreadsWithContacts(threads) {
   for (const thread of threads) {
     const candidates = [
       thread.chatIdentifier,
+      ...(thread.participantHandles || []),
       ...(thread.received || []).map((message) => message.handle),
     ];
     const match = candidates
@@ -375,6 +376,12 @@ WITH recent_chats AS (
     c.chat_identifier,
     c.display_name,
     c.service_name,
+    (
+      SELECT GROUP_CONCAT(h2.id, char(31))
+      FROM chat_handle_join chj
+      JOIN handle h2 ON h2.ROWID = chj.handle_id
+      WHERE chj.chat_id = c.ROWID
+    ) AS participant_handles,
     MAX(m.date) AS last_date
   FROM chat c
   JOIN chat_message_join cmj ON cmj.chat_id = c.ROWID
@@ -392,6 +399,7 @@ ranked_messages AS (
     rc.chat_identifier,
     rc.display_name,
     rc.service_name,
+    rc.participant_handles,
     rc.last_date,
     m.ROWID AS message_rowid,
     m.guid AS message_guid,
@@ -432,6 +440,7 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
       const thread = {
         chatGuid: row.chat_guid,
         chatIdentifier: row.chat_identifier,
+        participantHandles: String(row.participant_handles || "").split("\u001f").filter(Boolean),
         displayName: row.display_name || row.chat_identifier || row.chat_guid,
         serviceName: row.service_name,
         lastMessageAt: normalizeAppleMessageDate(row.last_date),
