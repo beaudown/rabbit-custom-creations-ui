@@ -219,6 +219,19 @@ test("hosted QR launch sheet exposes Rabbit-format iMessage Creation QR", async 
   assert.doesNotMatch(qrSheet, /Route test URL - not a Creation QR/);
 });
 
+test("iMessage Creation UI hides internal thread ids and keeps bubbles readable", async () => {
+  const html = await readFile(new URL("../public/imessage-broker-actions.html", import.meta.url), "utf8");
+
+  assert.match(html, /function isLikelyHumanHandle/);
+  assert.match(html, /function visibleHandle/);
+  assert.match(html, /function replyHandle/);
+  assert.match(html, /function messageBody/);
+  assert.match(html, /Message text unavailable/);
+  assert.match(html, /participantHandles\.map\(visibleHandle\)/);
+  assert.match(html, /row\.querySelector\("\.thread-preview"\)\.textContent = latest \? \(latest\.direction === "sent" \? "You: " : ""\) \+ messageBody\(latest\)/);
+  assert.doesNotMatch(html, /thread\.chatIdentifier \|\| ""/);
+});
+
 test("hosted app exposes installable PWA metadata and offline cache", async () => {
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const manifest = JSON.parse(

@@ -259,6 +259,7 @@ CREATE TABLE message (
   ROWID INTEGER PRIMARY KEY,
   guid TEXT,
   text TEXT,
+  attributedBody BLOB,
   handle_id INTEGER,
   date INTEGER,
   is_from_me INTEGER,
@@ -271,10 +272,10 @@ CREATE TABLE message (
 CREATE TABLE chat_message_join (chat_id INTEGER, message_id INTEGER, message_date INTEGER);
 INSERT INTO chat VALUES (1, 'chat-guid-1', 'iMessage;-;chat-guid-1', 'Test Thread', 'iMessage');
 INSERT INTO handle VALUES (1, '+15555550100');
-INSERT INTO message VALUES (1, 'recv-old', 'received old', 1, 700000000000000000, 0, 0, 0, 0, 1, 0);
-INSERT INTO message VALUES (2, 'recv-new', 'received new', 1, 700000001000000000, 0, 0, 0, 0, 1, 0);
-INSERT INTO message VALUES (3, 'sent-old', 'sent old', 0, 700000002000000000, 1, 0, 0, 1, 1, 0);
-INSERT INTO message VALUES (4, 'sent-new', 'sent new', 0, 700000003000000000, 1, 0, 0, 1, 1, 0);
+INSERT INTO message VALUES (1, 'recv-old', 'received old', NULL, 1, 700000000000000000, 0, 0, 0, 0, 1, 0);
+INSERT INTO message VALUES (2, 'recv-new', NULL, CAST('received new from attributed body' AS BLOB), 1, 700000001000000000, 0, 0, 0, 0, 1, 0);
+INSERT INTO message VALUES (3, 'sent-old', 'sent old', NULL, 0, 700000002000000000, 1, 0, 0, 1, 1, 0);
+INSERT INTO message VALUES (4, 'sent-new', 'sent new', NULL, 0, 700000003000000000, 1, 0, 0, 1, 1, 0);
 INSERT INTO chat_message_join VALUES (1, 1, 700000000000000000);
 INSERT INTO chat_message_join VALUES (1, 2, 700000001000000000);
 INSERT INTO chat_message_join VALUES (1, 3, 700000002000000000);
@@ -350,7 +351,10 @@ INSERT INTO ZABCDPHONENUMBER VALUES (1, NULL, '+15555550100', '_$!<Mobile>!$_', 
     assert.equal(body.threads[0].contactMatchedHandle, "+15555550100");
     assert.equal(body.threads[0].received.length, 1);
     assert.equal(body.threads[0].sent.length, 1);
-    assert.equal(body.threads[0].received[0].text, "received new");
+    assert.equal(body.threads[0].chatIdentifier, "iMessage;-;chat-guid-1");
+    assert.equal(body.threads[0].participantHandles[0], "+15555550100");
+    assert.equal(body.threads[0].received[0].text, "received new from attributed body");
+    assert.equal(body.threads[0].received[0].textAvailable, true);
     assert.equal(body.threads[0].sent[0].text, "sent new");
   } finally {
     child.kill("SIGTERM");

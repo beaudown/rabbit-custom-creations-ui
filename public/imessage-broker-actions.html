@@ -440,14 +440,59 @@
           return thread.contactName || thread.displayName || thread.chatIdentifier || "Conversation";
         }
 
+        function isLikelyPhoneHandle(value) {
+          var digits = text(value).replace(/\D/g, "");
+          return digits.length >= 7 && digits.length <= 15;
+        }
+
+        function isLikelyEmailHandle(value) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text(value).trim());
+        }
+
+        function isLikelyHumanHandle(value) {
+          return isLikelyEmailHandle(value) || isLikelyPhoneHandle(value);
+        }
+
+        function visibleHandle(value) {
+          return isLikelyHumanHandle(value) ? text(value).trim() : "";
+        }
+
         function threadHandle(thread) {
-          if (thread.contactMatchedHandle && thread.contactMatchedHandle !== threadTitle(thread)) {
-            return thread.contactMatchedHandle;
+          var title = threadTitle(thread);
+          var contactHandle = visibleHandle(thread.contactMatchedHandle);
+          if (contactHandle && contactHandle !== title) {
+            return contactHandle;
           }
-          if (thread.chatIdentifier && thread.chatIdentifier !== threadTitle(thread)) {
-            return thread.chatIdentifier;
+          var participantHandles = Array.isArray(thread.participantHandles) ? thread.participantHandles : [];
+          for (var index = 0; index < participantHandles.length; index += 1) {
+            var participantHandle = visibleHandle(participantHandles[index]);
+            if (participantHandle && participantHandle !== title) {
+              return participantHandle;
+            }
+          }
+          var chatHandle = visibleHandle(thread.chatIdentifier);
+          if (chatHandle && chatHandle !== title) {
+            return chatHandle;
           }
           return "";
+        }
+
+        function replyHandle(thread) {
+          return visibleHandle(thread.contactMatchedHandle) ||
+            visibleHandle(thread.chatIdentifier) ||
+            (Array.isArray(thread.participantHandles) ? thread.participantHandles.map(visibleHandle).filter(Boolean)[0] : "") ||
+            "";
+        }
+
+        function messageBody(item) {
+          var body = text(item && item.text).trim();
+          if (body) {
+            return body;
+          }
+          if (item && item.hasAttachments) {
+            return "Attachment";
+          }
+          return "Message text unavailable";
         }
 
         function requestJson(path, mode, body) {
@@ -516,7 +561,7 @@
             row.innerHTML = '<span><span class="thread-name"></span><span class="thread-handle"></span><span class="thread-preview"></span></span><span class="thread-time"></span>';
             row.querySelector(".thread-name").textContent = threadTitle(thread);
             row.querySelector(".thread-handle").textContent = threadHandle(thread);
-            row.querySelector(".thread-preview").textContent = latest ? (latest.direction === "sent" ? "You: " : "") + (latest.text || (latest.hasAttachments ? "Attachment" : "")) : "No preview";
+            row.querySelector(".thread-preview").textContent = latest ? (latest.direction === "sent" ? "You: " : "") + messageBody(latest) : "No preview";
             row.querySelector(".thread-time").textContent = latest ? formatTime(latest.at) : "";
             threadsEl.appendChild(row);
           });
@@ -541,7 +586,7 @@
           title.querySelector("span span").textContent = threadHandle(thread);
           conversationEl.appendChild(title);
           title.querySelector('[data-action="reply"]').addEventListener("click", function () {
-            recipient.value = thread.contactMatchedHandle || thread.chatIdentifier || "";
+            recipient.value = replyHandle(thread);
             selectedThread.textContent = threadTitle(thread);
             document.getElementById("composer").scrollIntoView({ behavior: "smooth", block: "start" });
             message.focus();
@@ -555,7 +600,7 @@
           messages.forEach(function (item) {
             var bubble = document.createElement("div");
             bubble.className = "bubble " + (item.direction === "sent" ? "sent" : "received");
-            bubble.textContent = item.text || (item.hasAttachments ? "Attachment" : "");
+            bubble.textContent = messageBody(item);
             var meta = document.createElement("span");
             meta.className = "bubble-meta";
             meta.textContent = formatTime(item.at);
@@ -563,7 +608,7 @@
             conversationEl.appendChild(bubble);
           });
           selectedThread.textContent = threadTitle(thread);
-          recipient.value = thread.contactMatchedHandle || thread.chatIdentifier || "";
+          recipient.value = replyHandle(thread);
           setTimeout(function () {
             conversationEl.scrollTop = conversationEl.scrollHeight;
           }, 0);

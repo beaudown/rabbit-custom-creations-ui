@@ -283,6 +283,70 @@ function normalizeHandleLookupKey(value) {
   return digits || handle;
 }
 
+function isLikelyPhoneHandle(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length >= 7 && digits.length <= 15;
+}
+
+function isLikelyEmailHandle(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
+
+function isLikelyHumanHandle(value) {
+  return isLikelyEmailHandle(value) || isLikelyPhoneHandle(value);
+}
+
+function isTechnicalChatIdentifier(value) {
+  const text = String(value || "");
+  return (
+    !text ||
+    text.includes(";-;") ||
+    text.startsWith("chat") ||
+    text.startsWith("iMessage;") ||
+    text.startsWith("SMS;") ||
+    /^[A-F0-9-]{24,}$/i.test(text)
+  );
+}
+
+function fallbackThreadDisplayName(thread) {
+  if (thread.rawDisplayName && !isTechnicalChatIdentifier(thread.rawDisplayName)) {
+    return thread.rawDisplayName;
+  }
+  const humanParticipants = (thread.participantHandles || []).filter(isLikelyHumanHandle);
+  if (humanParticipants.length === 1) {
+    return humanParticipants[0];
+  }
+  if (humanParticipants.length > 1) {
+    return "Group Chat";
+  }
+  if (isLikelyHumanHandle(thread.chatIdentifier)) {
+    return thread.chatIdentifier;
+  }
+  return "Conversation";
+}
+
+function decodeAttributedBodyHex(value) {
+  const hex = String(value || "");
+  if (!hex) {
+    return "";
+  }
+  let raw = "";
+  try {
+    raw = Buffer.from(hex, "hex").toString("utf8");
+  } catch {
+    return "";
+  }
+  const candidates = raw
+    .replace(/\u0000/g, " ")
+    .split(/[^\x20-\x7e\n\r\t]+/)
+    .map((part) => part.replace(/\s+/g, " ").trim())
+    .filter((part) => part.length >= 2)
+    .filter((part) => !/^(NSObject|NSString|NSDictionary|NSAttributedString|NSNumber|NSURL|__kIM|kIM|Apple|__NS)/.test(part))
+    .filter((part) => !/^[A-Za-z0-9_.$:-]{24,}$/.test(part));
+  return candidates
+    .sort((a, b) => b.length - a.length)[0] || "";
+}
+
 async function contactNamesByHandle() {
   const sql = `
 WITH handles AS (
@@ -345,18 +409,25 @@ async function enrichThreadsWithContacts(threads) {
       ...(thread.participantHandles || []),
       ...(thread.received || []).map((message) => message.handle),
     ];
-    const match = candidates
+    const matches = candidates
       .map((candidate) => lookup.get(normalizeHandleLookupKey(candidate)))
-      .find(Boolean);
-    if (!match) {
+      .filter(Boolean)
+      .filter((match, index, all) => all.findIndex((item) => item.displayName === match.displayName) === index);
+    if (!matches.length) {
+      thread.displayName = fallbackThreadDisplayName(thread);
       continue;
     }
     matchedThreadCount += 1;
+    const match = matches[0];
+    thread.contactNames = matches.map((item) => item.displayName);
     thread.contactName = match.displayName;
     thread.contactMatchedHandle = match.handle;
     thread.contactHandleType = match.handleType;
     thread.contactHandleLabel = match.handleLabel;
-    thread.displayName = match.displayName;
+    thread.displayName =
+      matches.length === 1
+        ? match.displayName
+        : `${matches.slice(0, 3).map((item) => item.displayName).join(", ")}${matches.length > 3 ? ` +${matches.length - 3}` : ""}`;
   }
 
   return {
@@ -404,6 +475,7 @@ ranked_messages AS (
     m.ROWID AS message_rowid,
     m.guid AS message_guid,
     m.text,
+    hex(m.attributedBody) AS attributed_body_hex,
     m.date,
     m.is_from_me,
     m.is_sent,
@@ -441,6 +513,7 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
         chatGuid: row.chat_guid,
         chatIdentifier: row.chat_identifier,
         participantHandles: String(row.participant_handles || "").split("\u001f").filter(Boolean),
+        rawDisplayName: row.display_name || null,
         displayName: row.display_name || row.chat_identifier || row.chat_guid,
         serviceName: row.service_name,
         lastMessageAt: normalizeAppleMessageDate(row.last_date),
@@ -452,14 +525,15 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
       byChat.set(chatKey, thread);
       threads.push(thread);
     }
+    const decodedText = row.text || decodeAttributedBodyHex(row.attributed_body_hex);
     const message = {
       guid: row.message_guid,
       rowId: row.message_rowid,
       at: normalizeAppleMessageDate(row.date),
       direction: Number(row.is_from_me) === 1 ? "sent" : "received",
       handle: Number(row.is_from_me) === 1 ? "me" : row.handle,
-      text: row.text || "",
-      textAvailable: Boolean(row.text),
+      text: decodedText || "",
+      textAvailable: Boolean(decodedText),
       isRead: Boolean(row.is_read),
       isSent: Boolean(row.is_sent),
       hasAttachments: Boolean(row.cache_has_attachments),
