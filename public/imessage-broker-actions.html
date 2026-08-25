@@ -218,12 +218,11 @@
         </div>
 
         <div class="row">
-          <strong>Required request headers</strong>
+          <strong>Required request gate</strong>
           <code>x-hermes-verify: imessage.read</code>
           <code>x-hermes-verify: imessage.send</code>
-          <code>x-rabbit-creation-id: baked into this Creation</code>
-          <code>x-rabbit-creation-gate: baked into this Creation</code>
-          <code>content-type: application/json</code>
+          <code>Creation gate: baked into this Creation query</code>
+          <code>POST body: JSON sent as text/plain for Rabbit WebView compatibility</code>
         </div>
 
         <div class="row">
@@ -277,29 +276,36 @@
         }
 
         function requestJson(path, mode, body) {
+          var verify = mode === "POST" ? "imessage.send" : "imessage.read";
+          var gatedPath = path + (path.indexOf("?") === -1 ? "?" : "&") +
+            "hv=" + encodeURIComponent(verify) +
+            "&cid=" + encodeURIComponent(creationGateId) +
+            "&cg=" + encodeURIComponent(creationGateKey);
           var controller = window.AbortController ? new AbortController() : null;
-          var timeout = setTimeout(function () {
-            if (controller) {
-              controller.abort();
-            }
-          }, 12000);
           var options = {
-            method: mode || "GET",
-            headers: {
-              "x-hermes-verify": mode === "POST" ? "imessage.send" : "imessage.read",
-              "x-rabbit-creation-id": creationGateId,
-              "x-rabbit-creation-gate": creationGateKey
-            }
+            method: mode || "GET"
           };
           if (controller) {
             options.signal = controller.signal;
           }
           if (mode === "POST") {
-            options.headers["content-type"] = "application/json";
+            options.headers = { "content-type": "text/plain" };
             options.body = JSON.stringify(body || {});
           }
           print("Requesting " + path + " ...");
-          return fetch(hermesUrl + path, options).then(function (response) {
+          var timeoutPromise = new Promise(function (resolve) {
+            setTimeout(function () {
+              if (controller) {
+                controller.abort();
+              }
+              resolve({
+                ok: false,
+                error: "request_timeout",
+                endpoint: hermesUrl + path
+              });
+            }, 12000);
+          });
+          var fetchPromise = fetch(hermesUrl + gatedPath, options).then(function (response) {
             return response.text().then(function (text) {
               var payload;
               try {
@@ -319,10 +325,8 @@
               message: error.message,
               endpoint: hermesUrl + path
             };
-          }).then(function (payload) {
-            clearTimeout(timeout);
-            return payload;
           });
+          return Promise.race([fetchPromise, timeoutPromise]);
         }
 
         function run(action) {

@@ -129,6 +129,25 @@ function normalizeImessagePath(pathname, publicFunnel) {
   return pathname;
 }
 
+function queryValue(requestUrl, ...names) {
+  for (const name of names) {
+    const value = requestUrl.searchParams.get(name);
+    if (value) {
+      return value;
+    }
+  }
+  return "";
+}
+
+function sanitizedBrokerPath(path, rawUrl) {
+  const sourceUrl = new URL(rawUrl || "/", "https://hermes.tailnet.local");
+  for (const name of ["hv", "hermesVerify", "cid", "creationId", "cg", "creationGate"]) {
+    sourceUrl.searchParams.delete(name);
+  }
+  const query = sourceUrl.searchParams.toString();
+  return query ? `${path}?${query}` : path;
+}
+
 function hasRealSendBody(body) {
   try {
     const payload = JSON.parse(body.toString("utf8") || "{}");
@@ -168,7 +187,7 @@ function redactThreadPayload(buffer) {
 }
 
 function forwardImessageRequest(clientReq, clientRes, path, body, options = {}) {
-  const brokerPath = `${path}${clientReq.url.includes("?") ? `?${clientReq.url.split("?").slice(1).join("?")}` : ""}`;
+  const brokerPath = sanitizedBrokerPath(path, clientReq.url);
   const token = readBrokerToken();
   if (!token) {
     writeJson(clientRes, 503, {
@@ -268,7 +287,8 @@ async function maybeHandleImessageProxy(clientReq, clientRes) {
     return true;
   }
 
-  if (clientReq.headers["x-hermes-verify"] !== requiredVerify) {
+  const providedVerify = clientReq.headers["x-hermes-verify"] || queryValue(requestUrl, "hv", "hermesVerify");
+  if (providedVerify !== requiredVerify) {
     writeJson(clientRes, 403, {
       ok: false,
       role: "hermes-tailscale-host-proxy",
@@ -280,8 +300,8 @@ async function maybeHandleImessageProxy(clientReq, clientRes) {
 
   if (
     publicFunnel &&
-    (!safeEquals(clientReq.headers["x-rabbit-creation-id"], creationGateId) ||
-      !safeEquals(clientReq.headers["x-rabbit-creation-gate"], creationGateKey))
+    (!safeEquals(clientReq.headers["x-rabbit-creation-id"] || queryValue(requestUrl, "cid", "creationId"), creationGateId) ||
+      !safeEquals(clientReq.headers["x-rabbit-creation-gate"] || queryValue(requestUrl, "cg", "creationGate"), creationGateKey))
   ) {
     writeJson(clientRes, 403, {
       ok: false,
