@@ -246,6 +246,7 @@ test("iMessage Hermes broker reads recent Messages threads with sent and receive
   const repoRoot = fileURLToPath(new URL("..", import.meta.url));
   const stateRoot = await mkdtemp(join(tmpdir(), "imessage-broker-db-state-"));
   const dbPath = join(stateRoot, "chat.db");
+  const contactsDbPath = join(stateRoot, "AddressBook-v22.abcddb");
   const tokenPath = join(stateRoot, "imessage-token.txt");
   const token = "thread-db-token";
   await writeFile(tokenPath, `${token}\n`);
@@ -280,6 +281,34 @@ INSERT INTO chat_message_join VALUES (1, 3, 700000002000000000);
 INSERT INTO chat_message_join VALUES (1, 4, 700000003000000000);
 `]);
 
+  await execFileAsync("sqlite3", [contactsDbPath, `
+CREATE TABLE ZABCDRECORD (
+  Z_PK INTEGER PRIMARY KEY,
+  ZISALL INTEGER DEFAULT 0,
+  ZFIRSTNAME VARCHAR,
+  ZLASTNAME VARCHAR,
+  ZORGANIZATION VARCHAR,
+  ZNAME VARCHAR,
+  ZNICKNAME VARCHAR
+);
+CREATE TABLE ZABCDPHONENUMBER (
+  ZOWNER INTEGER,
+  Z22_OWNER INTEGER,
+  ZFULLNUMBER VARCHAR,
+  ZLABEL VARCHAR,
+  ZISPRIMARY INTEGER
+);
+CREATE TABLE ZABCDEMAILADDRESS (
+  ZOWNER INTEGER,
+  Z22_OWNER INTEGER,
+  ZADDRESS VARCHAR,
+  ZLABEL VARCHAR,
+  ZISPRIMARY INTEGER
+);
+INSERT INTO ZABCDRECORD VALUES (1, 0, 'Jason', 'Fields', NULL, NULL, NULL);
+INSERT INTO ZABCDPHONENUMBER VALUES (1, NULL, '+15555550100', '_$!<Mobile>!$_', 1);
+`]);
+
   const child = spawn(process.execPath, [join(repoRoot, "scripts/imessage-hermes-broker.mjs")], {
     cwd: repoRoot,
     env: {
@@ -289,6 +318,7 @@ INSERT INTO chat_message_join VALUES (1, 4, 700000003000000000);
       IMESSAGE_BROKER_TOKEN_FILE: tokenPath,
       IMESSAGE_BROKER_STATE_ROOT: stateRoot,
       IMESSAGE_BROKER_MESSAGES_DB: dbPath,
+      IMESSAGE_BROKER_CONTACTS_DB: contactsDbPath,
       HERMES_IMESSAGE_UPSTREAM: "",
     },
     stdio: "ignore",
@@ -310,8 +340,12 @@ INSERT INTO chat_message_join VALUES (1, 4, 700000003000000000);
     assert.equal(body.source, "macos_messages_database_read_only");
     assert.equal(body.threadLimit, 15);
     assert.equal(body.perDirection, 1);
+    assert.equal(body.contacts.status, "ok");
+    assert.equal(body.contacts.matchedThreadCount, 1);
     assert.equal(body.threads.length, 1);
-    assert.equal(body.threads[0].displayName, "Test Thread");
+    assert.equal(body.threads[0].displayName, "Jason Fields");
+    assert.equal(body.threads[0].contactName, "Jason Fields");
+    assert.equal(body.threads[0].contactMatchedHandle, "+15555550100");
     assert.equal(body.threads[0].received.length, 1);
     assert.equal(body.threads[0].sent.length, 1);
     assert.equal(body.threads[0].received[0].text, "received new");
@@ -343,19 +377,21 @@ CREATE TABLE ZABCDRECORD (
 );
 CREATE TABLE ZABCDPHONENUMBER (
   ZOWNER INTEGER,
+  Z22_OWNER INTEGER,
   ZFULLNUMBER VARCHAR,
   ZLABEL VARCHAR,
   ZISPRIMARY INTEGER
 );
 CREATE TABLE ZABCDEMAILADDRESS (
   ZOWNER INTEGER,
+  Z22_OWNER INTEGER,
   ZADDRESS VARCHAR,
   ZLABEL VARCHAR,
   ZISPRIMARY INTEGER
 );
 INSERT INTO ZABCDRECORD VALUES (1, 0, 'Jason', 'Fields', NULL, NULL, NULL);
-INSERT INTO ZABCDPHONENUMBER VALUES (1, '+15555550123', '_$!<Mobile>!$_', 1);
-INSERT INTO ZABCDEMAILADDRESS VALUES (1, 'jason@example.com', '_$!<Home>!$_', 0);
+INSERT INTO ZABCDPHONENUMBER VALUES (1, NULL, '+15555550123', '_$!<Mobile>!$_', 1);
+INSERT INTO ZABCDEMAILADDRESS VALUES (1, NULL, 'jason@example.com', '_$!<Home>!$_', 0);
 `]);
 
   const child = spawn(process.execPath, [join(repoRoot, "scripts/imessage-hermes-broker.mjs")], {

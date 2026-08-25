@@ -250,6 +250,9 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.doesNotMatch(page, /A1 Broker Test/);
   assert.match(actionPage, /<h1>iMessage<\/h1>/);
   assert.match(actionPage, /Refresh messages/);
+  assert.match(actionPage, /Message actions/);
+  assert.match(actionPage, /New/);
+  assert.match(actionPage, /Contacts/);
   assert.match(actionPage, /Search contacts or enter phone\/email/);
   assert.match(actionPage, /Contact suggestions/);
   assert.match(actionPage, /Tap refresh to load recent conversations/);
@@ -258,6 +261,7 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.match(actionPage, /data-action="send"/);
   assert.match(actionPage, /data-action="refresh"/);
   assert.match(actionPage, /data-action="contacts"/);
+  assert.match(actionPage, /data-action="new"/);
   assert.match(actionPage, /Status: ready/);
   assert.match(actionPage, /Last request: none/);
   assert.match(actionPage, /setStatus\("requesting"/);
@@ -268,6 +272,13 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.match(actionPage, /\/imessage\/send/);
   assert.match(actionPage, /refreshThreads\(\)/);
   assert.match(actionPage, /renderConversation/);
+  assert.match(actionPage, /threadTitle/);
+  assert.match(actionPage, /contactName/);
+  assert.match(actionPage, /contactMatchedHandle/);
+  assert.match(actionPage, /conversation-title/);
+  assert.match(actionPage, /setBusy/);
+  assert.match(actionPage, /querySelectorAll/);
+  assert.match(actionPage, /data-action="refresh"/);
   assert.match(actionPage, /hv=/);
   assert.match(actionPage, /cid=/);
   assert.match(actionPage, /cg=/);

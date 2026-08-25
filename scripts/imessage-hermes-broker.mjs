@@ -204,11 +204,11 @@ async function searchContacts({ q = "", limit = 40 } = {}) {
     : "";
   const sql = `
 WITH handles AS (
-  SELECT ZOWNER AS owner, ZFULLNUMBER AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'phone' AS kind
+  SELECT COALESCE(ZOWNER, Z22_OWNER) AS owner, ZFULLNUMBER AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'phone' AS kind
   FROM ZABCDPHONENUMBER
   WHERE ZFULLNUMBER IS NOT NULL AND TRIM(ZFULLNUMBER) != ''
   UNION ALL
-  SELECT ZOWNER AS owner, ZADDRESS AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'email' AS kind
+  SELECT COALESCE(ZOWNER, Z22_OWNER) AS owner, ZADDRESS AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'email' AS kind
   FROM ZABCDEMAILADDRESS
   WHERE ZADDRESS IS NOT NULL AND TRIM(ZADDRESS) != ''
 )
@@ -265,6 +265,102 @@ LIMIT ${safeLimit * 4};
     query,
     limit: safeLimit,
     contacts: contacts.slice(0, safeLimit),
+  };
+}
+
+function normalizeHandleLookupKey(value) {
+  const handle = String(value || "").trim().toLowerCase();
+  if (!handle) {
+    return "";
+  }
+  if (handle.includes("@")) {
+    return handle;
+  }
+  const digits = handle.replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return digits.slice(1);
+  }
+  return digits || handle;
+}
+
+async function contactNamesByHandle() {
+  const sql = `
+WITH handles AS (
+  SELECT COALESCE(ZOWNER, Z22_OWNER) AS owner, ZFULLNUMBER AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'phone' AS kind
+  FROM ZABCDPHONENUMBER
+  WHERE ZFULLNUMBER IS NOT NULL AND TRIM(ZFULLNUMBER) != ''
+  UNION ALL
+  SELECT COALESCE(ZOWNER, Z22_OWNER) AS owner, ZADDRESS AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'email' AS kind
+  FROM ZABCDEMAILADDRESS
+  WHERE ZADDRESS IS NOT NULL AND TRIM(ZADDRESS) != ''
+)
+SELECT
+  COALESCE(NULLIF(TRIM(COALESCE(r.ZFIRSTNAME, '') || ' ' || COALESCE(r.ZLASTNAME, '')), ''), r.ZORGANIZATION, r.ZNAME, r.ZNICKNAME, h.value) AS display_name,
+  h.kind,
+  h.value,
+  h.label,
+  h.is_primary
+FROM ZABCDRECORD r
+JOIN handles h ON h.owner = r.Z_PK
+WHERE COALESCE(r.ZISALL, 0) = 0
+  AND h.value IS NOT NULL;
+`;
+  const { stdout } = await execFileAsync("sqlite3", ["-readonly", "-json", contactsDbPath, sql], {
+    maxBuffer: 1024 * 1024 * 20,
+  });
+  const rows = stdout.trim() ? JSON.parse(stdout) : [];
+  const lookup = new Map();
+  for (const row of rows) {
+    const key = normalizeHandleLookupKey(row.value);
+    if (!key || lookup.has(key)) {
+      continue;
+    }
+    lookup.set(key, {
+      displayName: row.display_name || row.value,
+      handle: row.value,
+      handleType: row.kind,
+      handleLabel: normalizeContactLabel(row.label),
+      primary: Boolean(row.is_primary),
+    });
+  }
+  return lookup;
+}
+
+async function enrichThreadsWithContacts(threads) {
+  let lookup;
+  try {
+    lookup = await contactNamesByHandle();
+  } catch (error) {
+    return {
+      status: "unavailable",
+      error: error instanceof Error ? error.message : "Unable to read Contacts database.",
+      matchedThreadCount: 0,
+    };
+  }
+
+  let matchedThreadCount = 0;
+  for (const thread of threads) {
+    const candidates = [
+      thread.chatIdentifier,
+      ...(thread.received || []).map((message) => message.handle),
+    ];
+    const match = candidates
+      .map((candidate) => lookup.get(normalizeHandleLookupKey(candidate)))
+      .find(Boolean);
+    if (!match) {
+      continue;
+    }
+    matchedThreadCount += 1;
+    thread.contactName = match.displayName;
+    thread.contactMatchedHandle = match.handle;
+    thread.contactHandleType = match.handleType;
+    thread.contactHandleLabel = match.handleLabel;
+    thread.displayName = match.displayName;
+  }
+
+  return {
+    status: "ok",
+    matchedThreadCount,
   };
 }
 
@@ -361,11 +457,13 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
     };
     byChat.get(chatKey)[message.direction].push(message);
   }
+  const contacts = await enrichThreadsWithContacts(threads);
 
   return {
     databasePath: messagesDbPath,
     threadLimit: safeThreadLimit,
     perDirection: safePerDirection,
+    contacts,
     threads,
   };
 }

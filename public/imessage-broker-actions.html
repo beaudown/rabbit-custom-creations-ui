@@ -48,11 +48,17 @@
       }
 
       .top-row,
-      .composer-actions {
+      .composer-actions,
+      .toolbar {
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 8px;
         align-items: center;
+      }
+
+      .toolbar {
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 10px;
       }
 
       .status-strip {
@@ -105,6 +111,14 @@
         background: rgba(143, 230, 255, 0.14);
       }
 
+      button.ghost {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+      }
+
       input,
       textarea {
         width: 100%;
@@ -155,7 +169,8 @@
       }
 
       .contact-name,
-      .thread-name {
+      .thread-name,
+      .composer-target {
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -166,7 +181,8 @@
       .contact-handle,
       .thread-preview,
       .thread-time,
-      .empty {
+      .empty,
+      .thread-handle {
         color: #b8c7d8;
         font-size: 12px;
       }
@@ -205,6 +221,30 @@
 
       .conversation {
         padding: 12px 10px 96px;
+      }
+
+      .conversation-title {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        margin: -12px -10px 10px;
+        padding: 10px;
+        background: rgba(7, 9, 13, 0.94);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .conversation-title strong,
+      .conversation-title span {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .conversation-title span {
+        color: #b8c7d8;
+        font-size: 12px;
       }
 
       .bubble {
@@ -253,6 +293,10 @@
         line-height: 1.4;
       }
 
+      .error {
+        color: #ffd2c2;
+      }
+
       .sr-only {
         position: absolute;
         width: 1px;
@@ -289,6 +333,11 @@
           <h1>iMessage</h1>
           <button type="button" class="icon" data-action="refresh" title="Refresh messages" aria-label="Refresh messages">↻</button>
         </div>
+        <div class="toolbar" aria-label="Message actions">
+          <button type="button" class="secondary" data-action="refresh">Refresh</button>
+          <button type="button" class="ghost" data-action="new">New</button>
+          <button type="button" class="ghost" data-action="contacts">Contacts</button>
+        </div>
         <div class="status-strip" aria-live="polite">
           <p id="statusLine" class="status-line">Status: ready</p>
           <p id="requestLine" class="request-line">Last request: none</p>
@@ -318,7 +367,7 @@
         <label class="sr-only" for="message">Message</label>
         <textarea id="message" placeholder="Message"></textarea>
         <div class="composer-actions">
-          <span id="selectedThread" class="thread-preview">No thread selected</span>
+          <span id="selectedThread" class="composer-target">No thread selected</span>
           <button type="button" data-action="send">Send</button>
         </div>
       </section>
@@ -340,10 +389,24 @@
         var threads = [];
         var activeThreadKey = "";
         var contactTimer = null;
+        var requestCount = 0;
 
         function setStatus(status, detail) {
           statusLine.textContent = "Status: " + status;
           requestLine.textContent = "Last request: " + (detail || "none");
+          statusLine.className = "status-line" + (status === "error" || status === "timeout" || status === "blocked" ? " error" : "");
+        }
+
+        function setBusy(isBusy) {
+          requestCount += isBusy ? 1 : -1;
+          if (requestCount < 0) {
+            requestCount = 0;
+          }
+          Array.prototype.forEach.call(document.querySelectorAll("button"), function (button) {
+            if (button.getAttribute("data-action") !== "new") {
+              button.disabled = requestCount > 0;
+            }
+          });
         }
 
         function text(value) {
@@ -373,6 +436,20 @@
           return thread.chatGuid || thread.chatIdentifier || thread.displayName || "";
         }
 
+        function threadTitle(thread) {
+          return thread.contactName || thread.displayName || thread.chatIdentifier || "Conversation";
+        }
+
+        function threadHandle(thread) {
+          if (thread.contactMatchedHandle && thread.contactMatchedHandle !== threadTitle(thread)) {
+            return thread.contactMatchedHandle;
+          }
+          if (thread.chatIdentifier && thread.chatIdentifier !== threadTitle(thread)) {
+            return thread.chatIdentifier;
+          }
+          return "";
+        }
+
         function requestJson(path, mode, body) {
           var verify = mode === "POST" ? "imessage.send" : "imessage.read";
           var gatedPath = path + (path.indexOf("?") === -1 ? "?" : "&") +
@@ -389,6 +466,7 @@
             options.body = JSON.stringify(body || {});
           }
           setStatus("requesting", path);
+          setBusy(true);
           var timeoutPromise = new Promise(function (resolve) {
             setTimeout(function () {
               if (controller) {
@@ -417,6 +495,7 @@
             if (payload && payload.error === "request_timeout") {
               setStatus("timeout", path);
             }
+            setBusy(false);
             return payload;
           });
         }
@@ -432,8 +511,9 @@
             var button = document.createElement("button");
             button.type = "button";
             button.className = "thread" + (threadKey(thread) === activeThreadKey ? " active" : "");
-            button.innerHTML = '<span><span class="thread-name"></span><span class="thread-preview"></span></span><span class="thread-time"></span>';
-            button.querySelector(".thread-name").textContent = thread.displayName || thread.chatIdentifier || "Conversation";
+            button.innerHTML = '<span><span class="thread-name"></span><span class="thread-handle"></span><span class="thread-preview"></span></span><span class="thread-time"></span>';
+            button.querySelector(".thread-name").textContent = threadTitle(thread);
+            button.querySelector(".thread-handle").textContent = threadHandle(thread);
             button.querySelector(".thread-preview").textContent = latest ? (latest.direction === "sent" ? "You: " : "") + (latest.text || (latest.hasAttachments ? "Attachment" : "")) : "No preview";
             button.querySelector(".thread-time").textContent = latest ? formatTime(latest.at) : "";
             button.addEventListener("click", function () {
@@ -455,8 +535,17 @@
               return text(a.at).localeCompare(text(b.at));
             });
           conversationEl.innerHTML = "";
+          var title = document.createElement("div");
+          title.className = "conversation-title";
+          title.innerHTML = "<strong></strong><span></span>";
+          title.querySelector("strong").textContent = threadTitle(thread);
+          title.querySelector("span").textContent = threadHandle(thread);
+          conversationEl.appendChild(title);
           if (!messages.length) {
-            conversationEl.innerHTML = '<p class="empty">No messages in this thread payload.</p>';
+            var empty = document.createElement("p");
+            empty.className = "empty";
+            empty.textContent = "No messages in this thread payload.";
+            conversationEl.appendChild(empty);
           }
           messages.forEach(function (item) {
             var bubble = document.createElement("div");
@@ -468,8 +557,8 @@
             bubble.appendChild(meta);
             conversationEl.appendChild(bubble);
           });
-          selectedThread.textContent = thread.displayName || thread.chatIdentifier || "Selected thread";
-          recipient.value = thread.chatIdentifier || "";
+          selectedThread.textContent = threadTitle(thread);
+          recipient.value = thread.contactMatchedHandle || thread.chatIdentifier || "";
           setTimeout(function () {
             conversationEl.scrollTop = conversationEl.scrollHeight;
           }, 0);
@@ -487,6 +576,11 @@
         function refreshThreads() {
           threadsEl.innerHTML = '<p class="empty">Refreshing conversations...</p>';
           return requestJson("/imessage/threads?threadLimit=15&perDirection=25").then(function (payload) {
+            if (payload.error || (payload.httpStatus && payload.httpStatus >= 400)) {
+              threadsEl.innerHTML = '<p class="empty error">Unable to load conversations.</p>';
+              renderConversation(null);
+              return;
+            }
             threads = Array.isArray(payload.threads) ? payload.threads : [];
             renderThreads();
             if (activeThreadKey) {
@@ -503,7 +597,8 @@
           var contacts = Array.isArray(payload.contacts) ? payload.contacts : [];
           suggestionsEl.innerHTML = "";
           if (!contacts.length) {
-            suggestionsEl.className = "suggestions";
+            suggestionsEl.innerHTML = '<p class="empty">No matching contacts.</p>';
+            suggestionsEl.className = "suggestions visible";
             return;
           }
           contacts.forEach(function (contact) {
@@ -533,6 +628,7 @@
         function searchContacts() {
           var query = contactSearch.value.trim();
           if (!query) {
+            suggestionsEl.innerHTML = "";
             suggestionsEl.className = "suggestions";
             return Promise.resolve();
           }
@@ -556,8 +652,24 @@
           });
         }
 
-        document.querySelector('[data-action="refresh"]').addEventListener("click", refreshThreads);
-        document.querySelector('[data-action="contacts"]').addEventListener("click", searchContacts);
+        function startNewMessage() {
+          activeThreadKey = "";
+          recipient.value = contactSearch.value.trim();
+          message.value = "";
+          selectedThread.textContent = "New message";
+          suggestionsEl.className = "suggestions";
+          renderThreads();
+          renderConversation(null);
+          recipient.focus();
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-action="refresh"]'), function (button) {
+          button.addEventListener("click", refreshThreads);
+        });
+        Array.prototype.forEach.call(document.querySelectorAll('[data-action="contacts"]'), function (button) {
+          button.addEventListener("click", searchContacts);
+        });
+        document.querySelector('[data-action="new"]').addEventListener("click", startNewMessage);
         document.querySelector('[data-action="send"]').addEventListener("click", sendMessage);
         contactSearch.addEventListener("input", function () {
           clearTimeout(contactTimer);
