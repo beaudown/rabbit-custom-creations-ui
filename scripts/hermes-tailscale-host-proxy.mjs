@@ -12,6 +12,7 @@ const imessageBrokerTokenFile =
 const maxImessageBodyBytes = Number.parseInt(process.env.HERMES_IMESSAGE_PROXY_MAX_BODY_BYTES || "2097152", 10);
 const maxImessageResponseBytes = Number.parseInt(process.env.HERMES_IMESSAGE_PROXY_MAX_RESPONSE_BYTES || "5242880", 10);
 const publicFunnelPort = process.env.HERMES_IMESSAGE_PUBLIC_FUNNEL_PORT || "10001";
+const publicFunnelHost = process.env.HERMES_IMESSAGE_PUBLIC_FUNNEL_HOST || "michaels-macbook-pro.tailcfaeac.ts.net";
 const publicFunnelAllowSend = process.env.HERMES_IMESSAGE_PUBLIC_ALLOW_SEND !== "false";
 const creationGateId = process.env.HERMES_IMESSAGE_CREATION_GATE_ID || "b0ba279701768529048562f2c766e9d4";
 const creationGateKey =
@@ -115,7 +116,7 @@ function collectResponse(upstreamRes) {
 
 function isPublicFunnelRequest(clientReq) {
   const host = String(clientReq.headers.host || "").toLowerCase();
-  return host.endsWith(`:${publicFunnelPort}`);
+  return host === publicFunnelHost || host.endsWith(`:${publicFunnelPort}`);
 }
 
 function normalizeImessagePath(pathname, publicFunnel) {

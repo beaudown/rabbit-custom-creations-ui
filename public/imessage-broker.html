@@ -184,7 +184,7 @@
 
         <div class="row">
           <strong>Rabbit Public Test URL</strong>
-          <code>https://michaels-macbook-pro.tailcfaeac.ts.net:10001</code>
+          <code>https://michaels-macbook-pro.tailcfaeac.ts.net</code>
         </div>
 
         <div class="row">
@@ -204,17 +204,17 @@
 
         <div class="row">
           <strong>GET messages via Hermes</strong>
-          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net:10001/imessage/messages?since=&lt;nextCursor&gt;&amp;limit=25</code>
+          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net/imessage/messages?since=&lt;nextCursor&gt;&amp;limit=25</code>
         </div>
 
         <div class="row">
           <strong>GET last 15 threads</strong>
-          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net:10001/imessage/threads?threadLimit=15&amp;perDirection=25</code>
+          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net/imessage/threads?threadLimit=15&amp;perDirection=25</code>
         </div>
 
         <div class="row">
           <strong>POST reply via Hermes</strong>
-          <code>POST https://michaels-macbook-pro.tailcfaeac.ts.net:10001/imessage/send</code>
+          <code>POST https://michaels-macbook-pro.tailcfaeac.ts.net/imessage/send</code>
         </div>
 
         <div class="row">
@@ -241,7 +241,7 @@
     </main>
     <script>
       (function () {
-        var hermesUrl = "https://michaels-macbook-pro.tailcfaeac.ts.net:10001";
+        var hermesUrl = "https://michaels-macbook-pro.tailcfaeac.ts.net";
         var creationGateId = "b0ba279701768529048562f2c766e9d4";
         var creationGateKey = "29043089b8e62fd942f21d68762411e503bfcaba6d491844162e90516a7e783b";
         var output = document.getElementById("output");
@@ -276,6 +276,12 @@
         }
 
         function requestJson(path, mode, body) {
+          var controller = window.AbortController ? new AbortController() : null;
+          var timeout = setTimeout(function () {
+            if (controller) {
+              controller.abort();
+            }
+          }, 12000);
           var options = {
             method: mode || "GET",
             headers: {
@@ -284,6 +290,9 @@
               "x-rabbit-creation-gate": creationGateKey
             }
           };
+          if (controller) {
+            options.signal = controller.signal;
+          }
           if (mode === "POST") {
             options.headers["content-type"] = "application/json";
             options.body = JSON.stringify(body || {});
@@ -302,6 +311,16 @@
               }
               return payload;
             });
+          }).catch(function (error) {
+            return {
+              ok: false,
+              error: error.name === "AbortError" ? "request_timeout" : "fetch_failed",
+              message: error.message,
+              endpoint: hermesUrl + path
+            };
+          }).then(function (payload) {
+            clearTimeout(timeout);
+            return payload;
           });
         }
 
