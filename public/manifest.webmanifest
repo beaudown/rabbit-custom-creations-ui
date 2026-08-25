@@ -1,8 +1,8 @@
 {
-  "name": "A1 Broker Test",
-  "short_name": "A1 Broker",
-  "description": "Hosted Rabbit r1 Superuser Management PWA for broker-guided creations, audit review, and offline recovery help.",
-  "start_url": "./?creation=A1BrokerTestV2",
+  "name": "iMessage Hermes Broker",
+  "short_name": "iMessage",
+  "description": "Hosted Rabbit r1 iMessage broker Creation for Hermes-verified message fetch and reply routing.",
+  "start_url": "./imessage-broker.html?creation=iMessageHermesBroker",
   "scope": ".",
   "display": "standalone",
   "background_color": "#08090d",
