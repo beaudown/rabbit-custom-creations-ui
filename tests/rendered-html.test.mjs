@@ -251,6 +251,10 @@ test("static iMessage broker Creation page exposes lightweight Rabbit test contr
   assert.match(page, /Check Hermes broker health/);
   assert.match(page, /Load last 15 threads/);
   assert.match(page, /Safe POST test, sends nothing/);
+  assert.match(page, /Status: ready/);
+  assert.match(page, /Last request: none/);
+  assert.match(page, /setStatus\("requesting"/);
+  assert.match(page, /setStatus\(response\.ok \? "ok" : "error"/);
   assert.match(page, /data-action="send"/);
   assert.match(page, /fetch\(hermesUrl \+ gatedPath/);
   assert.match(page, /hv=/);
@@ -272,6 +276,10 @@ test("static iMessage broker Creation page exposes lightweight Rabbit test contr
   assert.match(actionPage, /Check Hermes broker health/);
   assert.match(actionPage, /Load last 15 threads/);
   assert.match(actionPage, /Safe POST test, sends nothing/);
+  assert.match(actionPage, /Status: ready/);
+  assert.match(actionPage, /Last request: none/);
+  assert.match(actionPage, /setStatus\("requesting"/);
+  assert.match(actionPage, /setStatus\(response\.ok \? "ok" : "error"/);
   assert.match(actionPage, /fetch\(hermesUrl \+ gatedPath/);
   assert.match(actionPage, /hv=/);
   assert.match(actionPage, /cid=/);

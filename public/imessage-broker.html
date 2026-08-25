@@ -140,6 +140,31 @@
         white-space: pre-wrap;
       }
 
+      .status-strip {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        margin: 0 0 12px;
+        border: 1px solid rgba(143, 230, 255, 0.32);
+        border-radius: 8px;
+        background: #101820;
+        padding: 12px;
+      }
+
+      .status-line {
+        margin: 0;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 850;
+      }
+
+      .request-line {
+        margin: 5px 0 0;
+        color: #b8c7d8;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
       .label {
         display: block;
         margin-top: 8px;
@@ -159,6 +184,11 @@
           verifies requests and injects the Mac-local broker token. No token is
           stored in this page.
         </p>
+
+        <div class="status-strip" aria-live="polite">
+          <p id="statusLine" class="status-line">Status: ready</p>
+          <p id="requestLine" class="request-line">Last request: none</p>
+        </div>
 
         <div class="row">
           <strong>Rabbit Test Controls</strong>
@@ -244,8 +274,15 @@
         var creationGateId = "b0ba279701768529048562f2c766e9d4";
         var creationGateKey = "29043089b8e62fd942f21d68762411e503bfcaba6d491844162e90516a7e783b";
         var output = document.getElementById("output");
+        var statusLine = document.getElementById("statusLine");
+        var requestLine = document.getElementById("requestLine");
         var recipient = document.getElementById("recipient");
         var message = document.getElementById("message");
+
+        function setStatus(status, detail) {
+          statusLine.textContent = "Status: " + status;
+          requestLine.textContent = "Last request: " + (detail || "none");
+        }
 
         function print(value) {
           if (typeof value === "string") {
@@ -291,6 +328,7 @@
             options.headers = { "content-type": "text/plain" };
             options.body = JSON.stringify(body || {});
           }
+          setStatus("requesting", path);
           print("Requesting " + path + " ...");
           var timeoutPromise = new Promise(function (resolve) {
             setTimeout(function () {
@@ -315,9 +353,12 @@
               if (!response.ok) {
                 payload.httpStatus = response.status;
               }
+              payload.httpStatus = response.status;
+              setStatus(response.ok ? "ok" : "error", path + " HTTP " + response.status);
               return payload;
             });
           }).catch(function (error) {
+            setStatus("error", path + " " + (error.name === "AbortError" ? "request_timeout" : "fetch_failed"));
             return {
               ok: false,
               error: error.name === "AbortError" ? "request_timeout" : "fetch_failed",
@@ -325,7 +366,12 @@
               endpoint: hermesUrl + path
             };
           });
-          return Promise.race([fetchPromise, timeoutPromise]);
+          return Promise.race([fetchPromise, timeoutPromise]).then(function (payload) {
+            if (payload && payload.error === "request_timeout") {
+              setStatus("timeout", path);
+            }
+            return payload;
+          });
         }
 
         function run(action) {
@@ -357,6 +403,7 @@
           }
           if (action === "send") {
             if (!recipient.value.trim() || !message.value.trim()) {
+              setStatus("blocked", "send missing recipient or message");
               print("Recipient and message are required before sending.");
               return;
             }
