@@ -152,7 +152,7 @@
   <body>
     <main>
       <section class="panel" aria-label="iMessage Hermes broker">
-        <p class="eyebrow">Hermes Verified</p>
+        <p class="eyebrow">Hermes Verified Actions V2</p>
         <h1>iMessage Broker</h1>
         <p>
           This Creation is only for iMessage fetch and reply routing. Hermes
@@ -183,7 +183,12 @@
         </div>
 
         <div class="row">
-          <strong>Hermes Secure URL</strong>
+          <strong>Rabbit Public Test URL</strong>
+          <code>https://michaels-macbook-pro.tailcfaeac.ts.net:10001</code>
+        </div>
+
+        <div class="row">
+          <strong>Hermes Tailnet URL</strong>
           <code>https://michaels-macbook-pro.tailcfaeac.ts.net:8443</code>
         </div>
 
@@ -199,23 +204,25 @@
 
         <div class="row">
           <strong>GET messages via Hermes</strong>
-          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net:8443/imessage/messages?since=&lt;nextCursor&gt;&amp;limit=25</code>
+          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net:10001/imessage/messages?since=&lt;nextCursor&gt;&amp;limit=25</code>
         </div>
 
         <div class="row">
           <strong>GET last 15 threads</strong>
-          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net:8443/imessage/threads?threadLimit=15&amp;perDirection=25</code>
+          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net:10001/imessage/threads?threadLimit=15&amp;perDirection=25</code>
         </div>
 
         <div class="row">
           <strong>POST reply via Hermes</strong>
-          <code>POST https://michaels-macbook-pro.tailcfaeac.ts.net:8443/imessage/send</code>
+          <code>POST https://michaels-macbook-pro.tailcfaeac.ts.net:10001/imessage/send</code>
         </div>
 
         <div class="row">
           <strong>Required request headers</strong>
           <code>x-hermes-verify: imessage.read</code>
           <code>x-hermes-verify: imessage.send</code>
+          <code>x-rabbit-creation-id: baked into this Creation</code>
+          <code>x-rabbit-creation-gate: baked into this Creation</code>
           <code>content-type: application/json</code>
         </div>
 
@@ -234,7 +241,9 @@
     </main>
     <script>
       (function () {
-        var hermesUrl = "https://michaels-macbook-pro.tailcfaeac.ts.net:8443";
+        var hermesUrl = "https://michaels-macbook-pro.tailcfaeac.ts.net:10001";
+        var creationGateId = "b0ba279701768529048562f2c766e9d4";
+        var creationGateKey = "29043089b8e62fd942f21d68762411e503bfcaba6d491844162e90516a7e783b";
         var output = document.getElementById("output");
         var recipient = document.getElementById("recipient");
         var message = document.getElementById("message");
@@ -270,7 +279,9 @@
           var options = {
             method: mode || "GET",
             headers: {
-              "x-hermes-verify": mode === "POST" ? "imessage.send" : "imessage.read"
+              "x-hermes-verify": mode === "POST" ? "imessage.send" : "imessage.read",
+              "x-rabbit-creation-id": creationGateId,
+              "x-rabbit-creation-gate": creationGateKey
             }
           };
           if (mode === "POST") {

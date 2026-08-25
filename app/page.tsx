@@ -922,12 +922,35 @@ function formatDate(value: string) {
 }
 
 const defaultBrokerEndpoint = "http://100.80.216.88:8792";
+const defaultIMessageEndpoint = "https://michaels-macbook-pro.tailcfaeac.ts.net:10000";
+const defaultHermesEndpoint = "https://michaels-macbook-pro.tailcfaeac.ts.net:8443";
+
+function initialCreationId() {
+  if (typeof window === "undefined") {
+    return "A1BrokerTestV2";
+  }
+  return new URLSearchParams(window.location.search).get("creation") || "A1BrokerTestV2";
+}
 
 function initialBrokerEndpoint() {
   if (typeof window === "undefined") {
     return defaultBrokerEndpoint;
   }
   return new URLSearchParams(window.location.search).get("broker") || defaultBrokerEndpoint;
+}
+
+function initialIMessageEndpoint() {
+  if (typeof window === "undefined") {
+    return defaultIMessageEndpoint;
+  }
+  return new URLSearchParams(window.location.search).get("imessage") || defaultIMessageEndpoint;
+}
+
+function initialHermesEndpoint() {
+  if (typeof window === "undefined") {
+    return defaultHermesEndpoint;
+  }
+  return new URLSearchParams(window.location.search).get("hermes") || defaultHermesEndpoint;
 }
 
 function initialRelayToken() {
@@ -965,6 +988,7 @@ function StatusReadout({ label, value, details }: StatusReadoutProps) {
 }
 
 export default function Home() {
+  const [creationId] = useState(initialCreationId);
   const [view, setView] = useState<"folders" | "list">("folders");
   const [sortMode, setSortMode] = useState<SortMode>("category");
   const [selectedCategory, setSelectedCategory] = useState("Media Tools");
@@ -982,6 +1006,8 @@ export default function Home() {
   const [leaseActionStatus, setLeaseActionStatus] = useState("Lease manager idle");
   const [auditHandoffStatus, setAuditHandoffStatus] = useState("No audit handoff exported");
   const [brokerEndpoint, setBrokerEndpoint] = useState(initialBrokerEndpoint);
+  const [iMessageEndpoint] = useState(initialIMessageEndpoint);
+  const [hermesEndpoint] = useState(initialHermesEndpoint);
   const [relayToken, setRelayToken] = useState(initialRelayToken);
   const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
@@ -1095,6 +1121,76 @@ export default function Home() {
     blockersReviewed: Boolean(wizardChecks.blockersReviewed),
     expectedScope: "current_boot_cycle_ram_only_until_restart",
     persistenceExpected: false,
+  };
+  const iMessageGatewayContract = {
+    schemaVersion: 1,
+    purpose: "Creation session iMessage bridge contract for MacBook mirroring and Hermes-verified Rabbit replies.",
+    connectionMode: "hermes_secured_verification",
+    prefilledConnection: {
+      hermesVerifierEndpoint: hermesEndpoint,
+      iMessageBrokerEndpoint: iMessageEndpoint,
+      rabbitGatewayEndpoint: brokerEndpoint,
+    },
+    endpoint: hermesEndpoint,
+    directBrokerEndpointForHermesOnly: iMessageEndpoint,
+    auth: {
+      requiredForRead: true,
+      requiredForSend: true,
+      mode: "hermes_verifies_and_injects_local_broker_token",
+      rabbitShouldSendBrokerToken: false,
+      creationStoresBrokerToken: false,
+      brokerHeaderInjectedByHermes: "x-imessage-broker-token",
+      tokenSource: "Mac-local token file, read only by Hermes",
+      doNotPrintTokenInCreationOutput: true,
+    },
+    hermesVerification: {
+      required: true,
+      verifyCaller: true,
+      sanitizeResponse: true,
+      tokenHandling: "Hermes reads the local token file and injects the broker auth header server-side.",
+      allowedBrokerRoutes: [
+        "GET /imessage/health",
+        "GET /imessage/messages",
+        "GET /imessage/threads",
+        "POST /imessage/send",
+        "POST /imessage/hermes-response",
+      ],
+    },
+    getNewMessages: {
+      method: "GET",
+      hermesVerifiedUrl: `${hermesEndpoint.replace(/\/$/, "")}/imessage/messages?since=<nextCursor>&limit=25`,
+      hermesForwardsTo: `${iMessageEndpoint.replace(/\/$/, "")}/imessage/messages?since=<nextCursor>&limit=25`,
+      headers: {
+        "x-hermes-verify": "imessage.read",
+      },
+      returns: ["messages", "nextCursor", "hasMore"],
+    },
+    getRecentThreads: {
+      method: "GET",
+      hermesVerifiedUrl: `${hermesEndpoint.replace(/\/$/, "")}/imessage/threads?threadLimit=15&perDirection=25`,
+      hermesForwardsTo: `${iMessageEndpoint.replace(/\/$/, "")}/imessage/threads?threadLimit=15&perDirection=25`,
+      headers: {
+        "x-hermes-verify": "imessage.read",
+      },
+      returns: ["threads[].received[0..24]", "threads[].sent[0..24]"],
+    },
+    postReply: {
+      method: "POST",
+      hermesVerifiedUrl: `${hermesEndpoint.replace(/\/$/, "")}/imessage/send`,
+      hermesForwardsTo: `${iMessageEndpoint.replace(/\/$/, "")}/imessage/send`,
+      headers: {
+        "content-type": "application/json",
+        "x-hermes-verify": "imessage.send",
+      },
+      body: {
+        requestId: "reply-001",
+        to: "+15555550100",
+        text: "Reply message text",
+        attachments: [],
+      },
+    },
+    hermesReplyAlias: `${hermesEndpoint.replace(/\/$/, "")}/imessage/hermes-response`,
+    macMessagesSendEnabled: true,
   };
 
   function updatePromptValue(name: string, value: string) {
@@ -1709,6 +1805,52 @@ export default function Home() {
     setAuditHandoffStatus(`Audit handoff exported for ${target}`);
   }
 
+  const isIMessageBrokerCreation = creationId === "iMessageHermesBroker";
+
+  if (isIMessageBrokerCreation) {
+    return (
+      <main className="shell">
+        <section className="device">
+          <section className="rabbitStart" aria-label="Hermes iMessage broker setup">
+            <p className="eyebrow">Hermes Verified</p>
+            <h1>iMessage Broker</h1>
+            <p>
+              Use this Creation for message fetch and reply routing only.
+              Hermes verifies the request and injects the Mac-local broker token.
+            </p>
+            <StatusReadout label="Hermes Secure URL" value={hermesEndpoint} />
+            <StatusReadout label="iMessage Broker URL" value={iMessageEndpoint} />
+            <StatusReadout label="Rabbit Gateway URL" value={brokerEndpoint} />
+            <StatusReadout
+              label="GET messages"
+              value={`${hermesEndpoint.replace(/\/$/, "")}/imessage/messages?since=<nextCursor>&limit=25`}
+              details={JSON.stringify(iMessageGatewayContract.getNewMessages, null, 2)}
+            />
+            <StatusReadout
+              label="GET threads"
+              value={`${hermesEndpoint.replace(/\/$/, "")}/imessage/threads?threadLimit=15&perDirection=25`}
+              details={JSON.stringify(iMessageGatewayContract.getRecentThreads, null, 2)}
+            />
+            <StatusReadout
+              label="POST reply"
+              value={`${hermesEndpoint.replace(/\/$/, "")}/imessage/send`}
+              details={JSON.stringify(iMessageGatewayContract.postReply, null, 2)}
+            />
+            <StatusReadout
+              label="Connection"
+              value="Prefilled for Hermes verification. No broker token is stored in this Creation"
+              details={JSON.stringify(iMessageGatewayContract, null, 2)}
+            />
+            <p className="plainWarning">
+              Direct broker token handling stays on the Mac and is not shown in
+              this Creation.
+            </p>
+          </section>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="shell">
       <section className="device">
@@ -1720,6 +1862,8 @@ export default function Home() {
             reboot, install, fastboot, recovery, or broker start actions.
           </p>
           <StatusReadout label="Broker URL" value={brokerEndpoint} />
+          <StatusReadout label="Hermes Secure URL" value={hermesEndpoint} />
+          <StatusReadout label="Tailnet iMessage URL" value={iMessageEndpoint} />
           <label className="simpleField">
             <span>Relay token</span>
             <input
@@ -1759,6 +1903,11 @@ export default function Home() {
             details={approvalPreview ? JSON.stringify(approvalPreview, null, 2) : undefined}
           />
           <StatusReadout label="Gateway" value={gatewayRelayStatus} details={gatewayRelayPreview} />
+          <StatusReadout
+            label="iMessage API"
+            value="Prefilled for Hermes verification. Hermes injects x-imessage-broker-token from the Mac token file"
+            details={JSON.stringify(iMessageGatewayContract, null, 2)}
+          />
           <p className="plainWarning">
             Use button 5 before a new QR. It shows relay blockers without running device actions.
           </p>

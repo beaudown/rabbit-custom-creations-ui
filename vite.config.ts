@@ -6,4 +6,7 @@ export default defineConfig({
     ? `/${process.env.GITHUB_REPOSITORY.split("/")[1]}/`
     : "/",
   plugins: [react()],
+  preview: {
+    allowedHosts: ["michaels-macbook-pro.tailcfaeac.ts.net"],
+  },
 });
