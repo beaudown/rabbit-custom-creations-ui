@@ -330,21 +330,97 @@ function decodeAttributedBodyHex(value) {
   if (!hex) {
     return "";
   }
-  let raw = "";
+  let buffer;
   try {
-    raw = Buffer.from(hex, "hex").toString("utf8");
+    buffer = Buffer.from(hex, "hex");
   } catch {
     return "";
   }
+  const typedStreamText = decodeTypedStreamNSStrings(buffer);
+  if (typedStreamText) {
+    return typedStreamText;
+  }
+  const raw = buffer.toString("utf8");
   const candidates = raw
     .replace(/\u0000/g, " ")
     .split(/[^\x20-\x7e\n\r\t]+/)
     .map((part) => part.replace(/\s+/g, " ").trim())
     .filter((part) => part.length >= 2)
-    .filter((part) => !/^(NSObject|NSString|NSDictionary|NSAttributedString|NSNumber|NSURL|__kIM|kIM|Apple|__NS)/.test(part))
+    .filter((part) => isReadableMessageText(part))
+    .filter((part) => !/^(streamtyped|NSObject|NSString|NSDictionary|NSAttributedString|NSNumber|NSURL|__kIM|kIM|Apple|__NS)/.test(part))
     .filter((part) => !/^[A-Za-z0-9_.$:-]{24,}$/.test(part));
   return candidates
     .sort((a, b) => b.length - a.length)[0] || "";
+}
+
+function cleanMessageText(value) {
+  return String(value || "")
+    .replace(/\u0000/g, "")
+    .replace(/\ufffd/g, "")
+    .replace(/[\u0001-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+    .trim();
+}
+
+function decodeTypedStreamLength(buffer, index) {
+  if (index >= buffer.length) {
+    return null;
+  }
+  const first = buffer[index];
+  if (first < 0x80) {
+    return { length: first, nextIndex: index + 1 };
+  }
+  const byteCount = first & 0x7f;
+  if (byteCount < 1 || byteCount > 4 || index + byteCount >= buffer.length) {
+    return null;
+  }
+  let length = 0;
+  for (let offset = 1; offset <= byteCount; offset += 1) {
+    length = (length << 8) + buffer[index + offset];
+  }
+  return { length, nextIndex: index + 1 + byteCount };
+}
+
+function decodeTypedStreamNSStrings(buffer) {
+  const marker = Buffer.from([0x84, 0x01, 0x2b]);
+  const strings = [];
+  let searchFrom = 0;
+  while (searchFrom < buffer.length) {
+    const markerIndex = buffer.indexOf(marker, searchFrom);
+    if (markerIndex === -1) {
+      break;
+    }
+    const lengthInfo = decodeTypedStreamLength(buffer, markerIndex + marker.length);
+    if (!lengthInfo || lengthInfo.length < 1 || lengthInfo.length > 65536) {
+      searchFrom = markerIndex + marker.length;
+      continue;
+    }
+    const start = lengthInfo.nextIndex;
+    const end = start + lengthInfo.length;
+    if (end > buffer.length) {
+      searchFrom = markerIndex + marker.length;
+      continue;
+    }
+    const decoded = cleanMessageText(buffer.subarray(start, end).toString("utf8").replace(/\s+/g, " "));
+    if (isReadableMessageText(decoded)) {
+      strings.push(decoded);
+    }
+    searchFrom = end;
+  }
+  return strings.join("\n").trim();
+}
+
+function isReadableMessageText(value) {
+  const text = cleanMessageText(value);
+  if (!text || text === "\ufffc" || text === "\ufffd") {
+    return false;
+  }
+  if (/^(streamtyped|NSObject|NSString|NSDictionary|NSAttributedString|NSNumber|NSURL|__kIM|kIM|Apple|__NS)/.test(text)) {
+    return false;
+  }
+  if (/(__kIM|NS[A-Za-z]+|streamtyped|\$class|archiver)/i.test(text)) {
+    return false;
+  }
+  return /[\p{L}\p{N}\p{Emoji_Presentation}\p{Extended_Pictographic}]/u.test(text);
 }
 
 async function contactNamesByHandle() {
@@ -525,7 +601,7 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
       byChat.set(chatKey, thread);
       threads.push(thread);
     }
-    const decodedText = row.text || decodeAttributedBodyHex(row.attributed_body_hex);
+    const decodedText = cleanMessageText(row.text) || decodeAttributedBodyHex(row.attributed_body_hex);
     const message = {
       guid: row.message_guid,
       rowId: row.message_rowid,

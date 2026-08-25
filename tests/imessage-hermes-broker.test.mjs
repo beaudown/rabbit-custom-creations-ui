@@ -36,6 +36,19 @@ async function waitForBroker(url, token) {
   throw lastError || new Error("iMessage broker health check timed out");
 }
 
+function typedStreamNSStringHex(value) {
+  const text = Buffer.from(String(value), "utf8");
+  if (text.length > 127) {
+    throw new Error("test helper only supports short NSString fixtures");
+  }
+  return Buffer.concat([
+    Buffer.from("040b73747265616d747970656481e803840140848484124e5341747472696275746564537472696e67008484084e534f626a656374008592848484084e53537472696e67019484012b", "hex"),
+    Buffer.from([text.length]),
+    text,
+    Buffer.from("86840269490101928484840c4e5344696374696f6e6172790094840169019284999900868686", "hex"),
+  ]).toString("hex");
+}
+
 test("iMessage Hermes broker stages, describes, and forwards without sending by default", async () => {
   const repoRoot = fileURLToPath(new URL("..", import.meta.url));
   const stateRoot = await mkdtemp(join(tmpdir(), "imessage-broker-state-"));
@@ -273,9 +286,9 @@ CREATE TABLE chat_message_join (chat_id INTEGER, message_id INTEGER, message_dat
 INSERT INTO chat VALUES (1, 'chat-guid-1', 'iMessage;-;chat-guid-1', 'Test Thread', 'iMessage');
 INSERT INTO handle VALUES (1, '+15555550100');
 INSERT INTO message VALUES (1, 'recv-old', 'received old', NULL, 1, 700000000000000000, 0, 0, 0, 0, 1, 0);
-INSERT INTO message VALUES (2, 'recv-new', NULL, CAST('received new from attributed body' AS BLOB), 1, 700000001000000000, 0, 0, 0, 0, 1, 0);
+INSERT INTO message VALUES (2, 'recv-new', NULL, X'${typedStreamNSStringHex("received new from attributed body")}', 1, 700000001000000000, 0, 0, 0, 0, 1, 0);
 INSERT INTO message VALUES (3, 'sent-old', 'sent old', NULL, 0, 700000002000000000, 1, 0, 0, 1, 1, 0);
-INSERT INTO message VALUES (4, 'sent-new', 'sent new', NULL, 0, 700000003000000000, 1, 0, 0, 1, 1, 0);
+INSERT INTO message VALUES (4, 'sent-new', 'sent' || char(1) || ' new' || char(65533), NULL, 0, 700000003000000000, 1, 0, 0, 1, 1, 0);
 INSERT INTO chat_message_join VALUES (1, 1, 700000000000000000);
 INSERT INTO chat_message_join VALUES (1, 2, 700000001000000000);
 INSERT INTO chat_message_join VALUES (1, 3, 700000002000000000);
