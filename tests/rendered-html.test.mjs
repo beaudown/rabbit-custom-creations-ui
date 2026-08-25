@@ -193,11 +193,14 @@ test("hosted QR launch sheet exposes Rabbit-format iMessage Creation QR", async 
   assert.match(qrSheet, /title%22%3A%22iMessage%20Hermes%20Broker/);
   assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Fimessage-broker-actions\.html/);
   assert.match(qrSheet, /imessage-broker-actions\.html/);
-  assert.match(qrSheet, /creation%3DiMessageHermesBrokerActions/);
+  assert.match(qrSheet, /cache%3Db42f5ec/);
+  assert.doesNotMatch(qrSheet, /creation%3DiMessageHermesBrokerActions/);
+  assert.doesNotMatch(qrSheet, /creation=iMessageHermesBrokerActions/);
+  assert.doesNotMatch(qrSheet, /shortCode|shortcode|short_code|short-code/i);
   assert.match(qrSheet, /hermes%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
   assert.doesNotMatch(qrSheet, /hermes%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%253A10001/);
   assert.match(qrSheet, /imessage%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%253A10000/);
-  assert.match(qrSheet, /description%22%3A%22Testing-only%20Rabbit%20r1%20iMessage%20broker%20Creation/);
+  assert.match(qrSheet, /description%22%3A%22Rabbit%20r1%20iMessage%20broker%20Creation/);
   assert.match(qrSheet, /iconUrl%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Ffavicon\.svg/);
   assert.match(qrSheet, /themeColor%22%3A%22%23FE5000/);
   assert.match(qrSheet, /iMessage Hermes Broker/);
@@ -227,7 +230,7 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   assert.match(html, /manifest\.webmanifest/);
   assert.equal(manifest.name, "iMessage Hermes Broker");
   assert.equal(manifest.short_name, "iMessage");
-  assert.equal(manifest.start_url, "./imessage-broker-actions.html?creation=iMessageHermesBrokerActions");
+  assert.equal(manifest.start_url, "./imessage-broker-actions.html");
   assert.equal(manifest.display, "standalone");
   assert.ok(manifest.shortcuts.some((shortcut) => shortcut.name === "Audit Review"));
   assert.match(serviceWorker, /broker\/rabbit-native-broker-spec\.json/);

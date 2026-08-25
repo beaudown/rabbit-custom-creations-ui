@@ -2,7 +2,7 @@
   "name": "iMessage Hermes Broker",
   "short_name": "iMessage",
   "description": "Hosted Rabbit r1 iMessage broker Creation for Hermes-verified message fetch and reply routing.",
-  "start_url": "./imessage-broker-actions.html?creation=iMessageHermesBrokerActions",
+  "start_url": "./imessage-broker-actions.html",
   "scope": ".",
   "display": "standalone",
   "background_color": "#08090d",
