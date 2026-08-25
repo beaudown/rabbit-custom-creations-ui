@@ -1,7 +1,7 @@
 import { createServer } from "node:http";
 import { execFile, spawn } from "node:child_process";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { existsSync } from "node:fs";
 import { basename, join } from "node:path";
 import { hostname, homedir } from "node:os";
@@ -22,9 +22,26 @@ const hermesMessagePath = process.env.HERMES_IMESSAGE_MESSAGE_PATH || "/rabbit-g
 const hermesDescribePath = process.env.HERMES_IMESSAGE_DESCRIBE_PATH || "/agent/describe-attachment";
 const maxThumbnailBytes = Number.parseInt(process.env.IMESSAGE_BROKER_MAX_THUMBNAIL_BYTES || "350000", 10);
 const messagesDbPath = process.env.IMESSAGE_BROKER_MESSAGES_DB || join(homedir(), "Library/Messages/chat.db");
+const contactsDbPath = process.env.IMESSAGE_BROKER_CONTACTS_DB || defaultContactsDbPath();
 const auditPath = join(stateRoot, "public/broker/imessage-audit-log.jsonl");
 const messagesPath = join(stateRoot, "public/broker/imessage-messages.jsonl");
 const execFileAsync = promisify(execFile);
+
+function defaultContactsDbPath() {
+  const addressBookRoot = join(homedir(), "Library/Application Support/AddressBook");
+  const sourceRoot = join(addressBookRoot, "Sources");
+  try {
+    for (const source of readdirSync(sourceRoot)) {
+      const sourceDb = join(sourceRoot, source, "AddressBook-v22.abcddb");
+      if (existsSync(sourceDb)) {
+        return sourceDb;
+      }
+    }
+  } catch {
+    // Fall through to the top-level Contacts database used on some macOS installs.
+  }
+  return join(addressBookRoot, "AddressBook-v22.abcddb");
+}
 
 function sendJson(response, statusCode, body) {
   response.writeHead(statusCode, {
@@ -158,6 +175,97 @@ function normalizeAppleMessageDate(value) {
   const appleEpochMs = 978307200000;
   const messageMs = raw > 1000000000000 ? Math.floor(raw / 1000000) : raw * 1000;
   return new Date(appleEpochMs + messageMs).toISOString();
+}
+
+function sqlStringLiteral(value) {
+  return `'${String(value || "").replaceAll("'", "''")}'`;
+}
+
+function normalizeContactLabel(value) {
+  return String(value || "")
+    .replace(/^_\$!<|>!\$_$/g, "")
+    .replace(/^_\$!<|>!\$_/g, "")
+    .replace(/^_+|_+$/g, "")
+    .replaceAll("_", " ")
+    .trim();
+}
+
+async function searchContacts({ q = "", limit = 40 } = {}) {
+  const safeLimit = parseBoundedInteger(limit, 40, 1, 100);
+  const query = String(q || "").trim();
+  const like = `%${query.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_")}%`;
+  const filter = query
+    ? `AND (
+        COALESCE(r.ZFIRSTNAME, '') || ' ' || COALESCE(r.ZLASTNAME, '') LIKE ${sqlStringLiteral(like)} ESCAPE '\\'
+        OR COALESCE(r.ZORGANIZATION, '') LIKE ${sqlStringLiteral(like)} ESCAPE '\\'
+        OR COALESCE(r.ZNAME, '') LIKE ${sqlStringLiteral(like)} ESCAPE '\\'
+        OR h.value LIKE ${sqlStringLiteral(like)} ESCAPE '\\'
+      )`
+    : "";
+  const sql = `
+WITH handles AS (
+  SELECT ZOWNER AS owner, ZFULLNUMBER AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'phone' AS kind
+  FROM ZABCDPHONENUMBER
+  WHERE ZFULLNUMBER IS NOT NULL AND TRIM(ZFULLNUMBER) != ''
+  UNION ALL
+  SELECT ZOWNER AS owner, ZADDRESS AS value, ZLABEL AS label, ZISPRIMARY AS is_primary, 'email' AS kind
+  FROM ZABCDEMAILADDRESS
+  WHERE ZADDRESS IS NOT NULL AND TRIM(ZADDRESS) != ''
+)
+SELECT
+  r.Z_PK AS contact_id,
+  COALESCE(NULLIF(TRIM(COALESCE(r.ZFIRSTNAME, '') || ' ' || COALESCE(r.ZLASTNAME, '')), ''), r.ZORGANIZATION, r.ZNAME, r.ZNICKNAME, h.value) AS display_name,
+  r.ZFIRSTNAME AS first_name,
+  r.ZLASTNAME AS last_name,
+  r.ZORGANIZATION AS organization,
+  h.kind,
+  h.value,
+  h.label,
+  h.is_primary
+FROM ZABCDRECORD r
+JOIN handles h ON h.owner = r.Z_PK
+WHERE COALESCE(r.ZISALL, 0) = 0
+  AND h.value IS NOT NULL
+  ${filter}
+ORDER BY LOWER(display_name), h.kind DESC, h.is_primary DESC, h.value
+LIMIT ${safeLimit * 4};
+`;
+
+  const { stdout } = await execFileAsync("sqlite3", ["-readonly", "-json", contactsDbPath, sql], {
+    maxBuffer: 1024 * 1024 * 10,
+  });
+  const rows = stdout.trim() ? JSON.parse(stdout) : [];
+  const contacts = [];
+  const byId = new Map();
+
+  for (const row of rows) {
+    const id = String(row.contact_id);
+    if (!byId.has(id)) {
+      const contact = {
+        id,
+        displayName: row.display_name || row.value,
+        firstName: row.first_name || null,
+        lastName: row.last_name || null,
+        organization: row.organization || null,
+        handles: [],
+      };
+      byId.set(id, contact);
+      contacts.push(contact);
+    }
+    byId.get(id).handles.push({
+      type: row.kind,
+      value: row.value,
+      label: normalizeContactLabel(row.label),
+      primary: Boolean(row.is_primary),
+    });
+  }
+
+  return {
+    databasePath: contactsDbPath,
+    query,
+    limit: safeLimit,
+    contacts: contacts.slice(0, safeLimit),
+  };
 }
 
 async function readRecentMessageThreads({ threadLimit = 15, perDirection = 25 } = {}) {
@@ -604,6 +712,7 @@ async function handleRequest(request, response) {
         "GET /imessage/health",
         "GET /imessage/messages",
         "GET /imessage/threads",
+        "GET /imessage/contacts",
         "POST /imessage/inbound",
         "POST /imessage/send",
         "POST /imessage/hermes-response",
@@ -671,6 +780,45 @@ async function handleRequest(request, response) {
         source: "macos_messages_database_read_only",
         error: "messages_database_unavailable",
         detail: error instanceof Error ? error.message : "Unable to read Messages database.",
+        audit,
+        privilegedExecutionPerformed: false,
+      });
+    }
+    return;
+  }
+  if (request.method === "GET" && url.pathname === "/imessage/contacts") {
+    try {
+      const result = await searchContacts({
+        q: url.searchParams.get("q") || "",
+        limit: url.searchParams.get("limit") || "40",
+      });
+      const audit = await appendAudit(
+        "iMessage contacts retrieved",
+        "read",
+        `Returned ${result.contacts.length} contact suggestions.`,
+      );
+      sendJson(response, 200, {
+        schemaVersion: 1,
+        brokerId,
+        status: "ok",
+        source: "macos_contacts_database_read_only",
+        ...result,
+        audit,
+        privilegedExecutionPerformed: false,
+      });
+    } catch (error) {
+      const audit = await appendAudit(
+        "iMessage contacts blocked",
+        "blocked",
+        error instanceof Error ? error.message : "Unable to read Contacts database.",
+      );
+      sendJson(response, 503, {
+        schemaVersion: 1,
+        brokerId,
+        status: "blocked",
+        source: "macos_contacts_database_read_only",
+        error: "contacts_database_unavailable",
+        detail: error instanceof Error ? error.message : "Unable to read Contacts database.",
         audit,
         privilegedExecutionPerformed: false,
       });

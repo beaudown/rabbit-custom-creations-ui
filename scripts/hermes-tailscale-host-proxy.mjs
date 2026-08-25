@@ -25,6 +25,7 @@ const imessageRoutes = new Map([
   ["GET /imessage/health", "imessage.read"],
   ["GET /imessage/messages", "imessage.read"],
   ["GET /imessage/threads", "imessage.read"],
+  ["GET /imessage/contacts", "imessage.read"],
   ["POST /imessage/send", "imessage.send"],
   ["POST /imessage/hermes-response", "imessage.send"],
 ]);
@@ -33,6 +34,7 @@ const strippedPublicImessagePaths = new Map([
   ["/health", "/imessage/health"],
   ["/messages", "/imessage/messages"],
   ["/threads", "/imessage/threads"],
+  ["/contacts", "/imessage/contacts"],
   ["/send", "/imessage/send"],
   ["/hermes-response", "/imessage/hermes-response"],
 ]);

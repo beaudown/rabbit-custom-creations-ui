@@ -86,6 +86,7 @@ test("iMessage Hermes broker stages, describes, and forwards without sending by 
     assert.equal(health.hermesUpstreamConfigured, true);
     assert.equal(health.tokenSource, "local_token_file");
     assert.ok(health.routes.includes("GET /imessage/messages"));
+    assert.ok(health.routes.includes("GET /imessage/contacts"));
 
     const blocked = await fetch(`${baseUrl}/imessage/health`);
     assert.equal(blocked.status, 401);
@@ -315,6 +316,79 @@ INSERT INTO chat_message_join VALUES (1, 4, 700000003000000000);
     assert.equal(body.threads[0].sent.length, 1);
     assert.equal(body.threads[0].received[0].text, "received new");
     assert.equal(body.threads[0].sent[0].text, "sent new");
+  } finally {
+    child.kill("SIGTERM");
+    await rm(stateRoot, { recursive: true, force: true });
+  }
+});
+
+test("iMessage Hermes broker searches macOS contacts handles read-only", async () => {
+  const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+  const stateRoot = await mkdtemp(join(tmpdir(), "imessage-broker-contacts-state-"));
+  const contactsDbPath = join(stateRoot, "AddressBook-v22.abcddb");
+  const tokenPath = join(stateRoot, "imessage-token.txt");
+  const token = "contacts-token";
+  await writeFile(tokenPath, `${token}\n`);
+  const brokerPort = 27100 + Math.floor(Math.random() * 1000);
+
+  await execFileAsync("sqlite3", [contactsDbPath, `
+CREATE TABLE ZABCDRECORD (
+  Z_PK INTEGER PRIMARY KEY,
+  ZISALL INTEGER DEFAULT 0,
+  ZFIRSTNAME VARCHAR,
+  ZLASTNAME VARCHAR,
+  ZORGANIZATION VARCHAR,
+  ZNAME VARCHAR,
+  ZNICKNAME VARCHAR
+);
+CREATE TABLE ZABCDPHONENUMBER (
+  ZOWNER INTEGER,
+  ZFULLNUMBER VARCHAR,
+  ZLABEL VARCHAR,
+  ZISPRIMARY INTEGER
+);
+CREATE TABLE ZABCDEMAILADDRESS (
+  ZOWNER INTEGER,
+  ZADDRESS VARCHAR,
+  ZLABEL VARCHAR,
+  ZISPRIMARY INTEGER
+);
+INSERT INTO ZABCDRECORD VALUES (1, 0, 'Jason', 'Fields', NULL, NULL, NULL);
+INSERT INTO ZABCDPHONENUMBER VALUES (1, '+15555550123', '_$!<Mobile>!$_', 1);
+INSERT INTO ZABCDEMAILADDRESS VALUES (1, 'jason@example.com', '_$!<Home>!$_', 0);
+`]);
+
+  const child = spawn(process.execPath, [join(repoRoot, "scripts/imessage-hermes-broker.mjs")], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      IMESSAGE_BROKER_HOST: "127.0.0.1",
+      IMESSAGE_BROKER_PORT: String(brokerPort),
+      IMESSAGE_BROKER_TOKEN_FILE: tokenPath,
+      IMESSAGE_BROKER_STATE_ROOT: stateRoot,
+      IMESSAGE_BROKER_CONTACTS_DB: contactsDbPath,
+      HERMES_IMESSAGE_UPSTREAM: "",
+    },
+    stdio: "ignore",
+  });
+
+  const baseUrl = `http://127.0.0.1:${brokerPort}`;
+
+  try {
+    await waitForBroker(baseUrl, token);
+    const response = await fetch(`${baseUrl}/imessage/contacts?q=Jason&limit=10`, {
+      headers: { "x-imessage-broker-token": token },
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.source, "macos_contacts_database_read_only");
+    assert.equal(body.contacts.length, 1);
+    assert.equal(body.contacts[0].displayName, "Jason Fields");
+    assert.deepEqual(
+      body.contacts[0].handles.map((handle) => handle.value).sort(),
+      ["+15555550123", "jason@example.com"],
+    );
+    assert.equal(body.contacts[0].handles[0].label, "Mobile");
   } finally {
     child.kill("SIGTERM");
     await rm(stateRoot, { recursive: true, force: true });

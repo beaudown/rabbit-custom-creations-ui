@@ -4,14 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>iMessage Hermes Broker</title>
-    <meta
-      name="description"
-      content="Hermes-verified iMessage broker endpoint sheet for Rabbit r1."
-    />
+    <meta name="description" content="Hermes-verified iMessage messaging surface for Rabbit r1." />
     <style>
       :root {
         color-scheme: dark;
-        background: #080b10;
+        background: #07090d;
         color: #f8fbff;
         font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
@@ -23,48 +20,67 @@
       body {
         margin: 0;
         min-height: 100vh;
-        background: #080b10;
+        background: #07090d;
       }
 
       main {
-        width: min(100%, 520px);
+        width: min(100%, 540px);
+        min-height: 100vh;
         margin: 0 auto;
-        padding: 18px;
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
       }
 
-      .panel {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.08);
-        padding: 18px;
-      }
-
-      .eyebrow {
-        margin: 0 0 8px;
-        color: #8fe6ff;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0;
-        text-transform: uppercase;
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        padding: 14px;
+        background: rgba(7, 9, 13, 0.96);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
       }
 
       h1 {
-        margin: 0 0 12px;
-        font-size: 34px;
-        line-height: 1.05;
+        margin: 0;
+        font-size: 24px;
+        line-height: 1.1;
         letter-spacing: 0;
       }
 
-      p {
-        color: #d7e2ef;
-        line-height: 1.45;
+      .top-row,
+      .composer-actions {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .status-strip {
+        margin-top: 10px;
+        border: 1px solid rgba(91, 214, 181, 0.32);
+        border-radius: 8px;
+        background: rgba(91, 214, 181, 0.1);
+        padding: 9px 10px;
+      }
+
+      .status-line {
+        margin: 0;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .request-line {
+        margin: 3px 0 0;
+        color: #bfd0dd;
+        font-size: 11px;
+        overflow-wrap: anywhere;
       }
 
       button,
       input,
       textarea {
-        width: 100%;
-        border: 1px solid rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 8px;
         background: rgba(255, 255, 255, 0.1);
         color: #f8fbff;
@@ -72,14 +88,17 @@
       }
 
       button {
-        min-height: 46px;
-        margin: 6px 0;
-        padding: 11px 12px;
+        min-height: 42px;
+        padding: 10px 12px;
         background: #fe5000;
-        border-color: rgba(255, 255, 255, 0.22);
         color: #ffffff;
         font-weight: 850;
-        text-align: left;
+      }
+
+      button.icon {
+        width: 46px;
+        padding: 0;
+        font-size: 20px;
       }
 
       button.secondary {
@@ -88,184 +107,220 @@
 
       input,
       textarea {
-        margin: 5px 0 9px;
-        padding: 10px;
+        width: 100%;
+        padding: 11px;
       }
 
       textarea {
-        min-height: 78px;
+        min-height: 70px;
         resize: vertical;
       }
 
-      .row {
-        margin: 12px 0;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 8px;
-        padding: 12px;
-        background: rgba(0, 0, 0, 0.24);
+      .search {
+        padding: 10px 14px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       }
 
-      .row strong {
-        display: block;
-        margin-bottom: 6px;
-        color: #ffffff;
-        font-size: 13px;
-      }
-
-      code {
-        display: block;
-        overflow-wrap: anywhere;
-        white-space: normal;
-        color: #f7fbff;
-        font-size: 13px;
-        line-height: 1.45;
-      }
-
-      .warn {
-        color: #ffdba8;
-        font-weight: 700;
-      }
-
-      .status {
-        min-height: 140px;
-        max-height: 320px;
+      .suggestions {
+        display: none;
+        max-height: 210px;
         overflow: auto;
+        margin-top: 8px;
         border: 1px solid rgba(143, 230, 255, 0.22);
         border-radius: 8px;
-        background: rgba(0, 0, 0, 0.4);
-        padding: 12px;
-        color: #eaf7ff;
-        font-size: 12px;
-        line-height: 1.45;
-        white-space: pre-wrap;
+        background: rgba(12, 18, 25, 0.98);
       }
 
-      .status-strip {
-        position: sticky;
-        top: 0;
-        z-index: 2;
-        margin: 0 0 12px;
-        border: 1px solid rgba(143, 230, 255, 0.32);
-        border-radius: 8px;
-        background: #101820;
-        padding: 12px;
+      .suggestions.visible {
+        display: block;
       }
 
-      .status-line {
+      .contact-option,
+      .thread {
+        width: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
         margin: 0;
-        color: #ffffff;
-        font-size: 15px;
+        border: 0;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+        background: transparent;
+        text-align: left;
+      }
+
+      .contact-option {
+        padding: 10px;
+      }
+
+      .contact-name,
+      .thread-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
         font-weight: 850;
       }
 
-      .request-line {
-        margin: 5px 0 0;
+      .contact-handle,
+      .thread-preview,
+      .thread-time,
+      .empty {
         color: #b8c7d8;
         font-size: 12px;
-        overflow-wrap: anywhere;
       }
 
-      .label {
+      .contact-handle,
+      .thread-preview {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .app-body {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 42% 58%;
+      }
+
+      .threads,
+      .conversation {
+        min-height: 0;
+        overflow: auto;
+      }
+
+      .threads {
+        border-right: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .thread {
+        padding: 12px 10px;
+      }
+
+      .thread.active {
+        background: rgba(143, 230, 255, 0.12);
+      }
+
+      .conversation {
+        padding: 12px 10px 96px;
+      }
+
+      .bubble {
+        width: fit-content;
+        max-width: 94%;
+        margin: 0 0 8px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.11);
+        color: #f8fbff;
+        overflow-wrap: anywhere;
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .bubble.sent {
+        margin-left: auto;
+        background: rgba(254, 80, 0, 0.9);
+      }
+
+      .bubble-meta {
         display: block;
-        margin-top: 8px;
-        color: #8fe6ff;
-        font-size: 12px;
-        font-weight: 800;
+        margin-top: 5px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 10px;
+      }
+
+      .composer {
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+        padding: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(7, 9, 13, 0.98);
+      }
+
+      .recipient-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .empty {
+        padding: 16px 12px;
+        line-height: 1.4;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      @media (max-width: 430px) {
+        main {
+          grid-template-rows: auto auto minmax(260px, 1fr) auto;
+        }
+
+        .app-body {
+          grid-template-columns: 1fr;
+        }
+
+        .threads {
+          max-height: 240px;
+          border-right: 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
       }
     </style>
   </head>
   <body>
     <main>
-      <section class="panel" aria-label="iMessage Hermes broker">
-        <p class="eyebrow">Hermes Verified Actions V2</p>
-        <h1>iMessage Broker</h1>
-        <p>
-          This Creation is only for iMessage fetch and reply routing. Hermes
-          verifies requests and injects the Mac-local broker token. No token is
-          stored in this page.
-        </p>
-
+      <header>
+        <div class="top-row">
+          <h1>iMessage</h1>
+          <button type="button" class="icon" data-action="refresh" title="Refresh messages" aria-label="Refresh messages">↻</button>
+        </div>
         <div class="status-strip" aria-live="polite">
           <p id="statusLine" class="status-line">Status: ready</p>
           <p id="requestLine" class="request-line">Last request: none</p>
         </div>
+      </header>
 
-        <div class="row">
-          <strong>Rabbit Test Controls</strong>
-          <button type="button" data-action="health">Check Hermes broker health</button>
-          <button type="button" data-action="threads">Load last 15 threads</button>
-          <button type="button" data-action="messages">Load broker-captured messages</button>
-          <button type="button" class="secondary" data-action="safe-post">Safe POST test, sends nothing</button>
+      <section class="search" aria-label="Contacts">
+        <label class="sr-only" for="contactSearch">Search contacts</label>
+        <input id="contactSearch" autocomplete="off" placeholder="Search contacts or enter phone/email" />
+        <div id="suggestions" class="suggestions" aria-label="Contact suggestions"></div>
+      </section>
+
+      <section class="app-body" aria-label="Messages">
+        <div id="threads" class="threads">
+          <p class="empty">Tap refresh to load recent conversations.</p>
         </div>
-
-        <div class="row">
-          <strong>Send Reply</strong>
-          <label class="label" for="recipient">Recipient handle</label>
-          <input id="recipient" autocomplete="off" placeholder="+15555555555 or email@example.com" />
-          <label class="label" for="message">Message</label>
-          <textarea id="message" placeholder="Message to send through Hermes"></textarea>
-          <button type="button" data-action="send">Send via Hermes</button>
+        <div id="conversation" class="conversation">
+          <p class="empty">Select a thread or search a contact to start.</p>
         </div>
+      </section>
 
-        <div class="row">
-          <strong>Output</strong>
-          <div id="output" class="status">Tap a test control.</div>
+      <section class="composer" aria-label="Send message">
+        <div class="recipient-row">
+          <input id="recipient" autocomplete="off" placeholder="Recipient handle" />
+          <button type="button" class="secondary" data-action="contacts">Find</button>
         </div>
-
-        <div class="row">
-          <strong>Rabbit Public Test URL</strong>
-          <code>https://michaels-macbook-pro.tailcfaeac.ts.net</code>
+        <label class="sr-only" for="message">Message</label>
+        <textarea id="message" placeholder="Message"></textarea>
+        <div class="composer-actions">
+          <span id="selectedThread" class="thread-preview">No thread selected</span>
+          <button type="button" data-action="send">Send</button>
         </div>
-
-        <div class="row">
-          <strong>Hermes Tailnet URL</strong>
-          <code>https://michaels-macbook-pro.tailcfaeac.ts.net:8443</code>
-        </div>
-
-        <div class="row">
-          <strong>iMessage Broker URL</strong>
-          <code>https://michaels-macbook-pro.tailcfaeac.ts.net:10000</code>
-        </div>
-
-        <div class="row">
-          <strong>Rabbit Gateway URL</strong>
-          <code>https://michaels-macbook-pro.tailcfaeac.ts.net</code>
-        </div>
-
-        <div class="row">
-          <strong>GET messages via Hermes</strong>
-          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net/imessage/messages?since=&lt;nextCursor&gt;&amp;limit=25</code>
-        </div>
-
-        <div class="row">
-          <strong>GET last 15 threads</strong>
-          <code>GET https://michaels-macbook-pro.tailcfaeac.ts.net/imessage/threads?threadLimit=15&amp;perDirection=25</code>
-        </div>
-
-        <div class="row">
-          <strong>POST reply via Hermes</strong>
-          <code>POST https://michaels-macbook-pro.tailcfaeac.ts.net/imessage/send</code>
-        </div>
-
-        <div class="row">
-          <strong>Required request gate</strong>
-          <code>x-hermes-verify: imessage.read</code>
-          <code>x-hermes-verify: imessage.send</code>
-          <code>Creation gate: baked into this Creation query</code>
-          <code>POST body: JSON sent as text/plain for Rabbit WebView compatibility</code>
-        </div>
-
-        <div class="row">
-          <strong>Data sources</strong>
-          <code>/imessage/messages reads broker-captured inbound JSONL.</code>
-          <code>/imessage/threads reads the local macOS Messages database read-only.</code>
-        </div>
-
-        <p class="warn">
-          If this page is visible on Rabbit, the Creation install/render path is
-          working. The remaining live test is Hermes proxy support for the
-          /imessage routes.
-        </p>
       </section>
     </main>
     <script>
@@ -273,43 +328,49 @@
         var hermesUrl = "https://michaels-macbook-pro.tailcfaeac.ts.net";
         var creationGateId = "b0ba279701768529048562f2c766e9d4";
         var creationGateKey = "29043089b8e62fd942f21d68762411e503bfcaba6d491844162e90516a7e783b";
-        var output = document.getElementById("output");
+        var threadsEl = document.getElementById("threads");
+        var conversationEl = document.getElementById("conversation");
+        var suggestionsEl = document.getElementById("suggestions");
         var statusLine = document.getElementById("statusLine");
         var requestLine = document.getElementById("requestLine");
+        var contactSearch = document.getElementById("contactSearch");
         var recipient = document.getElementById("recipient");
         var message = document.getElementById("message");
+        var selectedThread = document.getElementById("selectedThread");
+        var threads = [];
+        var activeThreadKey = "";
+        var contactTimer = null;
 
         function setStatus(status, detail) {
           statusLine.textContent = "Status: " + status;
           requestLine.textContent = "Last request: " + (detail || "none");
         }
 
-        function print(value) {
-          if (typeof value === "string") {
-            output.textContent = value;
-            return;
-          }
-          output.textContent = JSON.stringify(value, null, 2);
+        function text(value) {
+          return String(value == null ? "" : value);
         }
 
-        function summarizeThreads(payload) {
-          var threads = Array.isArray(payload.threads) ? payload.threads : [];
-          return {
-            status: payload.status || payload.ok,
-            source: payload.source,
-            publicFunnelRedacted: Boolean(payload.publicFunnelRedacted),
-            threadCount: threads.length,
-            threads: threads.slice(0, 15).map(function (thread) {
-              return {
-                chatIdentifier: thread.chatIdentifier,
-                displayName: thread.displayName,
-                receivedCount: thread.receivedCount || (Array.isArray(thread.received) ? thread.received.length : 0),
-                sentCount: thread.sentCount || (Array.isArray(thread.sent) ? thread.sent.length : 0),
-                latestReceived: Array.isArray(thread.received) && thread.received[0] ? thread.received[0].text : null,
-                latestSent: Array.isArray(thread.sent) && thread.sent[0] ? thread.sent[0].text : null
-              };
-            })
-          };
+        function formatTime(value) {
+          if (!value) {
+            return "";
+          }
+          try {
+            return new Date(value).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+          } catch (error) {
+            return "";
+          }
+        }
+
+        function latestMessage(thread) {
+          var received = Array.isArray(thread.received) ? thread.received : [];
+          var sent = Array.isArray(thread.sent) ? thread.sent : [];
+          return received.concat(sent).sort(function (a, b) {
+            return text(b.at).localeCompare(text(a.at));
+          })[0] || null;
+        }
+
+        function threadKey(thread) {
+          return thread.chatGuid || thread.chatIdentifier || thread.displayName || "";
         }
 
         function requestJson(path, mode, body) {
@@ -319,9 +380,7 @@
             "&cid=" + encodeURIComponent(creationGateId) +
             "&cg=" + encodeURIComponent(creationGateKey);
           var controller = window.AbortController ? new AbortController() : null;
-          var options = {
-            method: mode || "GET"
-          };
+          var options = { method: mode || "GET" };
           if (controller) {
             options.signal = controller.signal;
           }
@@ -330,29 +389,21 @@
             options.body = JSON.stringify(body || {});
           }
           setStatus("requesting", path);
-          print("Requesting " + path + " ...");
           var timeoutPromise = new Promise(function (resolve) {
             setTimeout(function () {
               if (controller) {
                 controller.abort();
               }
-              resolve({
-                ok: false,
-                error: "request_timeout",
-                endpoint: hermesUrl + path
-              });
+              resolve({ ok: false, error: "request_timeout", endpoint: hermesUrl + path });
             }, 12000);
           });
           var fetchPromise = fetch(hermesUrl + gatedPath, options).then(function (response) {
-            return response.text().then(function (text) {
+            return response.text().then(function (bodyText) {
               var payload;
               try {
-                payload = JSON.parse(text);
+                payload = bodyText ? JSON.parse(bodyText) : {};
               } catch (error) {
-                payload = { raw: text };
-              }
-              if (!response.ok) {
-                payload.httpStatus = response.status;
+                payload = { raw: bodyText };
               }
               payload.httpStatus = response.status;
               setStatus(response.ok ? "ok" : "error", path + " HTTP " + response.status);
@@ -360,12 +411,7 @@
             });
           }).catch(function (error) {
             setStatus("error", path + " " + (error.name === "AbortError" ? "request_timeout" : "fetch_failed"));
-            return {
-              ok: false,
-              error: error.name === "AbortError" ? "request_timeout" : "fetch_failed",
-              message: error.message,
-              endpoint: hermesUrl + path
-            };
+            return { ok: false, error: error.name === "AbortError" ? "request_timeout" : "fetch_failed", message: error.message };
           });
           return Promise.race([fetchPromise, timeoutPromise]).then(function (payload) {
             if (payload && payload.error === "request_timeout") {
@@ -375,53 +421,150 @@
           });
         }
 
-        function run(action) {
-          if (action === "health") {
-            requestJson("/imessage/health").then(print).catch(function (error) {
-              print("Health check failed: " + error.message);
-            });
+        function renderThreads() {
+          if (!threads.length) {
+            threadsEl.innerHTML = '<p class="empty">No recent conversations returned.</p>';
             return;
           }
-          if (action === "threads") {
-            requestJson("/imessage/threads?threadLimit=15&perDirection=25").then(function (payload) {
-              print(summarizeThreads(payload));
-            }).catch(function (error) {
-              print("Thread fetch failed: " + error.message);
+          threadsEl.innerHTML = "";
+          threads.forEach(function (thread) {
+            var latest = latestMessage(thread);
+            var button = document.createElement("button");
+            button.type = "button";
+            button.className = "thread" + (threadKey(thread) === activeThreadKey ? " active" : "");
+            button.innerHTML = '<span><span class="thread-name"></span><span class="thread-preview"></span></span><span class="thread-time"></span>';
+            button.querySelector(".thread-name").textContent = thread.displayName || thread.chatIdentifier || "Conversation";
+            button.querySelector(".thread-preview").textContent = latest ? (latest.direction === "sent" ? "You: " : "") + (latest.text || (latest.hasAttachments ? "Attachment" : "")) : "No preview";
+            button.querySelector(".thread-time").textContent = latest ? formatTime(latest.at) : "";
+            button.addEventListener("click", function () {
+              selectThread(threadKey(thread));
             });
-            return;
-          }
-          if (action === "messages") {
-            requestJson("/imessage/messages?limit=25").then(print).catch(function (error) {
-              print("Message fetch failed: " + error.message);
-            });
-            return;
-          }
-          if (action === "safe-post") {
-            requestJson("/imessage/send", "POST", {}).then(print).catch(function (error) {
-              print("Safe POST failed: " + error.message);
-            });
-            return;
-          }
-          if (action === "send") {
-            if (!recipient.value.trim() || !message.value.trim()) {
-              setStatus("blocked", "send missing recipient or message");
-              print("Recipient and message are required before sending.");
-              return;
-            }
-            requestJson("/imessage/send", "POST", {
-              recipient: recipient.value.trim(),
-              message: message.value.trim()
-            }).then(print).catch(function (error) {
-              print("Send failed: " + error.message);
-            });
-          }
+            threadsEl.appendChild(button);
+          });
         }
 
-        Array.prototype.forEach.call(document.querySelectorAll("[data-action]"), function (button) {
-          button.addEventListener("click", function () {
-            run(button.getAttribute("data-action"));
+        function renderConversation(thread) {
+          if (!thread) {
+            conversationEl.innerHTML = '<p class="empty">Select a thread or search a contact to start.</p>';
+            selectedThread.textContent = "No thread selected";
+            return;
+          }
+          var messages = (Array.isArray(thread.received) ? thread.received : [])
+            .concat(Array.isArray(thread.sent) ? thread.sent : [])
+            .sort(function (a, b) {
+              return text(a.at).localeCompare(text(b.at));
+            });
+          conversationEl.innerHTML = "";
+          if (!messages.length) {
+            conversationEl.innerHTML = '<p class="empty">No messages in this thread payload.</p>';
+          }
+          messages.forEach(function (item) {
+            var bubble = document.createElement("div");
+            bubble.className = "bubble " + (item.direction === "sent" ? "sent" : "received");
+            bubble.textContent = item.text || (item.hasAttachments ? "Attachment" : "");
+            var meta = document.createElement("span");
+            meta.className = "bubble-meta";
+            meta.textContent = formatTime(item.at);
+            bubble.appendChild(meta);
+            conversationEl.appendChild(bubble);
           });
+          selectedThread.textContent = thread.displayName || thread.chatIdentifier || "Selected thread";
+          recipient.value = thread.chatIdentifier || "";
+          setTimeout(function () {
+            conversationEl.scrollTop = conversationEl.scrollHeight;
+          }, 0);
+        }
+
+        function selectThread(key) {
+          activeThreadKey = key;
+          var thread = threads.filter(function (candidate) {
+            return threadKey(candidate) === key;
+          })[0];
+          renderThreads();
+          renderConversation(thread);
+        }
+
+        function refreshThreads() {
+          threadsEl.innerHTML = '<p class="empty">Refreshing conversations...</p>';
+          return requestJson("/imessage/threads?threadLimit=15&perDirection=25").then(function (payload) {
+            threads = Array.isArray(payload.threads) ? payload.threads : [];
+            renderThreads();
+            if (activeThreadKey) {
+              selectThread(activeThreadKey);
+            } else if (threads[0]) {
+              selectThread(threadKey(threads[0]));
+            } else {
+              renderConversation(null);
+            }
+          });
+        }
+
+        function renderContacts(payload) {
+          var contacts = Array.isArray(payload.contacts) ? payload.contacts : [];
+          suggestionsEl.innerHTML = "";
+          if (!contacts.length) {
+            suggestionsEl.className = "suggestions";
+            return;
+          }
+          contacts.forEach(function (contact) {
+            (contact.handles || []).slice(0, 2).forEach(function (handle) {
+              var option = document.createElement("button");
+              option.type = "button";
+              option.className = "contact-option";
+              option.innerHTML = '<span><span class="contact-name"></span><span class="contact-handle"></span></span><span class="thread-time"></span>';
+              option.querySelector(".contact-name").textContent = contact.displayName || handle.value;
+              option.querySelector(".contact-handle").textContent = handle.value;
+              option.querySelector(".thread-time").textContent = handle.type;
+              option.addEventListener("click", function () {
+                recipient.value = handle.value;
+                selectedThread.textContent = contact.displayName || handle.value;
+                activeThreadKey = "";
+                renderThreads();
+                conversationEl.innerHTML = '<p class="empty"></p>';
+                conversationEl.querySelector(".empty").textContent = "Ready to message " + (contact.displayName || handle.value) + ".";
+                suggestionsEl.className = "suggestions";
+              });
+              suggestionsEl.appendChild(option);
+            });
+          });
+          suggestionsEl.className = "suggestions visible";
+        }
+
+        function searchContacts() {
+          var query = contactSearch.value.trim();
+          if (!query) {
+            suggestionsEl.className = "suggestions";
+            return Promise.resolve();
+          }
+          return requestJson("/imessage/contacts?q=" + encodeURIComponent(query) + "&limit=20").then(renderContacts);
+        }
+
+        function sendMessage() {
+          if (!recipient.value.trim() || !message.value.trim()) {
+            setStatus("blocked", "send missing recipient or message");
+            return Promise.resolve();
+          }
+          return requestJson("/imessage/send", "POST", {
+            recipient: recipient.value.trim(),
+            message: message.value.trim()
+          }).then(function (payload) {
+            if (payload.status === "sent" || payload.messagesSent) {
+              message.value = "";
+              return refreshThreads();
+            }
+            setStatus("error", payload.error || payload.status || "send failed");
+          });
+        }
+
+        document.querySelector('[data-action="refresh"]').addEventListener("click", refreshThreads);
+        document.querySelector('[data-action="contacts"]').addEventListener("click", searchContacts);
+        document.querySelector('[data-action="send"]').addEventListener("click", sendMessage);
+        contactSearch.addEventListener("input", function () {
+          clearTimeout(contactTimer);
+          contactTimer = setTimeout(searchContacts, 350);
         });
+
+        refreshThreads();
       }());
     </script>
   </body>

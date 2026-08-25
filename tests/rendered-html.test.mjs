@@ -240,57 +240,45 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   assert.match(main, /serviceWorker/);
 });
 
-test("static iMessage broker Creation page exposes lightweight Rabbit test controls", async () => {
+test("static iMessage broker Creation page exposes messaging app controls", async () => {
   const page = await readFile(new URL("../public/imessage-broker.html", import.meta.url), "utf8");
   const actionPage = await readFile(new URL("../public/imessage-broker-actions.html", import.meta.url), "utf8");
 
   assert.match(page, /iMessage Hermes Broker/);
-  assert.match(page, /Rabbit Public Test URL/);
-  assert.match(page, /Hermes Tailnet URL/);
-  assert.match(page, /Rabbit Test Controls/);
-  assert.match(page, /Check Hermes broker health/);
-  assert.match(page, /Load last 15 threads/);
-  assert.match(page, /Safe POST test, sends nothing/);
-  assert.match(page, /Status: ready/);
-  assert.match(page, /Last request: none/);
-  assert.match(page, /setStatus\("requesting"/);
-  assert.match(page, /setStatus\(response\.ok \? "ok" : "error"/);
-  assert.match(page, /data-action="send"/);
-  assert.match(page, /fetch\(hermesUrl \+ gatedPath/);
-  assert.match(page, /hv=/);
-  assert.match(page, /cid=/);
-  assert.match(page, /cg=/);
-  assert.match(page, /text\/plain/);
-  assert.match(page, /GET https:\/\/michaels-macbook-pro\.tailcfaeac\.ts\.net\/imessage\/messages/);
-  assert.match(page, /POST https:\/\/michaels-macbook-pro\.tailcfaeac\.ts\.net\/imessage\/send/);
-  assert.match(page, /AbortController/);
-  assert.match(page, /request_timeout/);
-  assert.match(page, /Creation gate: baked into this Creation query/);
-  assert.match(page, /No token is\s+stored in this page/);
+  assert.match(page, /imessage-broker-actions\.html/);
   assert.doesNotMatch(page, /Superuser Management/);
   assert.doesNotMatch(page, /A1 Broker Test/);
-  assert.doesNotMatch(page, /private\/tmp/);
-  assert.doesNotMatch(page, /x-imessage-broker-token/);
-  assert.match(actionPage, /Hermes Verified Actions V2/);
-  assert.match(actionPage, /Rabbit Test Controls/);
-  assert.match(actionPage, /Check Hermes broker health/);
-  assert.match(actionPage, /Load last 15 threads/);
-  assert.match(actionPage, /Safe POST test, sends nothing/);
+  assert.match(actionPage, /<h1>iMessage<\/h1>/);
+  assert.match(actionPage, /Refresh messages/);
+  assert.match(actionPage, /Search contacts or enter phone\/email/);
+  assert.match(actionPage, /Contact suggestions/);
+  assert.match(actionPage, /Tap refresh to load recent conversations/);
+  assert.match(actionPage, /Select a thread or search a contact to start/);
+  assert.match(actionPage, /Recipient handle/);
+  assert.match(actionPage, /data-action="send"/);
+  assert.match(actionPage, /data-action="refresh"/);
+  assert.match(actionPage, /data-action="contacts"/);
   assert.match(actionPage, /Status: ready/);
   assert.match(actionPage, /Last request: none/);
   assert.match(actionPage, /setStatus\("requesting"/);
   assert.match(actionPage, /setStatus\(response\.ok \? "ok" : "error"/);
   assert.match(actionPage, /fetch\(hermesUrl \+ gatedPath/);
+  assert.match(actionPage, /\/imessage\/threads\?threadLimit=15&perDirection=25/);
+  assert.match(actionPage, /\/imessage\/contacts\?q=/);
+  assert.match(actionPage, /\/imessage\/send/);
+  assert.match(actionPage, /refreshThreads\(\)/);
+  assert.match(actionPage, /renderConversation/);
   assert.match(actionPage, /hv=/);
   assert.match(actionPage, /cid=/);
   assert.match(actionPage, /cg=/);
   assert.match(actionPage, /text\/plain/);
   assert.match(actionPage, /AbortController/);
   assert.match(actionPage, /request_timeout/);
-  assert.match(actionPage, /https:\/\/michaels-macbook-pro\.tailcfaeac\.ts\.net\/imessage\/send/);
   assert.doesNotMatch(actionPage, /michaels-macbook-pro\.tailcfaeac\.ts\.net:10001\/imessage/);
   assert.doesNotMatch(actionPage, /private\/tmp/);
   assert.doesNotMatch(actionPage, /x-imessage-broker-token/);
+  assert.doesNotMatch(actionPage, /Rabbit Test Controls/);
+  assert.doesNotMatch(actionPage, /Safe POST test/);
 });
 
 test("broker audit manifest enforces bounded append-only logging", async () => {
