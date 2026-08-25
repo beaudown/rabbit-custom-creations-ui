@@ -193,7 +193,7 @@ test("hosted QR launch sheet exposes Rabbit-format iMessage Creation QR", async 
   assert.match(qrSheet, /title%22%3A%22iMessage%20Hermes%20Broker/);
   assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Fimessage-broker-actions\.html/);
   assert.match(qrSheet, /imessage-broker-actions\.html/);
-  assert.match(qrSheet, /cache%3D2232293/);
+  assert.match(qrSheet, /cache%3Ddaf6b5b/);
   assert.doesNotMatch(qrSheet, /creation%3DiMessageHermesBrokerActions/);
   assert.doesNotMatch(qrSheet, /creation=iMessageHermesBrokerActions/);
   assert.doesNotMatch(qrSheet, /shortCode|shortcode|short_code|short-code/i);
