@@ -226,7 +226,14 @@ test("iMessage Creation UI hides internal thread ids and keeps bubbles readable"
   assert.match(html, /function visibleHandle/);
   assert.match(html, /function replyHandle/);
   assert.match(html, /function messageBody/);
+  assert.match(html, /function orderedMessages/);
+  assert.match(html, /function syncActiveThread/);
   assert.match(html, /Message text unavailable/);
+  assert.match(html, /data-action="sync-thread"/);
+  assert.match(html, /Auto sync every 30 seconds/);
+  assert.match(html, /setInterval\(function \(\)/);
+  assert.match(html, /30000/);
+  assert.match(html, /navigator\.vibrate/);
   assert.match(html, /participantHandles\.map\(visibleHandle\)/);
   assert.match(html, /row\.querySelector\("\.thread-preview"\)\.textContent = latest \? \(latest\.direction === "sent" \? "You: " : ""\) \+ messageBody\(latest\)/);
   assert.doesNotMatch(html, /thread\.chatIdentifier \|\| ""/);
@@ -298,6 +305,9 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.match(actionPage, /selectThreadAtIndex/);
   assert.match(actionPage, /touchend/);
   assert.match(actionPage, /data-action="reply"/);
+  assert.match(actionPage, /data-action="sync-thread"/);
+  assert.match(actionPage, /syncActiveThread/);
+  assert.match(actionPage, /new messages/);
   assert.match(actionPage, /setBusy/);
   assert.match(actionPage, /overflow-y: auto/);
   assert.match(actionPage, /display: block/);

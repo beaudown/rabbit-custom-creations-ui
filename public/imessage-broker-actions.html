@@ -252,6 +252,19 @@
         padding: 8px 10px;
       }
 
+      .conversation-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+      }
+
+      .thread-sync-note {
+        margin: -2px 0 10px;
+        color: #8fe6ff;
+        font-size: 11px;
+        font-weight: 800;
+      }
+
       .bubble {
         width: fit-content;
         max-width: 94%;
@@ -388,6 +401,8 @@
         var selectedThread = document.getElementById("selectedThread");
         var threads = [];
         var activeThreadKey = "";
+        var lastThreadSyncAt = "";
+        var heartbeatTimer = null;
         var contactTimer = null;
         var requestCount = 0;
 
@@ -425,11 +440,8 @@
         }
 
         function latestMessage(thread) {
-          var received = Array.isArray(thread.received) ? thread.received : [];
-          var sent = Array.isArray(thread.sent) ? thread.sent : [];
-          return received.concat(sent).sort(function (a, b) {
-            return text(b.at).localeCompare(text(a.at));
-          })[0] || null;
+          var messages = orderedMessages(thread);
+          return messages[messages.length - 1] || null;
         }
 
         function threadKey(thread) {
@@ -493,6 +505,31 @@
             return "Attachment";
           }
           return "Message text unavailable";
+        }
+
+        function orderedMessages(thread) {
+          var source = Array.isArray(thread && thread.messages)
+            ? thread.messages
+            : (Array.isArray(thread && thread.received) ? thread.received : []).concat(Array.isArray(thread && thread.sent) ? thread.sent : []);
+          return source.slice().sort(function (a, b) {
+            var atCompare = text(a.at).localeCompare(text(b.at));
+            if (atCompare !== 0) {
+              return atCompare;
+            }
+            return Number(a.rowId || 0) - Number(b.rowId || 0);
+          });
+        }
+
+        function threadMessageCount(thread) {
+          return orderedMessages(thread).length;
+        }
+
+        function mergeThreads(nextThreads) {
+          var previousKey = activeThreadKey;
+          threads = Array.isArray(nextThreads) ? nextThreads : [];
+          if (previousKey && !threads.filter(function (candidate) { return threadKey(candidate) === previousKey; })[0]) {
+            activeThreadKey = "";
+          }
         }
 
         function requestJson(path, mode, body) {
@@ -573,24 +610,27 @@
             selectedThread.textContent = "No thread selected";
             return;
           }
-          var messages = (Array.isArray(thread.received) ? thread.received : [])
-            .concat(Array.isArray(thread.sent) ? thread.sent : [])
-            .sort(function (a, b) {
-              return text(a.at).localeCompare(text(b.at));
-            });
+          var messages = orderedMessages(thread);
           conversationEl.innerHTML = "";
           var title = document.createElement("div");
           title.className = "conversation-title";
-          title.innerHTML = '<span><strong></strong><span></span></span><button type="button" class="secondary" data-action="reply">Reply</button>';
+          title.innerHTML = '<span><strong></strong><span></span></span><span class="conversation-actions"><button type="button" class="ghost" data-action="sync-thread">Sync</button><button type="button" class="secondary" data-action="reply">Reply</button></span>';
           title.querySelector("strong").textContent = threadTitle(thread);
           title.querySelector("span span").textContent = threadHandle(thread);
           conversationEl.appendChild(title);
+          title.querySelector('[data-action="sync-thread"]').addEventListener("click", function () {
+            syncActiveThread(true);
+          });
           title.querySelector('[data-action="reply"]').addEventListener("click", function () {
             recipient.value = replyHandle(thread);
             selectedThread.textContent = threadTitle(thread);
             document.getElementById("composer").scrollIntoView({ behavior: "smooth", block: "start" });
             message.focus();
           });
+          var syncNote = document.createElement("p");
+          syncNote.className = "thread-sync-note";
+          syncNote.textContent = lastThreadSyncAt ? "Last sync " + formatTime(lastThreadSyncAt) + " · " + threadMessageCount(thread) + " messages" : "Auto sync every 30 seconds · " + threadMessageCount(thread) + " messages";
+          conversationEl.appendChild(syncNote);
           if (!messages.length) {
             var empty = document.createElement("p");
             empty.className = "empty";
@@ -643,7 +683,8 @@
               renderConversation(null);
               return;
             }
-            threads = Array.isArray(payload.threads) ? payload.threads : [];
+            mergeThreads(payload.threads);
+            lastThreadSyncAt = new Date().toISOString();
             renderThreads();
             if (activeThreadKey) {
               selectThread(activeThreadKey);
@@ -651,6 +692,40 @@
               selectThread(threadKey(threads[0]));
             } else {
               renderConversation(null);
+            }
+          });
+        }
+
+        function syncActiveThread(userRequested) {
+          if (!activeThreadKey) {
+            return userRequested ? refreshThreads() : Promise.resolve();
+          }
+          var previousThread = threads.filter(function (candidate) {
+            return threadKey(candidate) === activeThreadKey;
+          })[0];
+          var previousCount = previousThread ? threadMessageCount(previousThread) : 0;
+          return requestJson("/imessage/threads?threadLimit=15&perDirection=25").then(function (payload) {
+            if (payload.error || (payload.httpStatus && payload.httpStatus >= 400)) {
+              if (userRequested) {
+                setStatus("error", "thread sync failed");
+              }
+              return;
+            }
+            mergeThreads(payload.threads);
+            lastThreadSyncAt = new Date().toISOString();
+            var activeThread = threads.filter(function (candidate) {
+              return threadKey(candidate) === activeThreadKey;
+            })[0];
+            var nextCount = activeThread ? threadMessageCount(activeThread) : 0;
+            renderThreads();
+            renderConversation(activeThread || null);
+            if (nextCount > previousCount) {
+              setStatus("new messages", "+" + (nextCount - previousCount) + " in current thread");
+              if (navigator.vibrate) {
+                navigator.vibrate([60, 40, 60]);
+              }
+            } else {
+              setStatus(userRequested ? "synced" : "heartbeat", activeThread ? threadTitle(activeThread) : "current thread");
             }
           });
         }
@@ -767,6 +842,15 @@
         contactSearch.addEventListener("input", function () {
           clearTimeout(contactTimer);
           contactTimer = setTimeout(searchContacts, 350);
+        });
+
+        heartbeatTimer = setInterval(function () {
+          syncActiveThread(false);
+        }, 30000);
+        window.addEventListener("beforeunload", function () {
+          if (heartbeatTimer) {
+            clearInterval(heartbeatTimer);
+          }
         });
 
         refreshThreads();

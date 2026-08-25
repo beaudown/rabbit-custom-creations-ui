@@ -361,6 +361,18 @@ function cleanMessageText(value) {
     .trim();
 }
 
+function messageSortKey(message) {
+  return `${String(message.at || "")}:${String(message.rowId || "").padStart(18, "0")}`;
+}
+
+function sortMessagesAscending(messages) {
+  return messages.sort((a, b) => messageSortKey(a).localeCompare(messageSortKey(b)));
+}
+
+function sortMessagesDescending(messages) {
+  return messages.sort((a, b) => messageSortKey(b).localeCompare(messageSortKey(a)));
+}
+
 function decodeTypedStreamLength(buffer, index) {
   if (index >= buffer.length) {
     return null;
@@ -595,6 +607,7 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
         lastMessageAt: normalizeAppleMessageDate(row.last_date),
         receivedLimit: safePerDirection,
         sentLimit: safePerDirection,
+        messages: [],
         received: [],
         sent: [],
       };
@@ -614,7 +627,16 @@ ORDER BY last_date DESC, chat_rowid, date DESC, message_rowid DESC;
       isSent: Boolean(row.is_sent),
       hasAttachments: Boolean(row.cache_has_attachments),
     };
-    byChat.get(chatKey)[message.direction].push(message);
+    const thread = byChat.get(chatKey);
+    thread.messages.push(message);
+    thread[message.direction].push(message);
+  }
+  for (const thread of threads) {
+    thread.messages = sortMessagesAscending(thread.messages);
+    thread.received = sortMessagesDescending(thread.received);
+    thread.sent = sortMessagesDescending(thread.sent);
+    thread.messageCount = thread.messages.length;
+    thread.latestMessageAt = thread.messages.length ? thread.messages[thread.messages.length - 1].at : thread.lastMessageAt;
   }
   const contacts = await enrichThreadsWithContacts(threads);
 

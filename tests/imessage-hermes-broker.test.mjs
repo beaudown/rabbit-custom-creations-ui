@@ -364,11 +364,18 @@ INSERT INTO ZABCDPHONENUMBER VALUES (1, NULL, '+15555550100', '_$!<Mobile>!$_', 
     assert.equal(body.threads[0].contactMatchedHandle, "+15555550100");
     assert.equal(body.threads[0].received.length, 1);
     assert.equal(body.threads[0].sent.length, 1);
+    assert.equal(body.threads[0].messageCount, 2);
+    assert.deepEqual(
+      body.threads[0].messages.map((message) => message.guid),
+      ["recv-new", "sent-new"],
+    );
     assert.equal(body.threads[0].chatIdentifier, "iMessage;-;chat-guid-1");
     assert.equal(body.threads[0].participantHandles[0], "+15555550100");
     assert.equal(body.threads[0].received[0].text, "received new from attributed body");
     assert.equal(body.threads[0].received[0].textAvailable, true);
     assert.equal(body.threads[0].sent[0].text, "sent new");
+    assert.equal(body.threads[0].messages[0].text, "received new from attributed body");
+    assert.equal(body.threads[0].messages[1].text, "sent new");
   } finally {
     child.kill("SIGTERM");
     await rm(stateRoot, { recursive: true, force: true });
