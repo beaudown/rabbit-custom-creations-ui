@@ -60,6 +60,43 @@
         line-height: 1.45;
       }
 
+      button,
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #f8fbff;
+        font: inherit;
+      }
+
+      button {
+        min-height: 46px;
+        margin: 6px 0;
+        padding: 11px 12px;
+        background: #fe5000;
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+        font-weight: 850;
+        text-align: left;
+      }
+
+      button.secondary {
+        background: rgba(143, 230, 255, 0.14);
+      }
+
+      input,
+      textarea {
+        margin: 5px 0 9px;
+        padding: 10px;
+      }
+
+      textarea {
+        min-height: 78px;
+        resize: vertical;
+      }
+
       .row {
         margin: 12px 0;
         border: 1px solid rgba(255, 255, 255, 0.15);
@@ -88,6 +125,28 @@
         color: #ffdba8;
         font-weight: 700;
       }
+
+      .status {
+        min-height: 140px;
+        max-height: 320px;
+        overflow: auto;
+        border: 1px solid rgba(143, 230, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 12px;
+        color: #eaf7ff;
+        font-size: 12px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      .label {
+        display: block;
+        margin-top: 8px;
+        color: #8fe6ff;
+        font-size: 12px;
+        font-weight: 800;
+      }
     </style>
   </head>
   <body>
@@ -100,6 +159,28 @@
           verifies requests and injects the Mac-local broker token. No token is
           stored in this page.
         </p>
+
+        <div class="row">
+          <strong>Rabbit Test Controls</strong>
+          <button type="button" data-action="health">Check Hermes broker health</button>
+          <button type="button" data-action="threads">Load last 15 threads</button>
+          <button type="button" data-action="messages">Load broker-captured messages</button>
+          <button type="button" class="secondary" data-action="safe-post">Safe POST test, sends nothing</button>
+        </div>
+
+        <div class="row">
+          <strong>Send Reply</strong>
+          <label class="label" for="recipient">Recipient handle</label>
+          <input id="recipient" autocomplete="off" placeholder="+15555555555 or email@example.com" />
+          <label class="label" for="message">Message</label>
+          <textarea id="message" placeholder="Message to send through Hermes"></textarea>
+          <button type="button" data-action="send">Send via Hermes</button>
+        </div>
+
+        <div class="row">
+          <strong>Output</strong>
+          <div id="output" class="status">Tap a test control.</div>
+        </div>
 
         <div class="row">
           <strong>Hermes Secure URL</strong>
@@ -151,5 +232,115 @@
         </p>
       </section>
     </main>
+    <script>
+      (function () {
+        var hermesUrl = "https://michaels-macbook-pro.tailcfaeac.ts.net:8443";
+        var output = document.getElementById("output");
+        var recipient = document.getElementById("recipient");
+        var message = document.getElementById("message");
+
+        function print(value) {
+          if (typeof value === "string") {
+            output.textContent = value;
+            return;
+          }
+          output.textContent = JSON.stringify(value, null, 2);
+        }
+
+        function summarizeThreads(payload) {
+          var threads = Array.isArray(payload.threads) ? payload.threads : [];
+          return {
+            status: payload.status || payload.ok,
+            source: payload.source,
+            threadCount: threads.length,
+            threads: threads.slice(0, 15).map(function (thread) {
+              return {
+                chatIdentifier: thread.chatIdentifier,
+                displayName: thread.displayName,
+                receivedCount: Array.isArray(thread.received) ? thread.received.length : 0,
+                sentCount: Array.isArray(thread.sent) ? thread.sent.length : 0,
+                latestReceived: Array.isArray(thread.received) && thread.received[0] ? thread.received[0].text : null,
+                latestSent: Array.isArray(thread.sent) && thread.sent[0] ? thread.sent[0].text : null
+              };
+            })
+          };
+        }
+
+        function requestJson(path, mode, body) {
+          var options = {
+            method: mode || "GET",
+            headers: {
+              "x-hermes-verify": mode === "POST" ? "imessage.send" : "imessage.read"
+            }
+          };
+          if (mode === "POST") {
+            options.headers["content-type"] = "application/json";
+            options.body = JSON.stringify(body || {});
+          }
+          print("Requesting " + path + " ...");
+          return fetch(hermesUrl + path, options).then(function (response) {
+            return response.text().then(function (text) {
+              var payload;
+              try {
+                payload = JSON.parse(text);
+              } catch (error) {
+                payload = { raw: text };
+              }
+              if (!response.ok) {
+                payload.httpStatus = response.status;
+              }
+              return payload;
+            });
+          });
+        }
+
+        function run(action) {
+          if (action === "health") {
+            requestJson("/imessage/health").then(print).catch(function (error) {
+              print("Health check failed: " + error.message);
+            });
+            return;
+          }
+          if (action === "threads") {
+            requestJson("/imessage/threads?threadLimit=15&perDirection=25").then(function (payload) {
+              print(summarizeThreads(payload));
+            }).catch(function (error) {
+              print("Thread fetch failed: " + error.message);
+            });
+            return;
+          }
+          if (action === "messages") {
+            requestJson("/imessage/messages?limit=25").then(print).catch(function (error) {
+              print("Message fetch failed: " + error.message);
+            });
+            return;
+          }
+          if (action === "safe-post") {
+            requestJson("/imessage/send", "POST", {}).then(print).catch(function (error) {
+              print("Safe POST failed: " + error.message);
+            });
+            return;
+          }
+          if (action === "send") {
+            if (!recipient.value.trim() || !message.value.trim()) {
+              print("Recipient and message are required before sending.");
+              return;
+            }
+            requestJson("/imessage/send", "POST", {
+              recipient: recipient.value.trim(),
+              message: message.value.trim()
+            }).then(print).catch(function (error) {
+              print("Send failed: " + error.message);
+            });
+          }
+        }
+
+        Array.prototype.forEach.call(document.querySelectorAll("[data-action]"), function (button) {
+          button.addEventListener("click", function () {
+            run(button.getAttribute("data-action"));
+          });
+        });
+      }());
+    </script>
   </body>
 </html>
