@@ -19,26 +19,20 @@
 
       body {
         margin: 0;
-        height: 100vh;
-        height: 100dvh;
-        overflow: hidden;
+        min-height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
         background: #07090d;
       }
 
       main {
         width: min(100%, 540px);
-        height: 100vh;
-        height: 100dvh;
+        min-height: 100vh;
         margin: 0 auto;
-        display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr) auto;
-        overflow: hidden;
+        display: block;
       }
 
       header {
-        position: sticky;
-        top: 0;
-        z-index: 4;
         padding: 14px;
         background: rgba(7, 9, 13, 0.96);
         border-bottom: 1px solid rgba(255, 255, 255, 0.14);
@@ -61,29 +55,29 @@
       }
 
       .toolbar {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         margin-top: 10px;
       }
 
       .status-strip {
-        margin-top: 10px;
+        margin-top: 8px;
         border: 1px solid rgba(91, 214, 181, 0.32);
         border-radius: 8px;
         background: rgba(91, 214, 181, 0.1);
-        padding: 9px 10px;
+        padding: 6px 8px;
       }
 
       .status-line {
         margin: 0;
         color: #ffffff;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 850;
       }
 
       .request-line {
-        margin: 3px 0 0;
+        margin: 2px 0 0;
         color: #bfd0dd;
-        font-size: 11px;
+        font-size: 10px;
         overflow-wrap: anywhere;
       }
 
@@ -200,26 +194,16 @@
       }
 
       .app-body {
-        min-height: 0;
-        height: 100%;
-        display: grid;
-        grid-template-columns: 42% 58%;
-        overflow: hidden;
+        display: block;
       }
 
       .threads,
       .conversation {
-        min-height: 0;
-        height: 100%;
-        overflow-y: auto;
-        overflow-x: hidden;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-        touch-action: pan-y;
+        overflow: visible;
       }
 
       .threads {
-        border-right: 1px solid rgba(255, 255, 255, 0.12);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       }
 
       .thread {
@@ -231,13 +215,10 @@
       }
 
       .conversation {
-        padding: 12px 10px 96px;
+        padding: 12px 10px;
       }
 
       .conversation-title {
-        position: sticky;
-        top: 0;
-        z-index: 1;
         margin: -12px -10px 10px;
         padding: 10px;
         background: rgba(7, 9, 13, 0.94);
@@ -284,7 +265,6 @@
       }
 
       .composer {
-        z-index: 3;
         padding: 10px;
         border-top: 1px solid rgba(255, 255, 255, 0.14);
         background: rgba(7, 9, 13, 0.98);
@@ -319,19 +299,14 @@
       }
 
       @media (max-width: 430px) {
-        main {
-          grid-template-rows: auto auto minmax(0, 1fr) auto;
+        .toolbar {
+          grid-template-columns: repeat(3, 1fr);
         }
 
-        .app-body {
-          height: 100%;
-          grid-template-columns: 1fr;
-          grid-template-rows: minmax(130px, 34%) minmax(0, 1fr);
-        }
-
-        .threads {
-          border-right: 0;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        .toolbar button {
+          min-height: 38px;
+          padding: 8px 6px;
+          font-size: 12px;
         }
       }
     </style>
@@ -347,6 +322,8 @@
           <button type="button" class="secondary" data-action="refresh">Refresh</button>
           <button type="button" class="ghost" data-action="new">New</button>
           <button type="button" class="ghost" data-action="contacts">Contacts</button>
+          <button type="button" class="ghost" data-scroll-target="threads">Threads</button>
+          <button type="button" class="ghost" data-scroll-target="composer">Send box</button>
         </div>
         <div class="status-strip" aria-live="polite">
           <p id="statusLine" class="status-line">Status: ready</p>
@@ -360,7 +337,7 @@
         <div id="suggestions" class="suggestions" aria-label="Contact suggestions"></div>
       </section>
 
-      <section class="app-body" aria-label="Messages">
+      <section id="messagesArea" class="app-body" aria-label="Messages">
         <div id="threads" class="threads">
           <p class="empty">Tap refresh to load recent conversations.</p>
         </div>
@@ -369,7 +346,7 @@
         </div>
       </section>
 
-      <section class="composer" aria-label="Send message">
+      <section id="composer" class="composer" aria-label="Send message">
         <div class="recipient-row">
           <input id="recipient" autocomplete="off" placeholder="Recipient handle" />
           <button type="button" class="secondary" data-action="contacts">Find</button>
@@ -681,6 +658,14 @@
         });
         document.querySelector('[data-action="new"]').addEventListener("click", startNewMessage);
         document.querySelector('[data-action="send"]').addEventListener("click", sendMessage);
+        Array.prototype.forEach.call(document.querySelectorAll("[data-scroll-target]"), function (button) {
+          button.addEventListener("click", function () {
+            var target = document.getElementById(button.getAttribute("data-scroll-target"));
+            if (target && target.scrollIntoView) {
+              target.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+        });
         contactSearch.addEventListener("input", function () {
           clearTimeout(contactTimer);
           contactTimer = setTimeout(searchContacts, 350);

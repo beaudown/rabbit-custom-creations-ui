@@ -253,6 +253,8 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.match(actionPage, /Message actions/);
   assert.match(actionPage, /New/);
   assert.match(actionPage, /Contacts/);
+  assert.match(actionPage, /Threads/);
+  assert.match(actionPage, /Send box/);
   assert.match(actionPage, /Search contacts or enter phone\/email/);
   assert.match(actionPage, /Contact suggestions/);
   assert.match(actionPage, /Tap refresh to load recent conversations/);
@@ -277,11 +279,11 @@ test("static iMessage broker Creation page exposes messaging app controls", asyn
   assert.match(actionPage, /contactMatchedHandle/);
   assert.match(actionPage, /conversation-title/);
   assert.match(actionPage, /setBusy/);
-  assert.match(actionPage, /height: 100dvh/);
-  assert.match(actionPage, /overflow: hidden/);
   assert.match(actionPage, /overflow-y: auto/);
-  assert.match(actionPage, /-webkit-overflow-scrolling: touch/);
-  assert.match(actionPage, /grid-template-rows: minmax\(130px, 34%\) minmax\(0, 1fr\)/);
+  assert.match(actionPage, /display: block/);
+  assert.match(actionPage, /data-scroll-target="threads"/);
+  assert.match(actionPage, /data-scroll-target="composer"/);
+  assert.match(actionPage, /scrollIntoView/);
   assert.match(actionPage, /querySelectorAll/);
   assert.match(actionPage, /data-action="refresh"/);
   assert.match(actionPage, /hv=/);
