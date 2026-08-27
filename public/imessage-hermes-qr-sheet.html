@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iMessage Hermes Broker QR Sheet</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        background: #080b10;
+        color: #f7faff;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 28px;
+        background:
+          linear-gradient(135deg, rgba(33, 150, 243, 0.18), transparent 34%),
+          linear-gradient(315deg, rgba(78, 216, 146, 0.14), transparent 38%),
+          #080b10;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(28px, 5vw, 48px);
+        letter-spacing: 0;
+      }
+
+      p,
+      li {
+        color: #cfdae8;
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 18px;
+        margin: 24px 0;
+      }
+
+      section {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.075);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 20px;
+        letter-spacing: 0;
+      }
+
+      img {
+        display: block;
+        width: min(100%, 220px);
+        height: auto;
+        margin: 0 auto 16px;
+        border-radius: 8px;
+        background: #fff;
+        padding: 10px;
+      }
+
+      a {
+        color: #85e8ff;
+        word-break: break-all;
+      }
+
+      code {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 2px 6px;
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          color: #000;
+        }
+
+        p,
+        li {
+          color: #111;
+        }
+
+        section {
+          background: #fff;
+          border-color: #444;
+          box-shadow: none;
+        }
+
+        a,
+        code {
+          color: #000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>iMessage Hermes Broker QR Sheet</h1>
+      <p>
+        Testing-only QR sheet. These codes target GitHub-hosted resources and
+        prefill the Hermes verifier plus tailnet iMessage broker endpoints.
+        They do not contain tokens or privileged commands.
+      </p>
+      <p>
+        The first QR below is the iMessage broker Creation install QR. It
+        encodes Rabbit's required JSON payload instead of a plain URL or
+        manifest link.
+      </p>
+
+      <div class="grid">
+        <section>
+          <h2>iMessage Creation install QR</h2>
+          <img
+            alt="Rabbit Creation install QR for iMessage Hermes Broker"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=14&data=%7B%22title%22%3A%22iMessage%20Hermes%20Broker%22%2C%22url%22%3A%22https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Fimessage-broker-actions.html%3Fcache%3Ddaf6b5b%26broker%3Dhttps%253A%252F%252Fmichaels-macbook-pro.tailcfaeac.ts.net%26hermes%3Dhttps%253A%252F%252Fmichaels-macbook-pro.tailcfaeac.ts.net%26imessage%3Dhttps%253A%252F%252Fmichaels-macbook-pro.tailcfaeac.ts.net%253A10000%22%2C%22description%22%3A%22Rabbit%20r1%20iMessage%20broker%20Creation%20with%20Hermes%20verification%20gate%2C%20contact%20names%2C%20normal%20scrolling%2C%20refresh%2C%20and%20send%20controls.%22%2C%22iconUrl%22%3A%22https%3A%2F%2Fbeaudown.github.io%2Frabbit-custom-creations-ui%2Ffavicon.svg%22%2C%22themeColor%22%3A%22%23FE5000%22%7D"
+          />
+          <p>
+            Scan this one in r1 Creations add via QR for the iMessage broker
+            install. The card should appear as
+            <code>iMessage Hermes Broker</code>.
+          </p>
+          <a href="https://beaudown.github.io/rabbit-custom-creations-ui/imessage-broker-actions.html?cache=daf6b5b&broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net&hermes=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net&imessage=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net%3A10000">
+            https://beaudown.github.io/rabbit-custom-creations-ui/imessage-broker-actions.html?cache=daf6b5b&amp;broker=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net&amp;hermes=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net&amp;imessage=https%3A%2F%2Fmichaels-macbook-pro.tailcfaeac.ts.net%3A10000
+          </a>
+        </section>
+
+        <section>
+          <h2>Creation JSON payload</h2>
+          <p>
+            The QR encodes title, url, description, iconUrl, and themeColor.
+            It does not include broker tokens, headers, local file paths, or
+            privileged commands.
+          </p>
+        </section>
+
+        <section>
+          <h2>A1 Broker sheet</h2>
+          <p>
+            The A1 Broker Test QR lives separately so Rabbit route validation
+            stays isolated from iMessage broker work.
+          </p>
+          <a href="https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html">
+            https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html
+          </a>
+        </section>
+      </div>
+
+      <section>
+        <h2>Safe first run</h2>
+        <ol>
+          <li>Open r1 Creations, choose add via QR, and scan only the first QR.</li>
+          <li>Open the installed <code>iMessage Hermes Broker</code> Creation card.</li>
+          <li>Confirm the Rabbit gateway endpoint is the HTTPS relay URL.</li>
+          <li>Confirm the Rabbit-reachable Hermes endpoint is prefilled as <code>https://michaels-macbook-pro.tailcfaeac.ts.net</code>.</li>
+          <li>Confirm the iMessage broker endpoint is prefilled on port <code>10000</code>.</li>
+          <li>Use only the displayed GET messages and POST reply contracts.</li>
+        </ol>
+      </section>
+    </main>
+  </body>
+</html>

@@ -183,40 +183,54 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /creation-skill\/manifest\.json/);
 });
 
-test("hosted QR launch sheet exposes Rabbit-format iMessage Creation QR", async () => {
+test("hosted QR launch sheet exposes Rabbit-format A1 Broker Creation QR", async () => {
   const qrSheet = await readFile(new URL("../public/qr-launch-sheet.html", import.meta.url), "utf8");
 
-  assert.match(qrSheet, /iMessage Hermes Broker QR Sheet/);
+  assert.match(qrSheet, /Rabbit A1 Broker Test QR Sheet/);
   assert.match(qrSheet, /Testing-only QR sheet/);
-  assert.match(qrSheet, /Testing Creation install QR/);
+  assert.match(qrSheet, /A1 Broker Test install QR/);
   assert.match(qrSheet, /Rabbit Creation install QR/);
-  assert.match(qrSheet, /title%22%3A%22iMessage%20Hermes%20Broker/);
-  assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Fimessage-broker-actions\.html/);
-  assert.match(qrSheet, /imessage-broker-actions\.html/);
-  assert.match(qrSheet, /cache%3Ddaf6b5b/);
-  assert.doesNotMatch(qrSheet, /creation%3DiMessageHermesBrokerActions/);
-  assert.doesNotMatch(qrSheet, /creation=iMessageHermesBrokerActions/);
+  assert.match(qrSheet, /title%22%3A%22A1%20Broker%20Test/);
+  assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2F%3Fcreation%3DA1BrokerTestV2/);
+  assert.match(qrSheet, /creation=A1BrokerTestV2/);
+  assert.match(qrSheet, /Run%20Step%201%20and%20Step%202%20only/);
   assert.doesNotMatch(qrSheet, /shortCode|shortcode|short_code|short-code/i);
-  assert.match(qrSheet, /hermes%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
-  assert.doesNotMatch(qrSheet, /hermes%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%253A10001/);
   assert.match(qrSheet, /imessage%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%253A10000/);
-  assert.match(qrSheet, /description%22%3A%22Rabbit%20r1%20iMessage%20broker%20Creation/);
+  assert.doesNotMatch(qrSheet, /title%22%3A%22iMessage%20Hermes%20Broker/);
+  assert.doesNotMatch(qrSheet, /imessage-broker-actions\.html\?cache=daf6b5b/);
   assert.match(qrSheet, /iconUrl%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Ffavicon\.svg/);
   assert.match(qrSheet, /themeColor%22%3A%22%23FE5000/);
-  assert.match(qrSheet, /iMessage Hermes Broker/);
+  assert.match(qrSheet, /A1 Broker Test/);
   assert.match(qrSheet, /Manifest reference only, do not scan as Creation QR/);
-  assert.match(qrSheet, /Lease pairing - reference only/);
+  assert.match(qrSheet, /iMessage QR sheet/);
   assert.match(qrSheet, /api\.qrserver\.com/);
   assert.match(qrSheet, /broker=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
-  assert.match(qrSheet, /hermes=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
-  assert.doesNotMatch(qrSheet, /hermes=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%3A10001/);
   assert.match(qrSheet, /imessage=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%3A10000/);
   assert.match(qrSheet, /creation-skill\/manifest\.json/);
-  assert.match(qrSheet, /broker\/lease-pairing\.json/);
+  assert.match(qrSheet, /imessage-hermes-qr-sheet\.html/);
   assert.match(qrSheet, /do not contain tokens/);
   assert.doesNotMatch(qrSheet, /PWA launch - testing only/);
   assert.doesNotMatch(qrSheet, /Creation manifest - testing only/);
   assert.doesNotMatch(qrSheet, /Route test URL - not a Creation QR/);
+});
+
+test("iMessage Hermes QR sheet is separate from A1 Broker QR sheet", async () => {
+  const qrSheet = await readFile(new URL("../public/imessage-hermes-qr-sheet.html", import.meta.url), "utf8");
+
+  assert.match(qrSheet, /iMessage Hermes Broker QR Sheet/);
+  assert.match(qrSheet, /iMessage Creation install QR/);
+  assert.match(qrSheet, /title%22%3A%22iMessage%20Hermes%20Broker/);
+  assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Fimessage-broker-actions\.html/);
+  assert.match(qrSheet, /cache%3Ddaf6b5b/);
+  assert.match(qrSheet, /hermes%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
+  assert.match(qrSheet, /imessage%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%253A10000/);
+  assert.match(qrSheet, /description%22%3A%22Rabbit%20r1%20iMessage%20broker%20Creation/);
+  assert.match(qrSheet, /A1 Broker Test QR lives separately/);
+  assert.match(qrSheet, /qr-launch-sheet\.html/);
+  assert.doesNotMatch(qrSheet, /title%22%3A%22A1%20Broker%20Test/);
+  assert.doesNotMatch(qrSheet, /creation=A1BrokerTestV2/);
+  assert.doesNotMatch(qrSheet, /private\/tmp/);
+  assert.doesNotMatch(qrSheet, /x-imessage-broker-token/);
 });
 
 test("iMessage Creation UI hides internal thread ids and keeps bubbles readable", async () => {
@@ -260,6 +274,8 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   assert.match(serviceWorker, /creation-skill\/first-run-readiness\.md/);
   assert.match(serviceWorker, /creation-skill\/enablement-guide\.md/);
   assert.match(serviceWorker, /creation-skill\/custom-skill-uploader\.md/);
+  assert.match(serviceWorker, /imessage-hermes-qr-sheet\.html/);
+  assert.match(serviceWorker, /imessage-broker-actions\.html/);
   assert.match(main, /serviceWorker/);
 });
 

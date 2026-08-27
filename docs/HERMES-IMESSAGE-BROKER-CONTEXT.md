@@ -5,6 +5,15 @@ Updated: 2026-08-25
 Purpose: give Hermes the required endpoint and payload contract for
 Rabbit/Hermes iMessage bridging without exposing local token values.
 
+Companion handoff:
+`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/IMESSAGE-HERMES-BROKER-HANDOFF.md`
+
+Dedicated iMessage QR sheet:
+`https://beaudown.github.io/rabbit-custom-creations-ui/imessage-hermes-qr-sheet.html`
+
+The A1 Broker Test QR sheet remains separate at:
+`https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html`
+
 ## Current Endpoint
 
 - Private Creation UI URL:

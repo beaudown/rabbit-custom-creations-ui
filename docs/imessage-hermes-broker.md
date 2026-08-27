@@ -8,6 +8,18 @@ It is dry-run by default. It never runs Rabbit device commands, never exposes
 Rabbit relay tokens, and does not send iMessages unless
 `IMESSAGE_BROKER_ALLOW_SEND=true`.
 
+The iMessage Hermes Broker Creation has its own QR sheet:
+
+```text
+https://beaudown.github.io/rabbit-custom-creations-ui/imessage-hermes-qr-sheet.html
+```
+
+The A1 Broker Test QR remains separate:
+
+```text
+https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html
+```
+
 For Rabbit Creation use, Hermes is the security and verification front door.
 The hosted Creation is prefilled with the Hermes verifier URL and the tailnet
 iMessage broker URL, but it never includes the broker token. Hermes verifies the

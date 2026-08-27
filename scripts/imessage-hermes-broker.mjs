@@ -26,6 +26,7 @@ const contactsDbPath = process.env.IMESSAGE_BROKER_CONTACTS_DB || defaultContact
 const auditPath = join(stateRoot, "public/broker/imessage-audit-log.jsonl");
 const messagesPath = join(stateRoot, "public/broker/imessage-messages.jsonl");
 const execFileAsync = promisify(execFile);
+const nullCharacter = String.fromCharCode(0);
 
 function defaultContactsDbPath() {
   const addressBookRoot = join(homedir(), "Library/Application Support/AddressBook");
@@ -342,7 +343,8 @@ function decodeAttributedBodyHex(value) {
   }
   const raw = buffer.toString("utf8");
   const candidates = raw
-    .replace(/\u0000/g, " ")
+    .split(nullCharacter)
+    .join(" ")
     .split(/[^\x20-\x7e\n\r\t]+/)
     .map((part) => part.replace(/\s+/g, " ").trim())
     .filter((part) => part.length >= 2)
@@ -354,11 +356,22 @@ function decodeAttributedBodyHex(value) {
 }
 
 function cleanMessageText(value) {
-  return String(value || "")
-    .replace(/\u0000/g, "")
-    .replace(/\ufffd/g, "")
-    .replace(/[\u0001-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+  return stripInvalidControlCharacters(
+    String(value || "")
+      .split(nullCharacter)
+      .join("")
+      .replace(/\ufffd/g, "")
+  )
     .trim();
+}
+
+function stripInvalidControlCharacters(value) {
+  return Array.from(value)
+    .filter((character) => {
+      const code = character.charCodeAt(0);
+      return code === 9 || code === 10 || code === 13 || (code >= 32 && code !== 127);
+    })
+    .join("");
 }
 
 function messageSortKey(message) {
