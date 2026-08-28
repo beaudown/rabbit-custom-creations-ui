@@ -4,7 +4,7 @@ import test from "node:test";
 
 test("build emits the Rabbit custom creations shell", async () => {
   const html = await readFile(new URL("../dist/index.html", import.meta.url), "utf8");
-  assert.match(html, /iMessage Hermes Broker/);
+  assert.match(html, /A1 Broker Test/);
   assert.match(html, /src="\/assets\//);
 });
 
@@ -191,11 +191,12 @@ test("hosted QR launch sheet exposes Rabbit-format A1 Broker Creation QR", async
   assert.match(qrSheet, /A1 Broker Test install QR/);
   assert.match(qrSheet, /Rabbit Creation install QR/);
   assert.match(qrSheet, /title%22%3A%22A1%20Broker%20Test/);
-  assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2F%3Fcreation%3DA1BrokerTestV2/);
-  assert.match(qrSheet, /creation=A1BrokerTestV2/);
+  assert.match(qrSheet, /url%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2F%3Fcreation%3DA1BrokerTestV3/);
+  assert.match(qrSheet, /creation=A1BrokerTestV3/);
   assert.match(qrSheet, /Run%20Step%201%20and%20Step%202%20only/);
   assert.doesNotMatch(qrSheet, /shortCode|shortcode|short_code|short-code/i);
-  assert.match(qrSheet, /imessage%3Dhttps%253A%252F%252Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%253A10000/);
+  assert.doesNotMatch(qrSheet, /imessage%3D/i);
+  assert.doesNotMatch(qrSheet, /iMessage%20API%20binding/);
   assert.doesNotMatch(qrSheet, /title%22%3A%22iMessage%20Hermes%20Broker/);
   assert.doesNotMatch(qrSheet, /imessage-broker-actions\.html\?cache=daf6b5b/);
   assert.match(qrSheet, /iconUrl%22%3A%22https%3A%2F%2Fbeaudown\.github\.io%2Frabbit-custom-creations-ui%2Ffavicon\.svg/);
@@ -205,7 +206,7 @@ test("hosted QR launch sheet exposes Rabbit-format A1 Broker Creation QR", async
   assert.match(qrSheet, /iMessage QR sheet/);
   assert.match(qrSheet, /api\.qrserver\.com/);
   assert.match(qrSheet, /broker=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net/);
-  assert.match(qrSheet, /imessage=https%3A%2F%2Fmichaels-macbook-pro\.tailcfaeac\.ts\.net%3A10000/);
+  assert.doesNotMatch(qrSheet, /imessage=https/i);
   assert.match(qrSheet, /creation-skill\/manifest\.json/);
   assert.match(qrSheet, /imessage-hermes-qr-sheet\.html/);
   assert.match(qrSheet, /do not contain tokens/);
@@ -262,9 +263,11 @@ test("hosted app exposes installable PWA metadata and offline cache", async () =
   const main = await readFile(new URL("../src/main.tsx", import.meta.url), "utf8");
 
   assert.match(html, /manifest\.webmanifest/);
-  assert.equal(manifest.name, "iMessage Hermes Broker");
-  assert.equal(manifest.short_name, "iMessage");
-  assert.equal(manifest.start_url, "./imessage-broker-actions.html");
+  assert.match(html, /A1 Broker Test/);
+  assert.doesNotMatch(html, /iMessage Hermes Broker/);
+  assert.equal(manifest.name, "A1 Broker Test");
+  assert.equal(manifest.short_name, "A1 Broker");
+  assert.equal(manifest.start_url, "./?creation=A1BrokerTestV3");
   assert.equal(manifest.display, "standalone");
   assert.ok(manifest.shortcuts.some((shortcut) => shortcut.name === "Audit Review"));
   assert.match(serviceWorker, /broker\/rabbit-native-broker-spec\.json/);

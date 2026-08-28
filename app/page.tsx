@@ -927,9 +927,9 @@ const defaultHermesEndpoint = "https://michaels-macbook-pro.tailcfaeac.ts.net:84
 
 function initialCreationId() {
   if (typeof window === "undefined") {
-    return "A1BrokerTestV2";
+    return "A1BrokerTestV3";
   }
-  return new URLSearchParams(window.location.search).get("creation") || "A1BrokerTestV2";
+  return new URLSearchParams(window.location.search).get("creation") || "A1BrokerTestV3";
 }
 
 function initialBrokerEndpoint() {
@@ -1806,6 +1806,7 @@ export default function Home() {
   }
 
   const isIMessageBrokerCreation = creationId === "iMessageHermesBroker";
+  const isA1BrokerCreation = creationId.startsWith("A1BrokerTest");
 
   if (isIMessageBrokerCreation) {
     return (
@@ -1844,6 +1845,49 @@ export default function Home() {
             <p className="plainWarning">
               Direct broker token handling stays on the Mac and is not shown in
               this Creation.
+            </p>
+          </section>
+        </section>
+      </main>
+    );
+  }
+
+  if (isA1BrokerCreation) {
+    return (
+      <main className="shell">
+        <section className="device">
+          <section className="rabbitStart" aria-label="A1 broker test setup">
+            <p className="eyebrow">A1 Route Check</p>
+            <h1>A1 Broker Test</h1>
+            <p>
+              Use this Creation only for the A1 broker setup check and route
+              detection. It does not run root, ADB, reboot, install, fastboot,
+              recovery, iMessage, or broker start actions.
+            </p>
+            <StatusReadout label="Broker URL" value={brokerEndpoint} />
+            <label className="simpleField">
+              <span>Relay token</span>
+              <input
+                value={relayToken}
+                onChange={(event) => setRelayToken(event.target.value)}
+                placeholder="required if output says 401"
+                type="password"
+              />
+              <small>401 means this token is missing or wrong. The token stays local and is never printed here.</small>
+            </label>
+            <div className="simpleActions" aria-label="Safe A1 setup checks">
+              <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
+                1 Check setup
+              </button>
+              <button className="primaryStartButton" onClick={detectBrokerBridge}>
+                2 Detect route
+              </button>
+            </div>
+            <StatusReadout label="Setup" value={readinessStatus} details={readinessPreview} />
+            <StatusReadout label="Route" value={bridgeProbeStatus} details={bridgeRoutePreview} />
+            <p className="plainWarning">
+              Stop after Step 2 and record the exact output before any later
+              device-affecting work is considered.
             </p>
           </section>
         </section>

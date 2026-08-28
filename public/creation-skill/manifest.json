@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "name": "rabbit-broker-workflow",
-  "displayName": "Rabbit Broker Workflow",
-  "description": "Creation-side request workflow for GitHub-backed prompts, files, broker logs, and broker-approved escalated privilege sessions.",
+  "displayName": "A1 Broker Test",
+  "description": "Testing-only Rabbit A1 broker route workflow for setup and route detection.",
   "entrypoint": "instructions.md",
   "creationLauncher": "creation-launcher.json",
   "firstRunReadiness": "first-run-readiness.md",

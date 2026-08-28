@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "name": "superuser-management-creation-launcher",
-  "displayName": "Superuser Management",
-  "purpose": "Single Rabbit Custom Creation entrypoint for hosted PWA, broker bridge, on-device broker target, Mac fallback broker, guides, audit, rollback, and debug modules.",
+  "name": "a1-broker-test-creation-launcher",
+  "displayName": "A1 Broker Test",
+  "purpose": "Testing-only Rabbit Custom Creation entrypoint for A1 broker setup and route detection.",
   "hostedPwa": {
     "defaultUrl": "https://beaudown.github.io/rabbit-custom-creations-ui/",
     "manifest": "../manifest.webmanifest",
