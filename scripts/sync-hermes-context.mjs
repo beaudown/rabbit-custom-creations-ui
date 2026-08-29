@@ -71,6 +71,10 @@ Rabbit Superuser Management hosted PWA and single Custom Creation package.
 - Local repo: \`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui\`
 - GitHub Pages: \`https://beaudown.github.io/rabbit-custom-creations-ui/\`
 - QR launch sheet: \`https://beaudown.github.io/rabbit-custom-creations-ui/qr-launch-sheet.html\`
+- Local-only QR skill:
+  \`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/skills/rabbit-custom-creation-local-qr\`
+- Local-only QR skill handoff:
+  \`/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/LOCAL-CREATION-QR-SKILL-HANDOFF.md\`
 - Latest pushed handoff/sync commit: \`${latestHandoffCommit}\`
 - Route-state evidence commit: \`${routeStateCommit}\`
 
@@ -110,6 +114,13 @@ Rabbit Superuser Management hosted PWA and single Custom Creation package.
   execution disabled.
 - The latest UI fix unwraps forwarded relay responses so Step 2 can display
   \`selected rabbit_native_broker\` instead of \`selected undefined\`.
+- The \`rabbit-custom-creation-local-qr\` skill defines the correct Rabbit
+  Creation QR contract and can generate local-only QR PNG files from reachable
+  GitHub Pages, Tailscale, LAN, or Rabbit gateway app URLs. The QR payload still
+  must be JSON with only \`title\`, \`url\`, \`description\`, \`iconUrl\`, and
+  \`themeColor\`; never encode manifest links, route-test URLs, QR sheet URLs,
+  broker URLs alone, local file paths, tokens, or headers as Creation install
+  QRs.
 - Relay token path: \`/private/tmp/rabbit-https-relay-token.txt\`
 - Do not store the relay token value in GitHub, QR codes, shared memory, screenshots, or chat logs.
 

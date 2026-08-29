@@ -196,6 +196,25 @@ Updated: 2026-08-23 19:22 PDT
 - Restarted the Mac relay with `RABBIT_RELAY_TOKEN_FILE`; local authenticated
   checks now return HTTP 200 for `/health`, `/bridge/route`, and `/adb/status`.
 
+## 2026-08-29 - Local-only Rabbit Creation QR skill
+
+- Added `skills/rabbit-custom-creation-local-qr/` for Hermes, OpenClaw, and
+  Codex handoff.
+- Added `scripts/create_local_creation_qr.mjs` inside that skill. It generates
+  Rabbit-format Creation payloads and local QR PNGs without uploading the QR
+  image to GitHub or a QR web service.
+- Added `npm run creation:qr:local` for the project entrypoint.
+- Added `docs/LOCAL-CREATION-QR-SKILL-HANDOFF.md` with the exact Rabbit QR
+  contract, local-only route rules, dependency-file handling, and safety gates.
+- Added a focused test to prove the tool creates the five-field Rabbit payload,
+  writes a PNG, and refuses secret-looking values such as `relayToken`.
+- The QR rule remains unchanged: Rabbit install QRs encode the JSON object with
+  `title`, `url`, `description`, `iconUrl`, and `themeColor`; manifest, route,
+  lease, and QR-sheet links are reference-only.
+- No token value, header value, Rabbit device command, ADB, fastboot, root/SU,
+  reboot, install, recovery, flash, OpenClaw auth change, Hermes lifecycle
+  change, or privileged execution occurred.
+
 ## What Has Been Built
 
 - Dark, high-contrast hosted PWA for Rabbit r1 custom creations and Superuser Management.

@@ -30,6 +30,13 @@ Current state:
 
 - Public HTTPS relay test route is configured.
 - Release QR is still blocked: `releaseQrAllowed=false`.
+- Local-only Creation QR generation is now captured in the
+  `rabbit-custom-creation-local-qr` skill. Use it when Hermes, OpenClaw, or
+  Codex needs to create a Rabbit-valid QR image without uploading the QR image
+  to GitHub or a third-party QR generator. Repo path:
+  `/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/skills/rabbit-custom-creation-local-qr`.
+- Skill handoff and command examples:
+  `/Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/docs/LOCAL-CREATION-QR-SKILL-HANDOFF.md`.
 - Rabbit Creation install QR correction is implemented locally: the testing QR
   must encode Rabbit's JSON payload with `title`, `url`, `description`,
   `iconUrl`, and `themeColor`. The previous manifest/JSON QR was correctly

@@ -1,0 +1,26 @@
+name: rabbit-custom-creation-local-qr
+description: Create valid Rabbit r1 Custom Creation install QR payloads and local-only QR artifacts without uploading QR images or embedding secrets.
+entrypoint: SKILL.md
+safe_defaults:
+  no_device_commands: true
+  no_secret_storage: true
+  no_qr_upload: true
+  local_artifact_output: /private/tmp/rabbit-creation-qr
+required_payload_keys:
+  - title
+  - url
+  - description
+  - iconUrl
+  - themeColor
+forbidden_qr_content:
+  - token
+  - secret
+  - password
+  - authorization
+  - x-rabbit-relay-token
+  - session
+  - /private/tmp
+  - adb
+  - fastboot
+  - flash
+  - root
