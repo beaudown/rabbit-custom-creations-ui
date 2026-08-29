@@ -49,6 +49,12 @@ function currentGitCommit() {
 
 const latestHandoffCommit = currentGitCommit();
 const routeStateCommit = 'b91bee7 Record HTTPS relay test state';
+const dateOnly = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Los_Angeles',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+}).format(now);
 
 const currentContext = `# Rabbit Current Context - Hermes Fast Path
 
@@ -307,11 +313,11 @@ sourceOfTruth = sourceOfTruth.replaceAll('rabbit_superuser_pwa_hermes', 'rabbit_
 sourceOfTruth = sourceOfTruth.replaceAll('rabbit_superuser_pwa_shared_artifact', 'rabbit_superuser_pwa_codex_shared_artifact');
 sourceOfTruth = sourceOfTruth.replace(
   '- Latest pushed handoff commit: `10a5099 Remove stale commit claims from Hermes handoff` (2026-08-19). Route-state evidence commit: `b91bee7 Record HTTPS relay test state`. GitHub Pages run `32243263171` completed successfully for the route-state update.',
-  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
+  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (${dateOnly}). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
 );
 sourceOfTruth = sourceOfTruth.replace(
-  /- Latest pushed handoff\/sync commit: `[^`]+` \(2026-08-19\)\. Route-state evidence commit: `b91bee7 Record HTTPS relay test state`\. GitHub Pages .*?\./,
-  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (2026-08-19). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
+  /- Latest pushed handoff\/sync commit: `[^`]+` \(\d{4}-\d{2}-\d{2}\)\. Route-state evidence commit: `b91bee7 Record HTTPS relay test state`\. GitHub Pages .*?\./,
+  `- Latest pushed handoff/sync commit: \`${latestHandoffCommit}\` (${dateOnly}). Route-state evidence commit: \`b91bee7 Record HTTPS relay test state\`. GitHub Pages deployments completed for the route-state and Hermes sync pushes; verify the latest run with \`gh run list --branch main\` when exact run evidence is needed.`,
 );
 writeFile(paths.sourceOfTruth, sourceOfTruth);
 writeFile(paths.hermesFederatedMemory, sourceOfTruth);
@@ -324,9 +330,9 @@ const codexSession = sessionIndex.sessions?.find(
 );
 if (codexSession) {
   codexSession.updatedAt = isoNow;
-  codexSession.status = 'hermes_tailscale_private_route_verified_8443';
+  codexSession.status = 'local_creation_qr_skill_handed_to_hermes_openclaw';
   codexSession.lastKnown =
-    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Hermes Desktop Settings -> Connections includes a first-class Tailscale helper row. Hermes Desktop/agent route is https://michaels-macbook-pro.tailcfaeac.ts.net:8443, backed by launchd job hermes.tailscale.host-proxy on 127.0.0.1:9121, which rewrites Host and forwards to Hermes backend 127.0.0.1:9120; root :443 is Rabbit broker relay only and intentionally blocks non-broker routes. Hermes local source commit is a60c953e3c Add Rabbit gateway and Tailscale connection helpers; packaged app path is /Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app; this commit is not pushed upstream. User approved saving Hermes and Rabbit tokens through packaged Hermes UI; Tailscale token and Rabbit Gateway x-rabbit-relay-token are saved as safeStorage envelopes and built-in UI tests returned Tailscale Reachable and Rabbit Gateway Reachable. Mac broker runtime state can be externalized with MAC_BROKER_STATE_ROOT so live audit, lease, and queue files do not dirty tracked public/broker seeds. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Rabbit-originated route/auth reachability is verified and release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is user-operated fixed Rabbit Step 2 confirmation only. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, new public Tailscale exposure, token disclosure, or privileged execution occurred.`;
+    `Codex handoff imported for Hermes and OpenClaw. Latest handoff/sync commit is ${latestHandoffCommit}; route-state evidence commit is b91bee7 Record HTTPS relay test state. Hermes should read /Users/z3k3z/.hermes/memories/RABBIT-CURRENT-CONTEXT.md first, then /Users/z3k3z/.hermes/memories/codex-handoff.md. OpenClaw should read /Users/z3k3z/.openclaw/workspace/codex-handoff.md. Local Rabbit Creation QR skill is installed at /Users/z3k3z/.hermes/skills/rabbit-custom-creation-local-qr and /Users/z3k3z/.openclaw/workspace/skills/rabbit-custom-creation-local-qr; repo source is /Users/z3k3z/Documents/Omi Dev Space/rabbit-custom-creations-ui/skills/rabbit-custom-creation-local-qr. The skill creates Rabbit-valid local QR PNGs by encoding only title, url, description, iconUrl, and themeColor. It must not encode manifest links, QR sheet links, broker endpoints alone, token/header values, local file paths, or command text as Creation install QRs. Hermes Desktop Settings -> Connections includes a first-class Tailscale helper row. Hermes Desktop/agent route is https://michaels-macbook-pro.tailcfaeac.ts.net:8443, backed by launchd job hermes.tailscale.host-proxy on 127.0.0.1:9121, which rewrites Host and forwards to Hermes backend 127.0.0.1:9120; root :443 is Rabbit broker relay only and intentionally blocks non-broker routes. Hermes local source commit is a60c953e3c Add Rabbit gateway and Tailscale connection helpers; packaged app path is /Users/z3k3z/.hermes/hermes-agent/apps/desktop/release/mac-arm64/Hermes.app; this commit is not pushed upstream. User approved saving Hermes and Rabbit tokens through packaged Hermes UI; Tailscale token and Rabbit Gateway x-rabbit-relay-token are saved as safeStorage envelopes and built-in UI tests returned Tailscale Reachable and Rabbit Gateway Reachable. Mac broker runtime state can be externalized with MAC_BROKER_STATE_ROOT so live audit, lease, and queue files do not dirty tracked public/broker seeds. Expand to SOURCE-OF-TRUTH/session-index only for conflicts or deeper history. Rabbit-originated route/auth reachability is verified and release QR remains blocked until service, approval, and privileged-executor gates are validated. Relay token remains local-only at /private/tmp/rabbit-https-relay-token.txt and must not be copied into GitHub, QR, shared memory, screenshots, or transcripts. Next safe action is user-operated fixed Rabbit Step 2 confirmation only. No Rabbit device command, root/SU, ADB, reboot, install, fastboot, recovery, flash, OpenClaw auth change, new public Tailscale exposure, token disclosure, or privileged execution occurred.`;
 }
 writeFile(paths.sessionIndex, `${JSON.stringify(sessionIndex, null, 2)}\n`);
 
