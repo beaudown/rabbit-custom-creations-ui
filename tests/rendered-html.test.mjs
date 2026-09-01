@@ -89,6 +89,11 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Relay token required or incorrect/);
   assert.match(source, /Token required/);
   assert.match(source, /returned 401\. Relay token required or incorrect/);
+  assert.match(source, /rememberedA1SessionKey/);
+  assert.match(source, /Remembered device key loaded/);
+  assert.match(source, /Device remembered/);
+  assert.match(source, /Forget device/);
+  assert.match(source, /The raw token is not remembered/);
   assert.match(source, /role="alert"/);
   assert.match(source, /assets_ready_relay_auth_required/);
   assert.match(source, /relay_auth_required/);

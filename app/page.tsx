@@ -160,6 +160,15 @@ type RelayTokenDependency = {
   publicRelayUrl?: string;
 };
 
+type RememberedA1BrokerSession = {
+  schemaVersion: 1;
+  brokerEndpoint?: string;
+  relayKey?: string;
+  savedAt: string;
+};
+
+const rememberedA1SessionKey = "rabbit:a1-broker:remembered-session:v1";
+
 const auditRecords = [
   {
     id: "audit-20260815-000003",
@@ -937,6 +946,50 @@ const defaultBrokerEndpoint = "http://100.80.216.88:8792";
 const defaultIMessageEndpoint = "https://michaels-macbook-pro.tailcfaeac.ts.net:10000";
 const defaultHermesEndpoint = "https://michaels-macbook-pro.tailcfaeac.ts.net:8443";
 
+function readRememberedA1Session(): RememberedA1BrokerSession | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const raw = window.localStorage.getItem(rememberedA1SessionKey);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as RememberedA1BrokerSession;
+    return parsed?.schemaVersion === 1 ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function rememberA1BrokerSession(session: Omit<RememberedA1BrokerSession, "schemaVersion" | "savedAt">) {
+  if (typeof window === "undefined" || !session.relayKey?.trim()) {
+    return;
+  }
+  try {
+    const payload: RememberedA1BrokerSession = {
+      schemaVersion: 1,
+      brokerEndpoint: session.brokerEndpoint?.trim(),
+      relayKey: session.relayKey.trim(),
+      savedAt: new Date().toISOString(),
+    };
+    window.localStorage.setItem(rememberedA1SessionKey, JSON.stringify(payload));
+  } catch {
+    // Some locked-down WebViews reject localStorage. Auth still works for this page.
+  }
+}
+
+function forgetA1BrokerSession() {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.removeItem(rememberedA1SessionKey);
+  } catch {
+    // Ignore storage failures so the UI can still clear in-memory auth state.
+  }
+}
+
 function initialCreationId() {
   if (typeof window === "undefined") {
     return "A1BrokerTestV3";
@@ -948,7 +1001,7 @@ function initialBrokerEndpoint() {
   if (typeof window === "undefined") {
     return defaultBrokerEndpoint;
   }
-  return new URLSearchParams(window.location.search).get("broker") || defaultBrokerEndpoint;
+  return new URLSearchParams(window.location.search).get("broker") || readRememberedA1Session()?.brokerEndpoint || defaultBrokerEndpoint;
 }
 
 function initialIMessageEndpoint() {
@@ -983,7 +1036,7 @@ function initialRelayTokenDependencyKey() {
   if (typeof window === "undefined") {
     return "";
   }
-  return new URLSearchParams(window.location.search).get("relay_token_key") || "";
+  return new URLSearchParams(window.location.search).get("relay_token_key") || readRememberedA1Session()?.relayKey || "";
 }
 
 function ExpandablePreview({ title, summary, value }: ExpandablePreviewProps) {
@@ -1036,6 +1089,9 @@ export default function Home() {
   const [hermesEndpoint] = useState(initialHermesEndpoint);
   const [relayToken, setRelayToken] = useState(initialRelayToken);
   const [relayKey, setRelayKey] = useState(initialRelayTokenDependencyKey);
+  const [deviceRemembered, setDeviceRemembered] = useState(
+    Boolean(initialRelayTokenDependencyKey()),
+  );
   const [relayTokenDependency] = useState(initialRelayTokenDependency);
   const [relayTokenDependencyKey] = useState(initialRelayTokenDependencyKey);
   const [relayAuthRequired, setRelayAuthRequired] = useState(false);
@@ -1044,7 +1100,9 @@ export default function Home() {
       ? "Relay token loaded from launch parameter"
       : initialRelayTokenDependency()
         ? "Loading relay token dependency..."
-        : "Relay token not loaded",
+        : initialRelayTokenDependencyKey()
+          ? "Remembered device key loaded"
+          : "Relay token not loaded",
   );
   const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
@@ -1106,6 +1164,11 @@ export default function Home() {
         }
         if (nextKey) {
           setRelayKey(nextKey);
+          setDeviceRemembered(true);
+          rememberA1BrokerSession({
+            brokerEndpoint: dependency.brokerEndpoint || brokerEndpoint,
+            relayKey: nextKey,
+          });
         }
         if (dependency.brokerEndpoint) {
           setBrokerEndpoint(dependency.brokerEndpoint);
@@ -1314,6 +1377,25 @@ export default function Home() {
     });
   }
 
+  function rememberCurrentDevice() {
+    const key = relayKey.trim();
+    if (!key) {
+      setRelayTokenStatus("No device key available to remember yet");
+      return;
+    }
+    rememberA1BrokerSession({ brokerEndpoint, relayKey: key });
+    setDeviceRemembered(true);
+    setRelayAuthRequired(false);
+    setRelayTokenStatus("Device remembered with scoped relay key");
+  }
+
+  function forgetCurrentDevice() {
+    forgetA1BrokerSession();
+    setRelayKey("");
+    setDeviceRemembered(false);
+    setRelayTokenStatus(relayToken.trim() ? "Relay token kept for this page only" : "Device forgotten");
+  }
+
   function updateRelayToken(value: string) {
     setRelayToken(value);
     setRelayAuthRequired(false);
@@ -1332,9 +1414,9 @@ export default function Home() {
   function relayAuthGuidance() {
     return {
       likelyCause: "Relay token is missing, expired, or typed incorrectly.",
-      fix: "Enter the relay token in the Start Here token field, then rerun Step 1 and Step 2 only.",
+      fix: "Use a remembered device key if available. Otherwise enter the relay token in Start Here, then rerun Step 1 and Step 2 only.",
       tokenSource: "Mac only: /private/tmp/rabbit-https-relay-token.txt",
-      tokenSafety: "Do not paste the token into chat, GitHub, QR codes, screenshots, shared memory, or transcripts.",
+      tokenSafety: "The Creation may remember a scoped device key. Do not paste the raw token into chat, GitHub, QR codes, screenshots, shared memory, or transcripts.",
       privilegedExecutionPerformed: false,
     };
   }
@@ -1932,15 +2014,18 @@ export default function Home() {
 
   const isIMessageBrokerCreation = creationId === "iMessageHermesBroker";
   const isA1BrokerCreation = creationId.startsWith("A1BrokerTest");
-  const showRelayTokenField = !relayToken.trim() || relayAuthRequired;
+  const hasBrokerAuth = Boolean(relayToken.trim() || relayKey.trim());
+  const showRelayTokenField = !hasBrokerAuth || relayAuthRequired;
   const relayBadgeLabel = relayAuthRequired
     ? "Token 401"
     : relayToken.trim()
       ? "Token loaded"
+      : relayKey.trim()
+        ? "Device remembered"
       : "Needs token";
   const relayBadgeClassName = relayAuthRequired
     ? "a1Badge error"
-    : relayToken.trim()
+    : hasBrokerAuth
       ? "a1Badge ready"
       : "a1Badge";
 
@@ -2007,12 +2092,16 @@ export default function Home() {
             <div className="a1StatusGrid">
               <StatusReadout label="Broker" value={brokerEndpoint} />
               <StatusReadout label="Token" value={relayTokenStatus} />
+              <StatusReadout
+                label="Remembered"
+                value={deviceRemembered && relayKey.trim() ? "Yes, on this device" : "No"}
+              />
             </div>
             {relayAuthRequired ? (
               <section className="relayAuthNotice" role="alert" aria-live="assertive">
                 <strong>Token required</strong>
-                <span>401 means the broker was reached, but the relay token was missing or incorrect.</span>
-                <small>Enter the Mac relay token below, then run Step 1 and Step 2 only.</small>
+                <span>401 means the broker was reached, but auth was missing, expired, or incorrect.</span>
+                <small>Re-pair this device or enter the Mac relay token, then run Step 1 and Step 2 only.</small>
               </section>
             ) : null}
             {showRelayTokenField ? (
@@ -2028,8 +2117,21 @@ export default function Home() {
                   autoComplete="off"
                   spellCheck={false}
                 />
-                <small>Use the Mac token file only. Do not paste the token into chat, GitHub, or a QR.</small>
+                <small>Manual fallback only. The raw token is not remembered.</small>
               </label>
+            ) : null}
+            {relayKey.trim() ? (
+              <div className="simpleActions" aria-label="Remembered device controls">
+                {deviceRemembered ? (
+                  <button className="secondaryButton" onClick={forgetCurrentDevice}>
+                    Forget device
+                  </button>
+                ) : (
+                  <button className="secondaryButton" onClick={rememberCurrentDevice}>
+                    Remember device
+                  </button>
+                )}
+              </div>
             ) : null}
             <div className="simpleActions" aria-label="Safe A1 setup checks">
               <button className="primaryStartButton" onClick={runCreationReadinessCheck}>

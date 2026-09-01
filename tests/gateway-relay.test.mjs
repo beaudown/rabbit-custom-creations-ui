@@ -167,3 +167,70 @@ test("gateway relay can read auth token from a local token file", async () => {
     await rm(tempDir, { recursive: true, force: true });
   }
 });
+
+test("gateway relay accepts scoped remembered-device keys without exposing raw tokens", async () => {
+  const repoRoot = fileURLToPath(new URL("..", import.meta.url));
+  const upstreamPort = 23100 + Math.floor(Math.random() * 1000);
+  const relayPort = 24100 + Math.floor(Math.random() * 1000);
+  const tempDir = await mkdtemp(`${tmpdir()}/rabbit-relay-key-`);
+  const keyFile = `${tempDir}/relay-keys.json`;
+  await writeFile(
+    keyFile,
+    `${JSON.stringify({
+      enabled: true,
+      scope: "a1_local_test_only",
+      activeKeys: [{ key: "remember-this-rabbit", expiresAt: "2099-01-01T00:00:00.000Z" }],
+    })}\n`,
+  );
+
+  const upstream = createServer((_request, response) => {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ ok: true, privilegedExecutionPerformed: false }));
+  });
+
+  await listen(upstream, upstreamPort);
+
+  const child = spawn(process.execPath, [`${repoRoot}/scripts/gateway-relay.mjs`], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      RABBIT_RELAY_HOST: "127.0.0.1",
+      RABBIT_RELAY_PORT: String(relayPort),
+      RABBIT_RELAY_TOKEN: "",
+      RABBIT_RELAY_LOCAL_TEST_KEY_FILE: keyFile,
+      RABBIT_RELAY_UPSTREAM: `http://127.0.0.1:${upstreamPort}`,
+    },
+    stdio: "ignore",
+  });
+
+  const baseUrl = `http://127.0.0.1:${relayPort}`;
+
+  try {
+    const health = await waitForRelay(baseUrl);
+    assert.equal(health.acceptsLocalTestKey, true);
+
+    const preflight = await fetch(`${baseUrl}/health`, {
+      method: "OPTIONS",
+      headers: { origin: "https://beaudown.github.io" },
+    });
+    assert.match(
+      preflight.headers.get("access-control-allow-headers") || "",
+      /x-rabbit-relay-token-key/,
+    );
+
+    const unauthenticated = await fetch(`${baseUrl}/health`);
+    assert.equal(unauthenticated.status, 401);
+
+    const authenticated = await fetch(`${baseUrl}/health`, {
+      headers: { "x-rabbit-relay-token-key": "remember-this-rabbit" },
+    });
+    assert.equal(authenticated.status, 200);
+    const body = await authenticated.json();
+    assert.equal(body.status, "forwarded");
+    assert.equal(body.relay.exposesGatewaySecrets, false);
+  } finally {
+    child.kill("SIGTERM");
+    await new Promise((resolve) => upstream.close(resolve));
+    await rm(tempDir, { recursive: true, force: true });
+  }
+});

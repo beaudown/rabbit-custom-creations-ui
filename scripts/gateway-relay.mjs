@@ -7,6 +7,7 @@ const host = process.env.RABBIT_RELAY_HOST || "127.0.0.1";
 const upstream = (process.env.RABBIT_RELAY_UPSTREAM || "http://127.0.0.1:8792").replace(/\/$/, "");
 const relayToken = process.env.RABBIT_RELAY_TOKEN || "";
 const relayTokenFile = process.env.RABBIT_RELAY_TOKEN_FILE || "";
+const relayLocalTestKeyFile = process.env.RABBIT_RELAY_LOCAL_TEST_KEY_FILE || "";
 const relayPublicUrl = process.env.RABBIT_RELAY_PUBLIC_URL || "";
 const relayId = process.env.RABBIT_RELAY_ID || `rabbit-gateway-relay-${randomUUID().slice(0, 8)}`;
 
@@ -27,7 +28,7 @@ const allowedRoutes = new Map([
 
 function sendJson(response, statusCode, body) {
   response.writeHead(statusCode, {
-    "access-control-allow-headers": "content-type, x-rabbit-relay-token",
+    "access-control-allow-headers": "content-type, x-rabbit-relay-token, x-rabbit-relay-token-key, x-rabbit-relay-key",
     "access-control-allow-methods": "GET,POST,OPTIONS",
     "access-control-allow-origin": "*",
     "cache-control": "no-store",
@@ -46,13 +47,17 @@ async function readBody(request) {
 
 function hasAuth(request, url) {
   const activeToken = getRelayToken();
-  if (!activeToken) {
-    return false;
+  const presentedToken = request.headers["x-rabbit-relay-token"] || url.searchParams.get("relay_token");
+  if (activeToken && presentedToken === activeToken) {
+    return true;
   }
-  return (
-    request.headers["x-rabbit-relay-token"] === activeToken ||
-    url.searchParams.get("relay_token") === activeToken
-  );
+
+  const presentedKey =
+    request.headers["x-rabbit-relay-token-key"] ||
+    request.headers["x-rabbit-relay-key"] ||
+    url.searchParams.get("relay_token_key") ||
+    url.searchParams.get("relay_key");
+  return hasLocalTestKey(presentedKey);
 }
 
 function getRelayToken() {
@@ -66,6 +71,38 @@ function getRelayToken() {
   return relayToken;
 }
 
+function getLocalTestValidator() {
+  if (!relayLocalTestKeyFile) {
+    return null;
+  }
+  try {
+    return JSON.parse(readFileSync(relayLocalTestKeyFile, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function hasLocalTestKey(presentedKey) {
+  const key = typeof presentedKey === "string" ? presentedKey.trim() : "";
+  if (!key) {
+    return false;
+  }
+  const validator = getLocalTestValidator();
+  if (!validator?.enabled || validator?.scope !== "a1_local_test_only") {
+    return false;
+  }
+  const activeKeys = Array.isArray(validator.activeKeys) ? validator.activeKeys : [];
+  return activeKeys.some((entry) => {
+    if (!entry || entry.key !== key || entry.revoked) {
+      return false;
+    }
+    if (entry.expiresAt && Date.parse(entry.expiresAt) <= Date.now()) {
+      return false;
+    }
+    return true;
+  });
+}
+
 function publicStatus() {
   const usesHttps = relayPublicUrl.startsWith("https://");
   const activeToken = getRelayToken();
@@ -77,6 +114,7 @@ function publicStatus() {
     upstream,
     publicUrl: relayPublicUrl || "not_configured",
     requiresAuth: true,
+    acceptsLocalTestKey: Boolean(getLocalTestValidator()?.enabled),
     publicUrlUsesHttps: usesHttps,
     allowedRoutes: [...allowedRoutes.keys()],
     exposesGatewaySecrets: false,
