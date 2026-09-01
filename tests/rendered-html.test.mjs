@@ -87,6 +87,9 @@ test("source includes the requested management affordances", async () => {
   assert.match(source, /Mac-local token file, read only by Hermes/);
   assert.match(source, /testing relay token/);
   assert.match(source, /Relay token required or incorrect/);
+  assert.match(source, /Token required/);
+  assert.match(source, /returned 401\. Relay token required or incorrect/);
+  assert.match(source, /role="alert"/);
   assert.match(source, /assets_ready_relay_auth_required/);
   assert.match(source, /relay_auth_required/);
   assert.match(source, /required if output says 401/);

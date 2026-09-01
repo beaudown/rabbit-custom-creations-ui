@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Creation = {
   id: string;
@@ -146,6 +146,18 @@ type StatusReadoutProps = {
   label: string;
   value: string;
   details?: string;
+};
+
+type RelayTokenDependency = {
+  schemaVersion?: number;
+  name?: string;
+  creation?: string;
+  key?: string;
+  relayToken?: string;
+  relayKey?: string;
+  relayTokenFile?: string;
+  brokerEndpoint?: string;
+  publicRelayUrl?: string;
 };
 
 const auditRecords = [
@@ -960,6 +972,20 @@ function initialRelayToken() {
   return new URLSearchParams(window.location.search).get("relay_token") || "";
 }
 
+function initialRelayTokenDependency() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return new URLSearchParams(window.location.search).get("relay_token_dependency") || "";
+}
+
+function initialRelayTokenDependencyKey() {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return new URLSearchParams(window.location.search).get("relay_token_key") || "";
+}
+
 function ExpandablePreview({ title, summary, value }: ExpandablePreviewProps) {
   return (
     <details className="expandBox">
@@ -1009,6 +1035,17 @@ export default function Home() {
   const [iMessageEndpoint] = useState(initialIMessageEndpoint);
   const [hermesEndpoint] = useState(initialHermesEndpoint);
   const [relayToken, setRelayToken] = useState(initialRelayToken);
+  const [relayKey, setRelayKey] = useState(initialRelayTokenDependencyKey);
+  const [relayTokenDependency] = useState(initialRelayTokenDependency);
+  const [relayTokenDependencyKey] = useState(initialRelayTokenDependencyKey);
+  const [relayAuthRequired, setRelayAuthRequired] = useState(false);
+  const [relayTokenStatus, setRelayTokenStatus] = useState(
+    initialRelayToken()
+      ? "Relay token loaded from launch parameter"
+      : initialRelayTokenDependency()
+        ? "Loading relay token dependency..."
+        : "Relay token not loaded",
+  );
   const [bridgeProbeStatus, setBridgeProbeStatus] = useState("Bridge not checked");
   const [bridgeRoutePreview, setBridgeRoutePreview] = useState("No route selected");
   const [serviceControlStatus, setServiceControlStatus] = useState("No service-control request sent");
@@ -1027,6 +1064,68 @@ export default function Home() {
   const [publishUrl, setPublishUrl] = useState(
     "https://beaudown.github.io/rabbit-custom-creations-ui/",
   );
+
+  useEffect(() => {
+    if (!relayTokenDependency) {
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch(relayTokenDependency, { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`dependency returned HTTP ${response.status}`);
+        }
+        return (await response.json()) as RelayTokenDependency;
+      })
+      .then((dependency) => {
+        if (cancelled) {
+          return;
+        }
+
+        if (dependency.creation !== "A1BrokerTestLocalToken") {
+          setRelayTokenStatus("Relay token dependency is not for A1");
+          return;
+        }
+
+        if (dependency.key !== relayTokenDependencyKey) {
+          setRelayTokenStatus("Relay token dependency key mismatch");
+          return;
+        }
+
+        const nextToken = dependency.relayToken?.trim() || "";
+        const nextKey = dependency.relayKey?.trim() || dependency.key?.trim() || "";
+        if (!nextToken && !nextKey) {
+          setRelayTokenStatus("Relay token dependency did not include a token or key");
+          return;
+        }
+
+        if (nextToken) {
+          setRelayToken(nextToken);
+        }
+        if (nextKey) {
+          setRelayKey(nextKey);
+        }
+        if (dependency.brokerEndpoint) {
+          setBrokerEndpoint(dependency.brokerEndpoint);
+        }
+        setRelayTokenStatus(
+          nextToken
+            ? `Relay token dependency loaded from ${dependency.relayTokenFile || "local dependency"}`
+            : "Relay key dependency loaded for local test",
+        );
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setRelayTokenStatus(`Relay token dependency failed: ${error.message}`);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [relayTokenDependency, relayTokenDependencyKey]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -1206,11 +1305,28 @@ export default function Home() {
     const headers = new Headers(init.headers);
     if (relayToken.trim()) {
       headers.set("x-rabbit-relay-token", relayToken.trim());
+    } else if (relayKey.trim()) {
+      headers.set("x-rabbit-relay-token-key", relayKey.trim());
     }
     return fetch(`${baseUrl}${path}`, {
       ...init,
       headers,
     });
+  }
+
+  function updateRelayToken(value: string) {
+    setRelayToken(value);
+    setRelayAuthRequired(false);
+    setRelayTokenStatus(
+      value.trim()
+        ? "Relay token entered. Rerun Step 1 and Step 2 only."
+        : "Relay token not loaded",
+    );
+  }
+
+  function markRelayAuthRequired(source: string) {
+    setRelayAuthRequired(true);
+    setRelayTokenStatus(`${source} returned 401. Relay token required or incorrect.`);
   }
 
   function relayAuthGuidance() {
@@ -1270,6 +1386,9 @@ export default function Home() {
       if (!healthResponse.ok || !routeResponse.ok || !adbResponse.ok) {
         const failed = endpointStatuses.filter((endpoint) => !endpoint.ok);
         const relayAuthRequired = failed.some((endpoint) => endpoint.status === 401);
+        if (relayAuthRequired) {
+          markRelayAuthRequired("Step 2 route check");
+        }
         setBridgeProbeStatus(
           relayAuthRequired
             ? "Relay token required or incorrect. Re-enter token, then rerun Step 1 and Step 2."
@@ -1311,6 +1430,7 @@ export default function Home() {
       setBridgeProbeStatus(
         `${typeof health.role === "string" ? health.role : "broker"} online; selected ${routeTarget}; privileged execution ${privilegedExecutionEnabled ? "enabled" : "disabled"}`,
       );
+      setRelayAuthRequired(false);
       setBridgeRoutePreview(
         JSON.stringify(
           {
@@ -1595,6 +1715,11 @@ export default function Home() {
       (result) => !result.requiredForRoute && !result.ok,
     );
     const relayAuthRequired = endpointResults.some((result) => result.status === 401);
+    if (relayAuthRequired) {
+      markRelayAuthRequired("Step 1 setup check");
+    } else if (coreBrokerReachable) {
+      setRelayAuthRequired(false);
+    }
     const offlineReady = serviceWorkerReady && cacheApiReady;
     const summary = {
       schemaVersion: 1,
@@ -1807,6 +1932,17 @@ export default function Home() {
 
   const isIMessageBrokerCreation = creationId === "iMessageHermesBroker";
   const isA1BrokerCreation = creationId.startsWith("A1BrokerTest");
+  const showRelayTokenField = !relayToken.trim() || relayAuthRequired;
+  const relayBadgeLabel = relayAuthRequired
+    ? "Token 401"
+    : relayToken.trim()
+      ? "Token loaded"
+      : "Needs token";
+  const relayBadgeClassName = relayAuthRequired
+    ? "a1Badge error"
+    : relayToken.trim()
+      ? "a1Badge ready"
+      : "a1Badge";
 
   if (isIMessageBrokerCreation) {
     return (
@@ -1856,25 +1992,45 @@ export default function Home() {
     return (
       <main className="shell">
         <section className="device">
-          <section className="rabbitStart" aria-label="A1 broker test setup">
-            <p className="eyebrow">A1 Route Check</p>
-            <h1>A1 Broker Test</h1>
+          <section className="rabbitStart a1Start" aria-label="A1 broker test setup">
+            <div className="a1Header">
+              <div>
+                <p className="eyebrow">A1 Route Check</p>
+                <h1>A1 Broker Test</h1>
+              </div>
+              <span className={relayBadgeClassName}>{relayBadgeLabel}</span>
+            </div>
             <p>
-              Use this Creation only for the A1 broker setup check and route
-              detection. It does not run root, ADB, reboot, install, fastboot,
-              recovery, iMessage, or broker start actions.
+              Run the two checks below. No iMessage, root, ADB, reboot,
+              install, fastboot, recovery, or broker start action runs here.
             </p>
-            <StatusReadout label="Broker URL" value={brokerEndpoint} />
-            <label className="simpleField">
-              <span>Relay token</span>
-              <input
-                value={relayToken}
-                onChange={(event) => setRelayToken(event.target.value)}
-                placeholder="required if output says 401"
-                type="password"
-              />
-              <small>401 means this token is missing or wrong. The token stays local and is never printed here.</small>
-            </label>
+            <div className="a1StatusGrid">
+              <StatusReadout label="Broker" value={brokerEndpoint} />
+              <StatusReadout label="Token" value={relayTokenStatus} />
+            </div>
+            {relayAuthRequired ? (
+              <section className="relayAuthNotice" role="alert" aria-live="assertive">
+                <strong>Token required</strong>
+                <span>401 means the broker was reached, but the relay token was missing or incorrect.</span>
+                <small>Enter the Mac relay token below, then run Step 1 and Step 2 only.</small>
+              </section>
+            ) : null}
+            {showRelayTokenField ? (
+              <label className="simpleField">
+                <span>Relay token</span>
+                <input
+                  value={relayToken}
+                  onChange={(event) => updateRelayToken(event.target.value)}
+                  placeholder="8 chars"
+                  type="password"
+                  inputMode="text"
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <small>Use the Mac token file only. Do not paste the token into chat, GitHub, or a QR.</small>
+              </label>
+            ) : null}
             <div className="simpleActions" aria-label="Safe A1 setup checks">
               <button className="primaryStartButton" onClick={runCreationReadinessCheck}>
                 1 Check setup
@@ -1883,8 +2039,10 @@ export default function Home() {
                 2 Detect route
               </button>
             </div>
-            <StatusReadout label="Setup" value={readinessStatus} details={readinessPreview} />
-            <StatusReadout label="Route" value={bridgeProbeStatus} details={bridgeRoutePreview} />
+            <div className="a1StatusGrid">
+              <StatusReadout label="Setup" value={readinessStatus} details={readinessPreview} />
+              <StatusReadout label="Route" value={bridgeProbeStatus} details={bridgeRoutePreview} />
+            </div>
             <p className="plainWarning">
               Stop after Step 2 and record the exact output before any later
               device-affecting work is considered.
@@ -1912,7 +2070,7 @@ export default function Home() {
             <span>Relay token</span>
             <input
               value={relayToken}
-              onChange={(event) => setRelayToken(event.target.value)}
+              onChange={(event) => updateRelayToken(event.target.value)}
               placeholder="required if output says 401"
               type="password"
             />

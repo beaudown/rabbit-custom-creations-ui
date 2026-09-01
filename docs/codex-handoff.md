@@ -44,6 +44,9 @@ Current state:
 - Testing QR is allowed only for route/service diagnostics.
 - Rabbit-originated route/auth reachability is verified from the user's Step 1
   and Step 2 output.
+- If Rabbit output or inspection shows `token required 401`, the A1 screen now
+  shows a visible `Token required` alert, marks the header as `Token 401`, and
+  keeps the relay token input available so the token can be re-entered.
 - Step 2 currently needs the deployed UI unwrap fix because the relay envelope
   caused the display to say `selected undefined`.
 - No relay token is stored in GitHub, shared memory, QR payloads, or this file.

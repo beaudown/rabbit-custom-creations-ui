@@ -215,6 +215,21 @@ Updated: 2026-08-23 19:22 PDT
   reboot, install, recovery, flash, OpenClaw auth change, Hermes lifecycle
   change, or privileged execution occurred.
 
+## 2026-08-31 - A1 401 token prompt fix
+
+- User reported the Rabbit Creation did not show a notification, but inspection
+  showed `token required 401`.
+- Updated the A1 Broker Test screen so a 401 marks the header as `Token 401`,
+  shows a visible in-app `Token required` alert, and keeps the relay token input
+  available for correction even when a previous token value exists.
+- The alert explains that 401 means the broker was reached but the relay token
+  was missing or incorrect.
+- The only next user action after seeing this alert is to re-enter the Mac relay
+  token and rerun Step 1 and Step 2 only.
+- No token value, header value, Rabbit device command, ADB, fastboot, root/SU,
+  reboot, install, recovery, flash, OpenClaw auth change, Hermes lifecycle
+  change, public exposure change, or privileged execution occurred.
+
 ## What Has Been Built
 
 - Dark, high-contrast hosted PWA for Rabbit r1 custom creations and Superuser Management.

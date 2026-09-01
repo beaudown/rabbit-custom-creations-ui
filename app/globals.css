@@ -236,6 +236,105 @@ select {
   font-weight: 800;
 }
 
+.a1Start {
+  min-height: 100%;
+  gap: 10px;
+  margin-bottom: 0;
+  padding: 14px;
+}
+
+.a1Header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.a1Header h1 {
+  font-size: 1.52rem;
+}
+
+.a1Badge {
+  flex: 0 0 auto;
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 209, 102, 0.55);
+  border-radius: 8px;
+  color: #ffd166;
+  padding: 0 9px;
+  font-size: 0.7rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.a1Badge.ready {
+  border-color: rgba(164, 255, 99, 0.55);
+  color: var(--accent-2);
+}
+
+.a1Badge.error {
+  border-color: rgba(255, 99, 99, 0.72);
+  color: #ff9c9c;
+}
+
+.relayAuthNotice {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(255, 99, 99, 0.62);
+  border-radius: 8px;
+  background: rgba(82, 14, 20, 0.86);
+  color: #fff5f6;
+  padding: 10px;
+}
+
+.relayAuthNotice strong {
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.relayAuthNotice span,
+.relayAuthNotice small {
+  overflow-wrap: anywhere;
+}
+
+.relayAuthNotice span {
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.relayAuthNotice small {
+  color: #ffd6de;
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.a1StatusGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.a1Start .simpleStatus {
+  min-height: 46px;
+  padding: 10px;
+}
+
+.a1Start .simpleStatus strong {
+  font-size: 0.7rem;
+}
+
+.a1Start .simpleStatus span {
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+.a1Start .primaryStartButton {
+  min-height: 72px;
+  font-size: 1.08rem;
+}
+
 .topbar,
 .searchRow,
 .contentHeader,
